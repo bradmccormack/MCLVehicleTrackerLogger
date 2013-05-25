@@ -111,7 +111,6 @@ div#Maincontent
 {
 	background-color: red;
 	height: 70%;
-	width: 100%;
 }
 
 div#Mainfooter
@@ -126,11 +125,16 @@ div#Mainlogo
 	background-color: orange;
 }
 
+div#Mainnav
+{
+	height: 100%;
+	background-color: white;
+	
+}
 div#Mainuser
 {
 
 	background-color: black;
-	width: 100%;
 }
 
 div#Mainsummary
