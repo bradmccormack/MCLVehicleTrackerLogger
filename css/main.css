@@ -94,6 +94,42 @@ textarea {
    ========================================================================== */
 
 
+html, body
+{
+	height: 100%;
+}
+
+div#Mainheader
+{
+	padding-top: 5px;
+	padding-bottom: 5px;
+	background-color: yellow;
+}
+
+div#Maincontent
+{
+	background-color: red;
+	height: 70%;
+	width: 100%;
+}
+
+div#Mainfooter
+{
+	background-color: blue;
+	height: 20%;
+}
+
+div#Mainlogo
+{
+	height: 100%;
+	background-color: orange;
+}
+
+div#Mainuser
+{
+	height: 100%;
+	background-color: black;
+}
 
 
 
