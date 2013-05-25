@@ -97,6 +97,7 @@ textarea {
 html, body
 {
 	height: 100%;
+	width 100%;
 }
 
 div#Mainheader
@@ -121,17 +122,28 @@ div#Mainfooter
 
 div#Mainlogo
 {
-	height: 100%;
+
 	background-color: orange;
 }
 
 div#Mainuser
 {
-	height: 100%;
+
 	background-color: black;
+	width: 100%;
 }
 
+div#Mainsummary
+{
 
+	background-color: white;
+}
+
+div#Mainlegend
+{
+
+	background-color: green;
+}
 
 
 
