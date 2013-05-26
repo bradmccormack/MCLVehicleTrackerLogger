@@ -1,6 +1,8 @@
 /*
  * TODO figure out a nice abstraction over the Map API vendors so I can swap around simply by changing the active API in the backend.
  * Some clients may want functionality that is available in paid Google Maps API so we can swap over to that easily
+ * 
+ * http://www.bing.com/maps/ I don't mind the slider (map expand widget) add that 
  */
 
 
@@ -78,11 +80,43 @@ var MapAPI =
 };
 
 
+var System = (function(){
+	
+	var Colours = [];
+	
+	return {
+		
+
+		
+		updateLegend: function(JSON) {
+			//We need to know if the GPS signal is correct or not (Fix status is true)
+			if(JSON.Vehicles.length > 0) {
+				var Legend = $("div#Mainlegend div#Vehiclelegend ul");
+			
+	
+				JSON.Vehicles.forEach(function(Vehicle){
+					Legend.append('<li><a href="#"><i class="icon-truck"></i> ' + Vehicle +'</a></li>');
+				});
+			
+			}
+			else {
+				
+			}
+		}
+	}
+});
+
 
 $(document).ready(function() {
 	
 	var defaultLocation = { Latitude: 34.50094, Longitude: 150.81060 };
 	var mapAPI = new MapAPI.Active(51.505, -0.09, 18, "Mainmap");
+	var system = new System();
+	
+	//add a couple of vehicles in hard coded for now
+	system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
+	
+	
 	
 	/*
 	mapAPI.onClick(function(e){

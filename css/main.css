@@ -120,17 +120,19 @@ div#Mainuser
 }
 
 
-
 div#Maincontent
 {
-	background-color: red;
+	border:2px solid #d9d9d9;
+	border-color: rgba(50,102,102,0,25);
+	z-index: 1;
+	background: #e5e3df;
+	overflow: hidden;
 	height: 80%;
 }
 
 div#Mainfooter
 {
-	background-color: grey;
-	height: 20%;
+	height: 10%;
 }
 
 
@@ -138,21 +140,18 @@ div#Mainnav
 {
 	height: 100%;
 	background-color: white;
-	
 }
 
 
 div#Mainsummary
 {
-	background-color: purple;
 	height: 100%;
 }
 
 div#Mainlegend
 {
-
-	background-color: green;
-	height: 100%;
+	overflow-y: scroll;
+	overflow-x: hidden;
 }
 
 div#Mainmap
