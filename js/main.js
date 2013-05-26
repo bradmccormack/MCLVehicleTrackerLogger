@@ -5,13 +5,6 @@
 
 
 
-var MapAPI = 
-{
-	Active : Leaflet,
-	Vendors: [Leaflet, Google, Bing, MapQuest]
-	
-};
-
 var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
 	throw "Not Implemented";
 });
@@ -34,7 +27,18 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 		this.Latitude = Latitude;
 		this.Longitude = Longitude;
 		map = L.map(divid).setView([Latitude, Longitude], Zoom);
-	    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+	    
+	    /*
+		L.tileLayer('http://{s}.tile.cloudmade.com/6c45216fc160453e9dec40f0f9cd1312/997/256/{z}/{x}/{y}.png', {
+	    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+	    maxZoom: 13
+		}).addTo(map);
+	    */
+	    
+	   
+	    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+	    }).addTo(map);
+	    
 	}
     
     /*
@@ -45,7 +49,7 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
     */
   
 	divid = DivID || "map";
-	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 13);
+	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
     
 
 	
@@ -55,20 +59,36 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 		},
 		setMarker: function(Latitude, Longitude, Text) {
 			L.marker([Latitude, Longitude]).addTo(map).bindPopup(Text).openPopup();
+		},
+		onClick: function(funct) {
+			map.on("click", function(e) {
+				funct({Location: e.latlng});
+			})
+			
 		}
-		
 		
 	}
 });
 
-
+var MapAPI = 
+{
+	Active : Leaflet,
+	Vendors: [Leaflet, Google, Bing, MapQuest]
+	
+};
 
 
 
 $(document).ready(function() {
 	
-	var MapAPI = new MapAPI.Active(51.505, -0.09, 13, "Mainmap");
-
+	var defaultLocation = { Latitude: 34.50094, Longitude: 150.81060 };
+	var mapAPI = new MapAPI.Active(51.505, -0.09, 18, "Mainmap");
+	
+	/*
+	mapAPI.onClick(function(e){
+		alert("Clicked at " + e.Location);
+	})
+	*/
 
 
 	

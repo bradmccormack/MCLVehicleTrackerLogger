@@ -102,28 +102,37 @@ html, body
 
 div#Mainheader
 {
+	/*
 	padding-top: 5px;
 	padding-bottom: 5px;
-	background-color: yellow;
-}
-
-div#Maincontent
-{
-	background-color: red;
-	height: 70%;
-}
-
-div#Mainfooter
-{
-	background-color: blue;
-	height: 20%;
+	*/
+	height: 40px;
 }
 
 div#Mainlogo
 {
 
-	background-color: orange;
 }
+
+div#Mainuser
+{
+
+}
+
+
+
+div#Maincontent
+{
+	background-color: red;
+	height: 80%;
+}
+
+div#Mainfooter
+{
+	background-color: grey;
+	height: 20%;
+}
+
 
 div#Mainnav
 {
@@ -131,22 +140,19 @@ div#Mainnav
 	background-color: white;
 	
 }
-div#Mainuser
-{
 
-	background-color: black;
-}
 
 div#Mainsummary
 {
-
-	background-color: white;
+	background-color: purple;
+	height: 100%;
 }
 
 div#Mainlegend
 {
 
 	background-color: green;
+	height: 100%;
 }
 
 div#Mainmap
@@ -155,7 +161,10 @@ div#Mainmap
 }
 
 
-
+.row-heightmax
+{
+	height: 100%;
+}
 
 
 
