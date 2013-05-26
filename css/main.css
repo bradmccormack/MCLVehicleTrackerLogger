@@ -107,6 +107,8 @@ div#Mainheader
 	padding-bottom: 5px;
 	*/
 	height: 40px;
+	background-color: #1b1b1b;
+	color: white;
 }
 
 div#Mainlogo
@@ -116,7 +118,7 @@ div#Mainlogo
 
 div#Mainuser
 {
-
+	margin-top: 5px;
 }
 
 
@@ -138,6 +140,7 @@ div#Mainfooter
 div#Mainnav
 {
 	height: 100%;
+    border-style: outset;
 	background-color: white;
 	border-width:1px;
 }
