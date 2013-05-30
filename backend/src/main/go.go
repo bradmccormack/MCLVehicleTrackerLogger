@@ -7,8 +7,9 @@ import (
     "time"
     "strings"
     "strconv"
+    "database/sql"
+    _"github.com/mattn/go-sqlite3"
 )
-
 
 type GPSRecord struct{
     latitude string
@@ -23,6 +24,14 @@ type GPSRecord struct{
 }
 
 func main() {
+
+    db, err := sql.Open("sqlite3", "./backend.db")
+    if err != nil {
+        fmt.Printf("Cannot open backend.db . Exiting")
+        os.Exit(1)
+    }
+    defer db.Close()
+
 
     service := ":215";
     udpAddr, err := net.ResolveUDPAddr("udp4", service);
@@ -48,8 +57,22 @@ func notifyHTTP(entry *GPSRecord){
 }
 
 func logEntry(entry *GPSRecord)  {
+    //WIP
+    tx, err := db.Begin()
+    result, err = db.Exec("INSERT INTO GPSRecords (id, Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ? , ?)",
+         entry.message,
+         entry.latitude,
+         entry.longitude,
+         entry.speed,
+         entry.heading,
+         entry.date,
+         entry.time,
+         entry.fix,
+         entry.ID)
 
-    //save the entry to the DB
+    if err != nil || result.RowsAffected == 0 {
+        fmt.Printf("Failed to insert row");
+    }
 
      //daytime := time.Now().String()
 }
