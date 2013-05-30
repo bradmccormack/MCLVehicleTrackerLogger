@@ -5,8 +5,22 @@ import (
     "net"
     "os"
     "time"
+    "strings"
+    "strconv"
 )
 
+
+type GPSRecord struct{
+    latitude string
+    longitude string
+    message string
+    speed int
+    heading float64
+    fix bool
+    date time.Time
+    time time.Time
+    ID string
+}
 
 func main() {
 
@@ -28,28 +42,62 @@ func main() {
     }
  }
 
+
+func notifyHTTP(entry *GPSRecord){
+     //http://html5labs.interoperabilitybridges.com/prototypes/websockets/websockets/info    -- WOOT it's possible to use web sockets on the client
+}
+
+func logEntry(entry *GPSRecord)  {
+
+    //save the entry to the DB
+
+     //daytime := time.Now().String()
+}
+
     //palm off reading and writing to a go routine
 func handleClient(conn *net.UDPConn) {
-        //defer conn.Close();
+        defer conn.Close();
         var buff [512]byte
-        var gps string
-
-        /*GPS input will look like
-         P L-34.50108,150.81094,S0.00,H147.2,D2013-05-26,T11:00:18,Ftrue,ISUS01
-        P= This is a position message, L is lattitude and longitude seperated by comma, S is Speed in KM/H H is heading in degrees
-        F is boolean fix or not D will be date and T for time  and I will be ID of logger
-        */
+        var entry GPSRecord
 
         n, addr, err := conn.ReadFromUDP(buff[:])
         if err != nil {
             fmt.Printf("Error reading from UDP")
         }
 
-        gps = string(buff[:n]);
+        gpsfields := strings.Split(string(buff[:n]), ",");
+        if len(gpsfields) != 9 {
+            fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 9)
+            os.Exit(1)
+        }
+        //All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
 
-        daytime := time.Now().String()
-        conn.WriteToUDP([]byte(daytime), addr)
-        fmt.Printf("Responded")
+        entry.message = gpsfields[0][1:]
+        entry.latitude = gpsfields[1][1:]
+        entry.longitude = gpsfields[2]
+        entry.speed, _ = strconv.Atoi(gpsfields[3][1:])
+        entry.heading, _  = strconv.ParseFloat(gpsfields[4][1:], 32)
+        entry.date, _ = time.Parse(  time.RFC822 ,gpsfields[5][2:])  //todo pull out just the date component and format
+        entry.time, _ = time.Parse(  time.RFC822 , gpsfields[6][1:]) //todo pull out just the time component and format
+        entry.fix = gpsfields[7][1:] == "true";
+        entry.ID = gpsfields[8]
+
+        fmt.Printf("Message %s Lat %s Long %s speed %d heading %f fix %t date %s time %s id %s\n",
+        entry.message,
+        entry.latitude,
+        entry.longitude,
+        entry.speed,
+        entry.heading,
+        entry.fix,
+        entry.date,
+        entry.time,
+        entry.ID)
+
+        go logEntry(&entry) //save to database
+        go notifyHTTP(&entry) //notify any HTTP observers
+
+        conn.WriteToUDP([]byte("OK"), addr)
+        fmt.Printf("Responded to %s", addr)
         conn.Close();
 
 }
