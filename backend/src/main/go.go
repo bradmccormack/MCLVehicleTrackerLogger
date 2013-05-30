@@ -1,3 +1,5 @@
+//https://github.com/mattn/go-sqlite3 Add this driver
+
 package main
 
 import (
@@ -8,7 +10,7 @@ import (
     "strings"
     "strconv"
     "database/sql"
-    _"github.com/mattn/go-sqlite3"
+	//"database/sql/driver"
 )
 
 type GPSRecord struct{
@@ -25,7 +27,7 @@ type GPSRecord struct{
 
 func main() {
 
-    db, err := sql.Open("sqlite3", "./backend.db")
+    db, err := sql.Open("sqlite3", "backend.db")
     if err != nil {
         fmt.Printf("Cannot open backend.db . Exiting")
         os.Exit(1)
@@ -58,6 +60,7 @@ func notifyHTTP(entry *GPSRecord){
 
 func logEntry(entry *GPSRecord)  {
     //WIP
+    /*
     tx, err := db.Begin()
     result, err = db.Exec("INSERT INTO GPSRecords (id, Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ? , ?)",
          entry.message,
@@ -74,6 +77,7 @@ func logEntry(entry *GPSRecord)  {
         fmt.Printf("Failed to insert row");
     }
 
+    */
      //daytime := time.Now().String()
 }
 
