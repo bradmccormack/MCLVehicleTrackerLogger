@@ -1,13 +1,12 @@
 package main
 
-//var addr = flag.String("addr", ":8080", "http service address")
-
 import (
 	"database/sql"
 	"flag"
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
 	_ "github.com/mattn/go-sqlite3"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -31,6 +30,8 @@ type GPSRecord struct {
 var service = flag.String("service", ":6969", "udp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 
+var con *websocket.Conn //fix me up this is dirty (use channels and stuff later)
+
 func handleHTTP() {
 	fmt.Printf("Listening for HTTP on %s\n", *addr)
 	//go h.run()
@@ -40,12 +41,16 @@ func handleHTTP() {
 			http.Error(w, "Method not allowed", 405)
 			return
 		}
-		if r.Header.Get("Origin") != "http://"+r.Host {
-			http.Error(w, "Origin not allowed", 403)
-			return
-		}
 
-		ws, err := websocket.Upgrade(w, r.Header, nil, 1024, 1024)
+		/*
+			if r.Header.Get("Origin") != "http://"+r.Host {
+				http.Error(w, "Origin not allowed", 403)
+				return
+			}
+		*/
+
+		var err error
+		con, err = websocket.Upgrade(w, r.Header, nil, 1024, 1024)
 		if _, ok := err.(websocket.HandshakeError); ok {
 			http.Error(w, "Not a websocket handshake", 400)
 			return
@@ -55,9 +60,9 @@ func handleHTTP() {
 			return
 		}
 
-		defer ws.Close()
+		//defer con.Close()
 
-		fmt.Printf("Received a request via web socket route. YAY")
+		//fmt.Printf("Received a request via web socket route. YAY")
 	})
 
 	err := http.ListenAndServe(*addr, nil)
@@ -98,8 +103,15 @@ func main() {
 	}
 }
 
-func notifyHTTP(entry *GPSRecord) {
-	//http://html5labs.interoperabilitybridges.com/prototypes/websockets/websockets/info    -- WOOT it's possible to use web sockets on the client
+func updateClient(entry *GPSRecord) {
+	if con != nil {
+		wswriter, _ := con.NextWriter(websocket.OpText)
+
+		io.WriteString(wswriter, string(entry.latitude+","+entry.longitude)) //we want to write some JSON instead of text for now just do a dodgy string
+		//http://html5labs.interoperabilitybridges.com/prototypes/websockets/websockets/info    -- WOOT it's possible to use web sockets on the client
+	} else {
+		fmt.Printf("Web socket is closed")
+	}
 }
 
 func logEntry(db *sql.DB, entry *GPSRecord) {
@@ -163,7 +175,7 @@ func handleClient(db *sql.DB, conn *net.UDPConn) {
 		entry.ID)
 
 	go logEntry(db, &entry) //save to database
-	go notifyHTTP(&entry)   //notify any HTTP observers
+	updateClient(&entry)    //notify any HTTP observers //make this a goroutine later
 
 	conn.WriteToUDP([]byte("OK"), addr)
 	fmt.Printf("Responded to %s\n", addr)
