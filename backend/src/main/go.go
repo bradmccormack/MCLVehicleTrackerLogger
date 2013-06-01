@@ -1,11 +1,15 @@
 package main
 
+//var addr = flag.String("addr", ":8080", "http service address")
+
 import (
 	"database/sql"
 	"flag"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -24,6 +28,20 @@ type GPSRecord struct {
 }
 
 var service = flag.String("service", ":6969", "udp port to bind to")
+var addr = flag.String("addr", ":8080", "http(s)) service address")
+
+func handleHTTP() {
+	fmt.Printf("Listening for HTTP on %s\n", *addr)
+	//go h.run()
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Received a request via web socket route. YAY")
+	})
+
+	err := http.ListenAndServe(*addr, nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
 
 func main() {
 
@@ -41,7 +59,10 @@ func main() {
 		fmt.Printf("Failed to resolve UDP address")
 		os.Exit(1)
 	}
-	fmt.Printf("Listening on UDP Port %s", *service)
+
+	fmt.Printf("Listening on UDP Port %s\n", *service)
+
+	go handleHTTP()
 
 	for {
 		con, err := net.ListenUDP("udp", udpAddr)
@@ -100,6 +121,9 @@ func handleClient(db *sql.DB, conn *net.UDPConn) {
 	entry.longitude = gpsfields[2]
 	entry.speed, _ = strconv.Atoi(gpsfields[3][1:])
 	entry.heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
+
+	fmt.Printf("The date that I was sent was %s\n", gpsfields[5][1:])
+
 	entry.date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
 	entry.fix = gpsfields[6][1:] == "true"
 	entry.ID = gpsfields[7]
