@@ -4,14 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Net.Sockets;
 using System.Diagnostics;
+using System.Xml;
+
 
 namespace testwpf
 {
     class Program
     {
-        static void Main(string[] args)
+        
+	
+
+	static void Main(string[] args)
         {
-            var dt = DateTime.Now.ToString("r").Replace(",", "");
+	    var dt = XmlConvert.ToString(DateTime.Now, XmlDateTimeSerializationMode.Utc);
             Console.WriteLine(dt);
 
             UdpClient udpClient = new UdpClient("127.0.0.1", 215);

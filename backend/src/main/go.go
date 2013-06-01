@@ -86,6 +86,7 @@ func handleClient(db *sql.DB, conn *net.UDPConn) {
 	gpsfields := strings.Split(string(buff[:n]), ",")
 	if len(gpsfields) != 8 {
 		fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
+		fmt.Printf("The source string was %s\n", string(buff[:n]))
 		os.Exit(1)
 	}
 	//All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
@@ -95,7 +96,7 @@ func handleClient(db *sql.DB, conn *net.UDPConn) {
 	entry.longitude = gpsfields[2]
 	entry.speed, _ = strconv.Atoi(gpsfields[3][1:])
 	entry.heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
-	entry.date, _ = time.Parse(time.RFC822, gpsfields[5][1:]) //todo pull out just the date component and format
+	entry.date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
 	entry.fix = gpsfields[6][1:] == "true"
 	entry.ID = gpsfields[7]
 
