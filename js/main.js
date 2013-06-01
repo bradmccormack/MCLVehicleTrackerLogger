@@ -95,15 +95,15 @@ var System = (function(){
 
 
                     Con.onopen = function() {
-                        Con.send("test message");
+                        //Con.send("test message");
                     };
 
                     Con.onclose = function(evt) {
-                        alert("Closing web socket");
+                        //alert("Closing web socket");
                         //appendLog($("<div><b>Connection closed.</b></div>"))
                     }
                     Con.onmessage = function(evt) {
-                        alert("Message received " + evt.data);
+                        //alert("Message received " + evt.data);
                         //appendLog($("<div/>").text(evt.data))
                     }
             } else {
@@ -132,9 +132,12 @@ var System = (function(){
 
 
 $(document).ready(function() {
-	
-	var defaultLocation = { Latitude: 34.50094, Longitude: 150.81060 };
-	var mapAPI = new MapAPI.Active(51.505, -0.09, 18, "Mainmap");
+
+
+    //OpText
+	var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
+
+    var mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
 	var system = new System();
 	
 
