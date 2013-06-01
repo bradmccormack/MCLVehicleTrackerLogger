@@ -23,7 +23,7 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	
 	var map;
 	var divid;
-	
+
 	function setview(Latitude, Longitude, Zoom)
 	{
 		this.Latitude = Latitude;
@@ -37,7 +37,7 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 		}).addTo(map);
 	    */
 	    
-	   
+
 	    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 	    }).addTo(map);
 	    
@@ -52,15 +52,25 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
   
 	divid = DivID || "map";
 	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
-    
 
-	
+    var latlng;
+	var marker;
 	return {
 		setView: function(Latitude, Longitude, Zoom) {
 			setview(Latitude, Longitude, Zoom);
 		},
 		setMarker: function(Latitude, Longitude, Text) {
-			L.marker([Latitude, Longitude]).addTo(map).bindPopup(Text).openPopup();
+            latlng = new L.LatLng(Latitude, Longitude);
+            if(!marker) {
+               marker = L.marker(latlng).addTo(map);
+            }
+            else {
+                marker.setLatLng(latlng);
+            }
+
+
+            //if(Text)
+            //    .bindPopup(Text).openPopup();
 		},
 		onClick: function(funct) {
 			map.on("click", function(e) {
@@ -103,6 +113,10 @@ var System = (function(){
                         //appendLog($("<div><b>Connection closed.</b></div>"))
                     }
                     Con.onmessage = function(evt) {
+                        var cords = evt.data.split(",");
+
+                        mapAPI.setMarker(cords[0],cords[1]);
+
                         //alert("Message received " + evt.data);
                         //appendLog($("<div/>").text(evt.data))
                     }
@@ -130,28 +144,32 @@ var System = (function(){
 	}
 });
 
+var mapAPI = {};
 
 $(document).ready(function() {
+
+    var system = new System();
+    system.init();
 
 
     //OpText
 	var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
 
-    var mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
-	var system = new System();
-	
+    mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
 
-	system.init();
+
 	//add a couple of vehicles in hard coded for now
 	system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
 	
 	
 	
-	/*
+    /*
 	mapAPI.onClick(function(e){
 		alert("Clicked at " + e.Location);
 	})
 	*/
+
+
 
 
 	
