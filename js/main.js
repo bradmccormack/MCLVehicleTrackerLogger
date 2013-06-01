@@ -88,17 +88,24 @@ var System = (function(){
 	return {
 		init: function() {
             if (window["WebSocket"]) {
-                    alert("Browser supports Web Sockets. Yay");
-                    Con = new WebSocket("ws://{{$}}/ws");
+                    //alert("Browser supports Web Sockets. Yay");
+                    Con = new WebSocket("ws://myclublink.com.au:8080/ws");
+                    //if(Con)
+                    //    Con.send("test message");
 
-                Con.onclose = function(evt) {
-                    alert("Closing web socket");
-                    //appendLog($("<div><b>Connection closed.</b></div>"))
-                }
-                Con.onmessage = function(evt) {
-                    alert("Message received " + evt.data);
-                    //appendLog($("<div/>").text(evt.data))
-                }
+
+                    Con.onopen = function() {
+                        Con.send("test message");
+                    };
+
+                    Con.onclose = function(evt) {
+                        alert("Closing web socket");
+                        //appendLog($("<div><b>Connection closed.</b></div>"))
+                    }
+                    Con.onmessage = function(evt) {
+                        alert("Message received " + evt.data);
+                        //appendLog($("<div/>").text(evt.data))
+                    }
             } else {
                 alert("Your browser does not support WebSockets. You cannot use myClublink until you upgrade to a modern browser");
             }

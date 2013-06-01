@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/garyburd/go-websocket/websocket"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net"
@@ -34,11 +35,34 @@ func handleHTTP() {
 	fmt.Printf("Listening for HTTP on %s\n", *addr)
 	//go h.run()
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method != "GET" {
+			http.Error(w, "Method not allowed", 405)
+			return
+		}
+		if r.Header.Get("Origin") != "http://"+r.Host {
+			http.Error(w, "Origin not allowed", 403)
+			return
+		}
+
+		ws, err := websocket.Upgrade(w, r.Header, nil, 1024, 1024)
+		if _, ok := err.(websocket.HandshakeError); ok {
+			http.Error(w, "Not a websocket handshake", 400)
+			return
+		} else if err != nil {
+
+			log.Println(err)
+			return
+		}
+
+		defer ws.Close()
+
 		fmt.Printf("Received a request via web socket route. YAY")
 	})
 
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
+		fmt.Printf("Failed to listen for http on %s", *addr)
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
