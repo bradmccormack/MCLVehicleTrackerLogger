@@ -31,7 +31,7 @@ func main() {
 	}
 	defer db.Close()
 
-	service := ":215"
+	service := ":6969"
 	udpAddr, err := net.ResolveUDPAddr("udp4", service)
 	if err != nil {
 		fmt.Printf("Failed to resolve UDP address")

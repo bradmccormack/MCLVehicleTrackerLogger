@@ -81,11 +81,28 @@ var MapAPI =
 
 
 var System = (function(){
-	
+
+    var Con;
 	var Colours = [];
 	
 	return {
-		
+		init: function() {
+            if (window["WebSocket"]) {
+                    alert("Browser supports Web Sockets. Yay");
+                    Con = new WebSocket("ws://{{$}}/ws");
+
+                Con.onclose = function(evt) {
+                    alert("Closing web socket");
+                    //appendLog($("<div><b>Connection closed.</b></div>"))
+                }
+                Con.onmessage = function(evt) {
+                    alert("Message received " + evt.data);
+                    //appendLog($("<div/>").text(evt.data))
+                }
+            } else {
+                alert("Your browser does not support WebSockets. You cannot use myClublink until you upgrade to a modern browser");
+            }
+        },
 
 		
 		updateLegend: function(JSON) {
@@ -113,6 +130,8 @@ $(document).ready(function() {
 	var mapAPI = new MapAPI.Active(51.505, -0.09, 18, "Mainmap");
 	var system = new System();
 	
+
+	system.init();
 	//add a couple of vehicles in hard coded for now
 	system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
 	
