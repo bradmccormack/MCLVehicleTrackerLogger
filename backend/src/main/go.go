@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"net"
@@ -22,7 +23,11 @@ type GPSRecord struct {
 	ID        string
 }
 
+var service = flag.String("service", ":6969", "udp port to bind to")
+
 func main() {
+
+	flag.Parse()
 
 	db, err := sql.Open("sqlite3", "./backend.db")
 	if err != nil {
@@ -31,13 +36,12 @@ func main() {
 	}
 	defer db.Close()
 
-	service := ":6969"
-	udpAddr, err := net.ResolveUDPAddr("udp4", service)
+	udpAddr, err := net.ResolveUDPAddr("udp4", *service)
 	if err != nil {
 		fmt.Printf("Failed to resolve UDP address")
 		os.Exit(1)
 	}
-	fmt.Printf("Listening on UDP Port %s", service)
+	fmt.Printf("Listening on UDP Port %s", *service)
 
 	for {
 		con, err := net.ListenUDP("udp", udpAddr)
