@@ -5,24 +5,89 @@
  * http://www.bing.com/maps/ I don't mind the slider (map expand widget) add that 
  */
 
-
+var genericCallback;
 
 var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
 	throw "Not Implemented";
 });
 
-var Bing = (function(Latitude, Longitude, Zoom, DivID) {
+var BingMaps = (function(Latitude, Longitude, Zoom, DivID) {
 	throw "Not Implemented";
 });
 
-var Google = (function(Latitude, Longitude, Zoom, DivID) {
-	throw "Not Implemented";
+var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
+    var map;
+    var divid;
+    var apiKey = "AIzaSyC5wXV9B15WaWQ08qMDD-0O-ZihSnbpi48"; //todo find a way to make this more hidden
+    var latlng;
+    var marker;
+
+
+    function init()
+    {
+        var mapProp = {
+            center:new google.maps.LatLng(Latitude, Longitude),
+            zoom: Zoom || 15,
+            mapTypeId:google.maps.MapTypeId.ROADMAP
+        };
+
+        map = new google.maps.Map(document.getElementById(DivID || "map")
+            ,mapProp);
+    }
+
+    function setview(Latitude, Longitude, Zoom)
+    {
+        this.Latitude = Latitude;
+        this.Longitude = Longitude;
+    }
+
+
+    if(!("google" in window)) {
+
+        genericCallback = init;
+        var url = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true&callback=genericCallback";
+        $.getScript(url, function() {
+            if("google" in window)  {
+                google.maps.visualRefresh = true;
+            }
+        });
+    }
+    else
+    {
+        init();
+    }
+
+
+
+    setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
+
+    return {
+        setView: function(Latitude, Longitude, Zoom) {
+            setview(Latitude, Longitude, Zoom);
+        },
+        setMarker: function(Latitude, Longitude, Text) {
+
+
+            //if(Text)
+            //    .bindPopup(Text).openPopup();
+        },
+        onClick: function(funct) {
+            map.on("click", function(e) {
+                funct({Location: e.latlng});
+            })
+
+        }
+
+    }
 });
 
 var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	
 	var map;
 	var divid;
+    var latlng;
+    var marker;
+
 
 	function setview(Latitude, Longitude, Zoom)
 	{
@@ -42,19 +107,12 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	    }).addTo(map);
 	    
 	}
-    
-    /*
-    if(typeof(L) == "undefined") {
-    	Console.log("The leaflet JS resource has not loaded!");
-    	return;
-    }
-    */
   
 	divid = DivID || "map";
 	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 
-    var latlng;
-	var marker;
+
+
 	return {
 		setView: function(Latitude, Longitude, Zoom) {
 			setview(Latitude, Longitude, Zoom);
@@ -84,8 +142,9 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 
 var MapAPI = 
 {
-	Active : Leaflet,
-	Vendors: [Leaflet, Google, Bing, MapQuest]
+	//Active : Leaflet,
+    Active: GoogleMaps,
+	Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
 	
 };
 
