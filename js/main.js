@@ -16,19 +16,21 @@ var BingMaps = (function(Latitude, Longitude, Zoom, DivID) {
 });
 
 var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
+
+
+    //var mapTypes = { MapTypeId.ROADMAP, MapTypeId.SATELLITE, MapTypeId.HYBRID, MapTypeId.TERRAIN }
     var map;
     var divid;
     var apiKey = "AIzaSyC5wXV9B15WaWQ08qMDD-0O-ZihSnbpi48"; //todo find a way to make this more hidden
     var latlng;
     var marker;
 
-
     function init()
     {
         var mapProp = {
-            center:new google.maps.LatLng(Latitude, Longitude),
+            center: new google.maps.LatLng(Latitude, Longitude),
             zoom: Zoom || 15,
-            mapTypeId:google.maps.MapTypeId.ROADMAP
+            mapTypeId: google.maps.MapTypeId.HYBRID
         };
 
         map = new google.maps.Map(document.getElementById(DivID || "map")
@@ -57,8 +59,6 @@ var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
         init();
     }
 
-
-
     setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 
     return {
@@ -66,10 +66,19 @@ var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
             setview(Latitude, Longitude, Zoom);
         },
         setMarker: function(Latitude, Longitude, Text) {
+            if(!marker) {
+                marker = new google.maps.Marker({
+                position: new google.maps.LatLng(Latitude, Longitude),
+                map: map});
+                if(Text)
+                    marker.Text = Text;
+                }
+            else {
+                marker.setPosition(new google.maps.LatLng(Latitude, Longitude));
+                if(Text)
+                    marker.setTitle(Text);
+            }
 
-
-            //if(Text)
-            //    .bindPopup(Text).openPopup();
         },
         onClick: function(funct) {
             map.on("click", function(e) {
@@ -125,10 +134,8 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
             else {
                 marker.setLatLng(latlng);
             }
-
-
-            //if(Text)
-            //    .bindPopup(Text).openPopup();
+            if(Text)
+               marker.bindPopup(Text).openPopup();
 		},
 		onClick: function(funct) {
 			map.on("click", function(e) {
@@ -153,7 +160,10 @@ var System = (function(){
 
     var Con;
 	var Colours = [];
-	
+
+    var Settings = { Marker: { InterpolateCount : 10}};
+    var Position = { Last: {}};
+
 	return {
 		init: function() {
             if (window["WebSocket"]) {
@@ -175,6 +185,36 @@ var System = (function(){
                         var cords = evt.data.split(",");
 
                         mapAPI.setMarker(cords[0],cords[1]);
+                        /*
+                        //TODO interpolate between cords
+                        var X = cords[0];
+                        var y = cords[1];
+                        if(Position.Last.Latitude) {
+
+                            var m = (Y - Position.Last.Longitude) / ( X - Position.Last.Latitude); //gradient
+                            var b = 0; //figure out y intercept
+                            var increment = X - Position.Last.Latitude / Settings.Marker.InerpolateCount;
+
+                            for(var i = 0; i < Settings.Marker.InterpolateCount; i++) {
+                                //y = mx+b
+                                X += increment;
+                                Y = m * X + b;
+                                mapAPI.setMarker(X, Y);
+                            }
+
+
+
+                        }
+                        else {
+                            mapAPI.setMarker(cords[0],cords[1]); // remove this ?
+                        }
+
+                        Position.Last.Latitude = X;
+                        Position.Last.Longitude = Y;
+                        */
+
+
+
 
                         //alert("Message received " + evt.data);
                         //appendLog($("<div/>").text(evt.data))
