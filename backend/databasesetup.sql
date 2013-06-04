@@ -20,4 +20,20 @@ CREATE TABLE Errors (
 	FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
 );
 
+CREATE TABLE Company (
+  ID integer primary key autoincrement,
+  Name text not null,
+  Expiry DATE not null default current_timestamp,
+  MaxUsers integer not null default 0,
+);
+
+CREATE TABLE Users (
+  ID integer primary key autoincrement,
+  CompanyID integer not null,
+  Name text not null,
+  Password text not null,
+  AccessLevel int not null default 0,
+  FOREIGN KEY (CompanyID) REFERENCES Company(ID)
+);
+
 COMMIT TRANSACTION;
