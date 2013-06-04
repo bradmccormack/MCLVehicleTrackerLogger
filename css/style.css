@@ -141,12 +141,12 @@ CONTENT
 }
 
 .user-icon {
-	top:147px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
+	top:107px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
 	background: rgba(65,72,72,0.75) url(../../../Users/Brad/Desktop/creating-login-form-Dzyngiri/creating-login-form/images/user-icon.png) no-repeat center;
 }
 
 .pass-icon {
-	top:221px;
+	top:191px;
 	background: rgba(65,72,72,0.75) url(../../../Users/Brad/Desktop/creating-login-form-Dzyngiri/creating-login-form/images/pass-icon.png) no-repeat center;
 }
 
@@ -177,7 +177,12 @@ FOOTER
 
 /* Login button */
 .login-form .footer .button {
-	padding: 11px 25px;
+
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+
+    padding: 11px 25px;
 	font-family: 'Bree Serif', serif;
 	font-weight: 300;
 	font-size: 18px;
