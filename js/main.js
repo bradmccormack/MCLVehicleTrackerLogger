@@ -1,5 +1,5 @@
 var genericCallback;
-var mapAPI = {};
+
 
 var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
 	throw "Not Implemented";
@@ -17,6 +17,7 @@ var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
     var apiKey = "AIzaSyC5wXV9B15WaWQ08qMDD-0O-ZihSnbpi48"; //todo find a way to make this more hidden
     var latlng;
     var marker;
+    var zoom;
 
     function init()
     {
@@ -32,10 +33,10 @@ var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
 
     function setview(Latitude, Longitude, Zoom)
     {
+        this.zoom = Zoom;
         this.Latitude = Latitude;
         this.Longitude = Longitude;
     }
-
 
     if(!("google" in window)) {
 
@@ -55,6 +56,16 @@ var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
     setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 
     return {
+
+        zoomIn : function() {
+            zoom++;
+            map.setZoom(this.zoom);
+        },
+        zoomOut: function() {
+            zoom--;
+            map.setZoom(this.zoom);
+        },
+
         setView: function(Latitude, Longitude, Zoom) {
             setview(Latitude, Longitude, Zoom);
         },
@@ -89,10 +100,11 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	var divid;
     var latlng;
     var marker;
-
+    var zoom;
 
 	function setview(Latitude, Longitude, Zoom)
 	{
+        this.zoom = Zoom;
 		this.Latitude = Latitude;
 		this.Longitude = Longitude;
 		map = L.map(divid).setView([Latitude, Longitude], Zoom);
@@ -113,7 +125,13 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 
 	return {
-		setView: function(Latitude, Longitude, Zoom) {
+		zoomIn: function() {
+
+        },
+        zoomOut: function() {
+
+        },
+        setView: function(Latitude, Longitude, Zoom) {
 			setview(Latitude, Longitude, Zoom);
 		},
 		setMarker: function(Latitude, Longitude, Text) {
@@ -137,16 +155,18 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	}
 });
 
-var MapAPI = 
-{
-	//Active : Leaflet,
-    Active: GoogleMaps,
-	Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
-};
-
 
 var System = (function(){
 
+    var MapAPI =
+    {
+        //Active : Leaflet,
+        Active: GoogleMaps,
+        Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
+    };
+
+
+    var mapAPI = {};
     var Con;
 	var Colours = [];
     var Vehicles = [];
@@ -173,10 +193,13 @@ var System = (function(){
     }
 
 	return {
+        getMapAPI: function() {
+          return mapAPI;
+        },
 		init: function() {
 
             var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
-            mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+            this.mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
 
 
             //add a couple of vehicles in hard coded for now
@@ -255,6 +278,46 @@ function bindHandlers() {
         });
     });
 
+    $("div#Mainmapcontrols button").click(function(){
+        var Self = $(this);
+        function notAvailable() {
+
+            Self.popover({
+                title: "Not Implemented",
+                content: "Sorry, this functionality is not yet available",
+                placement: "bottom",
+                container: "body"
+            }).show();
+
+        }
+
+        var actions = {
+            "mapRefresh" : function() {
+              notAvailable();
+            },
+            "mapZoomIn" : function() {
+                notAvailable();
+                //System.getMapAPI().zoomIn();
+            },
+            "mapZoomOut" : function() {
+                notAvailable();
+                //System.getMapAPI().zoomOut();
+            },
+            "mapMarker" : function() {
+                notAvailable();
+            },
+            "mapFollow" : function() {
+                notAvailable();
+            },
+            "mapRoute" : function() {
+                notAvailable();
+            },
+            "mapPrint" : function() {
+                notAvailable();
+            }
+        }[Self.attr("id")]();
+    });
+
 
 }
 
@@ -266,7 +329,7 @@ $(document).ready(function() {
     var system = new System();
     system.init();
 
-    //$('#myModal').modal('toggle');  //Perform login
+    $('#myModal').modal('toggle');  //Perform login
 
     /*
 	mapAPI.onClick(function(e){
