@@ -17,6 +17,8 @@
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/dzyngiri.css">
+        <link rel="stylesheet" href="css/style.css">
         <script src="js/modernizr-2.6.2.min.js"></script>
 
         
@@ -33,12 +35,9 @@
 				<h5> myClubLink Logo<i class="icon-truck"></i></h5>
 			</div> <!--Logo -->
 			
-			
+
 			<div id="Mainuser" class="span4 pull-right">
-			
-		
-			
-				
+
 				<div class="btn-group pull-right">
 				  <a class="btn btn-primary" href="#"><i class="icon-user icon-white"></i> Shane Sorgsepp</a>
 				  <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
@@ -54,7 +53,7 @@
 				    <li><a href="#"><i class="i"></i> Make admin</a></li>
 				  </ul>
 				</div>
-				
+
 				
 			</div> <!--Logout etc -->
 			</div>
@@ -153,8 +152,40 @@
         <script src="js/main.js"></script>
 
 
+        <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">Login</h3>
+            </div>
 
+            <div class="modal-body">
+                <div id="wrapper">
+                    <div class="user-icon"></div>
+                    <div class="pass-icon"></div>
+
+                    <form name="login-form" class="login-form" action="" method="post">
+
+                        <div class="header">
+                            <h1>myClubLink</h1>
+                            <p>Please login to use myClubLink facilities</p>
+                        </div>
+                        <div class="content">
+                           <input name="username" type="text" class="input username" placeholder="Username">
+                           <input name="password" type="password" class="input password" placeholder="Password">
+                        </div>
+
+                        <div class="footer">
+                            <input type="submit" name="submit" value="Login" class="button">
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <strong>myClubLink &copy 2013</strong>
+            </div>
+        </div>
 
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
