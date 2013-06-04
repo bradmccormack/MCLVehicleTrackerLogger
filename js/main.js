@@ -1,11 +1,5 @@
-/*
- * TODO figure out a nice abstraction over the Map API vendors so I can swap around simply by changing the active API in the backend.
- * Some clients may want functionality that is available in paid Google Maps API so we can swap over to that easily
- * 
- * http://www.bing.com/maps/ I don't mind the slider (map expand widget) add that 
- */
-
 var genericCallback;
+var mapAPI = {};
 
 var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
 	throw "Not Implemented";
@@ -109,7 +103,6 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 	    maxZoom: 13
 		}).addTo(map);
 	    */
-	    
 
 	    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 	    }).addTo(map);
@@ -118,8 +111,6 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
   
 	divid = DivID || "map";
 	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
-
-
 
 	return {
 		setView: function(Latitude, Longitude, Zoom) {
@@ -151,7 +142,6 @@ var MapAPI =
 	//Active : Leaflet,
     Active: GoogleMaps,
 	Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
-	
 };
 
 
@@ -159,18 +149,44 @@ var System = (function(){
 
     var Con;
 	var Colours = [];
+    var Vehicles = [];
 
+    //System wide settings
     var Settings = { Marker: { InterpolateCount : 10}};
     var Position = { Last: {}};
 
+    function updateLegend(JSON) {
+        //We need to know if the GPS signal is correct or not (Fix status is true)
+        if(JSON.Vehicles.length > 0) {
+            var Legend = $("div#Mainlegend div#Vehiclelegend ul");
+
+            //Add any Vehicles to the Legend that are not there .. If GPS fix is not true then show warning etc
+            //if there is no information for Vechile BLAH
+            JSON.Vehicles.forEach(function(Vehicle){
+                Legend.append('<li><a href="#"><i class="icon-truck"></i> ' + Vehicle +'</a></li>');
+            });
+
+        }
+        else {
+            //remove everything from the legend if there has been no contact in over 1 hour or whatever
+        }
+    }
+
 	return {
 		init: function() {
+
+            var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
+            mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+
+
+            //add a couple of vehicles in hard coded for now
+            //system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
+
             if (window["WebSocket"]) {
                     //alert("Browser supports Web Sockets. Yay");
                     Con = new WebSocket("ws://myclublink.com.au:8080/ws");
                     //if(Con)
                     //    Con.send("test message");
-
 
                     Con.onopen = function() {
                         //Con.send("test message");
@@ -201,8 +217,6 @@ var System = (function(){
                                 mapAPI.setMarker(X, Y);
                             }
 
-
-
                         }
                         else {
                             mapAPI.setMarker(cords[0],cords[1]); // remove this ?
@@ -212,43 +226,20 @@ var System = (function(){
                         Position.Last.Longitude = Y;
                         */
 
-
-
-
                         //alert("Message received " + evt.data);
                         //appendLog($("<div/>").text(evt.data))
                     }
             } else {
-                alert("Your browser does not support WebSockets. You cannot use myClublink until you upgrade to a modern browser");
+                alert("Your browser does not support WebSockets. You cannot use myClubLink until you upgrade to a modern browser");
             }
-        },
-
-		
-		updateLegend: function(JSON) {
-			//We need to know if the GPS signal is correct or not (Fix status is true)
-			if(JSON.Vehicles.length > 0) {
-				var Legend = $("div#Mainlegend div#Vehiclelegend ul");
-			
-	
-				JSON.Vehicles.forEach(function(Vehicle){
-					Legend.append('<li><a href="#"><i class="icon-truck"></i> ' + Vehicle +'</a></li>');
-				});
-			
-			}
-			else {
-				
-			}
-		}
+        }
 	}
 });
 
-var mapAPI = {};
-
-$(document).ready(function() {
-
+function bindHandlers() {
+    //Login
     $('#myModal').on("shown", function()
     {
-
         $(".username").focus(function() {
             $(".user-icon").css("left","-48px");
         });
@@ -264,23 +255,19 @@ $(document).ready(function() {
         });
     });
 
-    $('#myModal').modal('toggle');
 
+}
+
+$(document).ready(function() {
+
+    bindHandlers();
+
+    //Startup the main system
     var system = new System();
     system.init();
 
+    //$('#myModal').modal('toggle');  //Perform login
 
-    //OpText
-	var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
-
-    mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
-
-
-	//add a couple of vehicles in hard coded for now
-	system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
-	
-	
-	
     /*
 	mapAPI.onClick(function(e){
 		alert("Clicked at " + e.Location);
