@@ -1,0 +1,63 @@
+#/bin/bash
+
+#TODO add a myClubLink user to the system and add them to the wheel group
+if [[ $EUID -ne 1000 ]]; then
+	echo "This script needs to be run as brad via sudo. Exiting .."
+	echo "hint sudo -u brad ./platform_install"
+	exit 1
+fi
+
+
+BITBUCKET_PUBLICKEY="97:8c:1b:f2:6f:14:6b:5c:3b:ec:aa:46:46:74:7c:40" 
+#Note - Later I'll add the public ssh key to bitbucket automatically for the current machine and generate it via ssh-keygen if one not generated
+
+echo "1. Installing Software Dependencies .."
+
+#sudo apt-get update
+#sudo apt-get install nginx git htop vim-y -f
+
+echo "2. Setting up SSH keys .."
+#generate local ssh keys
+if [ ! -d "$HOME/.ssh" ]; then
+	echo "SSH keys don't exist so I'm creating them in $HOME/.ssh"
+	ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/id_rsa -P ""
+else
+	echo "SSH keys already in place. I won't create them"
+fi
+
+#todo - figure out how/if can use curl with bitbucket API to add this new public key to bitbucket
+
+#silence nagging off security prompt. Later add to ~/.ssh/known_hosts
+echo "3. Pulling down latest code ...."
+#todo grep the file first before adding 
+echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+cd /home/brad/git/
+
+if [ -d "myclublink" ]; then
+	cd $HOME/git/myclublink
+	git clean -f --quiet
+	git pull --quiet
+else
+	git clone git@bitbucket.org:bradmccormack/myclublink.git --quiet
+fi
+
+echo "4. Code pulled down."
+if [ -d "/etc/nginx" ]; then
+	echo "Nginx config being deployed and web server being restarted"
+	#create symbolic links that point back to this config. Later it will be trivial to run this script and have updated web server configurations
+	
+	#only create if they don't exist
+	if [ ! -L /etc/nginx/sites-available/internal.myClubLink.com.au.conf ]; then
+		sudo ln -s $HOME/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+	fi
+
+	if [ ! -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
+		sudo ln -s $HOME/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+	fi
+else
+	echo "Nginx didn't install correctly before. Aborting script!"
+	exit 1
+fi
+
+ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+echo "MyClubLink system is now running . Hit it on $ip . Make sure you have jedc$

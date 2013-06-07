@@ -1,0 +1,162 @@
+#/bin/bash
+
+#Add myclublink user to the system
+addgroup http
+echo "* Adding myclublink user to system"
+pass=$(perl -e 'print crypt($ARGV[0], "password")' "3enchm@rk789")
+useradd -m -p $pass "myclublink" -G http --quiet
+
+#Add current user to the http group so they can have access to myclublink directories etc
+sudo addgroup brad http --quiet
+
+#Change the group to be http for /home/myclublink/
+
+if [[ $EUID -ne 0 ]]; then
+	echo "This script needs to be run as root. Exiting .."
+	exit 1
+fi
+
+BITBUCKET_PUBLICKEY="97:8c:1b:f2:6f:14:6b:5c:3b:ec:aa:46:46:74:7c:40" 
+#Note - Later I'll add the public ssh key to bitbucket automatically for the current machine and generate it via ssh-keygen if one not generated
+
+echo "* Upating package sources"
+#sudo apt-get update
+
+echo "* Installing package dependencies"
+for dep in git nginx htop vim samba; do
+	if dpkg -s $dep 2>/dev/null 1>/dev/null; then
+		echo $dep " is installed already. Skipping "
+	else
+		sudo apt-get install $dep
+	fi
+done
+echo "- Update done"
+
+echo "* Setting up SSH keys .."
+#generate local ssh keys
+if [ ! -d "$HOME/.ssh" ]; then
+	echo "- SSH keys don't exist so I'm creating them in $HOME/.ssh"
+	ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/id_rsa -P ""
+else
+	echo "- SSH keys already in place. I won't create them"
+fi
+
+#add the ssh public key to the bitbucket rep
+
+#example request
+#key and label have to be set in the body
+
+
+#POST /api/1.0/users/bradmccormack/ssh-keys/ HTTP/1.1
+#Authorization:
+#Basic ****
+#X-HostCommonName:
+#bitbucket.org
+#Host:
+#bitbucket.org
+#Content-Length:
+#441
+#X-Target-URI:
+#https://bitbucket.org
+#Content-Type:
+#application/x-www-form-urlencoded; charset=UTF-8
+#Connection:
+#Keep-Alive
+#key=ssh-rsa+AAAAB3NzaC1yc2EAAAADAQABAAABAQDAgLp6lc%2F9dELRalcKaDWqkXjaCykgXIa4vxR0vQdbaef4lSlNLuAro38Qs6eZSmwV1hRiM482rHfytE7KC5UNMx1dIyHblnvBRgc5Ouqun2hqFFXvtJISfmBJXNGoEx5khOVKPjlX1D8AvgmmysT%2FKl71Q%2F%2BdvDdioqcw6QuxB6GjzQS7L%2FUXYuHXhRflr0oUpDnW5D2iNQjcGDIQl8C3SxzOzO%2FVy%2B%2FM%2Fc3anBPJCClTg00a4D60yqnQZz4UTJIPzagwpaUW8ATsD8RoIp2NibYLiIN5Qgwk8A0DK4aBwxikxxgVGsgElKaUpdQoNJsNav3XE%2FsqfU7nEgMxAL8L+myclublink%40ubuntu&label=testingAPI
+#RequestResponseView raw Share
+
+#example response
+#HTTP/1.1 200 OK
+#Content-Language:
+#en
+#ETag:
+#"fe1719adac8c02a6015289a32951c53e"
+#X-Render-Time:
+#0.461893081665
+#Content-Length:
+#460
+#X-Served-By:
+#bitbucket16
+#X-Version:
+#734bd9b293af
+#X-Request-Count:
+#257
+#Server:
+#nginx/1.2.4
+#X-Content-Type-Options:
+#nosniff
+#Strict-Transport-Security:
+#max-age=2592000
+#Date:
+#Fri, 07 Jun 2013 07:59:27 GMT
+#Vary:
+#Authorization, Accept-Language, Cookie
+#X-Static-Version:
+#0c9e84a522b5
+#Content-Type:
+#application/json; charset=utf-8
+#{
+#  "pk": 741340,
+#  "key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAgLp6lc/9dELRalcKaDWqkXjaCykgXIa4vxR0vQdbaef4lSlNLuAro38Qs6eZSmwV1hRiM482rHfytE7KC5UNMx1dIyHblnvBRgc5Ouqun2hqFFXvtJISfmBJXNGoEx5khOVKPjlX1D8AvgmmysT/Kl71Q/+dvDdioqcw6QuxB6GjzQS7L/UXYuHXhRflr0oUpDnW5D2iNQjcGDIQl8C3SxzOzO/Vy+/M/c3anBPJCClTg00a4D60yqnQZz4UTJIPzagwpaUW8ATsD8RoIp2NibYLiIN5Qgwk8A0DK4aBwxikxxgVGsgElKaUpdQoNJsNav3XE/sqfU7nEgMxAL8L myclublink@ubuntu",
+#  "label": "testingAPI"
+#}
+
+
+
+#silence nagging off security prompt. Later add to ~/.ssh/known_hosts
+echo "* Pulling down latest code ...."
+#todo grep the file first before adding 
+echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+if [ ! -d "/home/myclublink/git" ]; then
+	sudo mkdir -p /home/myclublink/git
+	sudo chown -R brad:http /home/myclublink/git
+fi
+
+cd /home/myclublink/git/
+
+if [ -d "myclublink" ]; then
+	echo "- myclublink repo already exists. Pulling latest code"
+	cd $HOME/git/myclublink
+	git clean -f --quiet
+        git pull --quiet
+else
+	echo "- Cloning repository"
+	git clone git@bitbucket.org:bradmccormack/myclublink.git --quiet
+fi
+
+echo "- Code pulled down."
+
+if [ -d "/etc/nginx" ]; then
+	echo "* Nginx config being deployed and web server being restarted"
+	#create symbolic links that point back to this config. Later it will be trivial to run this script and have updated web server configurations
+	
+	#only create if they don't exist
+	if [ ! -L /etc/nginx/sites-available/internal.myClubLink.com.au.conf ]; then
+		sudo ln -s $HOME/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+	fi
+
+	if [ ! -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
+		sudo ln -s $HOME/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+	fi
+	sudo rm /etc/nginx/sites-enabled/default -f
+else
+	echo "- Nginx didn't install correctly before. Aborting script!"
+	exit 1
+fi
+
+#create a file share for the installer - TODO put this in a chroot
+if [ ! "/etc/samba" ]; then
+	echo "- Samba didn't install correctly. Aborting script!"
+else
+	#hose the default one and link to our versioned one and add the curent user to samba
+	sudo rm /etc/samba/smb.conf -f
+	sudo ln -s $HOME/git/myclublink/Conf/samba/smb.conf /etc/samba/smb.conf
+	(echo myclublink; echo myclublink) | smbpasswd -s 2>/dev/null 1>/dev/null
+	sudo service smbd restart --quiet
+	sudo service nmbd restart --quiet
+fi
+
+
+ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+echo "myClubLink is now running . Hit it on"  $ip "or add it to the host file of the user or DNS server for the users on the local network"
