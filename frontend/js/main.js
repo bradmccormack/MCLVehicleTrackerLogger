@@ -161,7 +161,7 @@ var System = (function(){
 	var Self = this;
     var MapAPI =
     {
-        Active: GoogleMaps,
+        Active: Leaflet,
         Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
     };
 

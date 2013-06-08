@@ -5,6 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Xml;
+using Mono.Data.SqliteClient;
 
 
 namespace testwpf
@@ -16,28 +17,37 @@ namespace testwpf
 
 	static void Main(string[] args)
         {
-	    var dt = XmlConvert.ToString(DateTime.Now, XmlDateTimeSerializationMode.Utc);
-            Console.WriteLine(dt);
+            UdpClient udpClient = new UdpClient("internal.myclublink.com.au", 6969);
+             string connectionString = "URI=file:backend.db";
 
-            UdpClient udpClient = new UdpClient("internal.myclublink.com.au", 6969);	
-            try
-            {
-		double lat = -34.50108;
+           IDbConnection dbcon;
+           dbcon = (IDbConnection) new SqliteConnection(connectionString);
+           dbcon.Open();
+           IDbCommand dbcmd = dbcon.CreateCommand();
 
-		for(int i = 0; i < 10000 ; i ++)
-		{
-       		  Byte[] sendBytes = Encoding.ASCII.GetBytes("PHi there buddy,L" + lat + 
-",150.81094,S0.00,H147.2,D" + dt + ",Ftrue,BRADSBUS");
-                  udpClient.Send(sendBytes, sendBytes.Length);
-                  System.Threading.Thread.Sleep(1000);
-		  lat += 0.00010f;
-		}
+           string sql = "SELECT * FROM GPSRECORDS";
+           dbcmd.CommandText = sql;
+           IDataReader reader = dbcmd.ExecuteReader();
+           while(reader.Read())
+           {
+                String data = reader.GetString(1) + ",L";
+                data += reader.GetString(2) + ",";
+                data += reader.GetString(3) + ",";
+                data += "S" + reader.GetString(4) + ",";
+                data += "H" + reader.GetString(5) + ",";
+                data += "D" + reader.GetString(7) + ",";
+                data += "F" + reader.GetString(6) == "1" ? "true" : "false" + ","
+                data += reader.GetString(8);
+                Byte[] sendBytes = Encoding.ASCII.GetBytes(data);
+                /*
+                Byte[] sendBytes = Encoding.ASCII.GetBytes("PHi there buddy,L" + lat +
+                ",150.81094,S0.00,H147.2,D" + dt + ",Ftrue,BRADSBUS");
+                */
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
+                udpClient.Send(sendBytes, sendBytes.Length);
+                System.Threading.Thread.Sleep(1000);
+           }
+
         }
     }
 }
