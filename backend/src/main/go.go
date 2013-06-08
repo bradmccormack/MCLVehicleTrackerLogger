@@ -30,9 +30,12 @@ type GPSRecord struct {
 var service = flag.String("service", ":6969", "udp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 
-var con *websocket.Conn //fix me up this is dirty (use channels and stuff later)
+//this needs to be a list of connections
+var connections []*websocket.Conn //fix me up this is dirty (use channels and stuff later)
 
 func handleHTTP() {
+
+	var connection *websocket.Conn
 	fmt.Printf("Listening for HTTP on %s\n", *addr)
 	//go h.run()
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
@@ -50,19 +53,16 @@ func handleHTTP() {
 		*/
 
 		var err error
-		con, err = websocket.Upgrade(w, r.Header, nil, 1024, 1024)
+		connection, err = websocket.Upgrade(w, r.Header, nil, 1024, 1024)
 		if _, ok := err.(websocket.HandshakeError); ok {
 			http.Error(w, "Not a websocket handshake", 400)
 			return
 		} else if err != nil {
-
 			log.Println(err)
 			return
 		}
-
-		//defer con.Close()
-
-		//fmt.Printf("Received a request via web socket route. YAY")
+		connections = append(connections, connection)
+		fmt.Printf("Amount of clients listening is %d", len(connections))
 	})
 
 	err := http.ListenAndServe(*addr, nil)
@@ -94,23 +94,36 @@ func main() {
 	go handleHTTP()
 
 	for {
-		con, err := net.ListenUDP("udp", udpAddr)
+		udpcon, err := net.ListenUDP("udp", udpAddr)
 		if err != nil {
 			fmt.Printf("Failed to create udp connection - %s", err)
 			os.Exit(1)
 		}
-		handleClient(db, con)
+		handleClient(db, udpcon)
 	}
 }
 
 func updateClient(entry *GPSRecord) {
-	if con != nil {
-		wswriter, _ := con.NextWriter(websocket.OpText)
 
-		io.WriteString(wswriter, string(entry.latitude+","+entry.longitude)) //we want to write some JSON instead of text for now just do a dodgy string
-		//http://html5labs.interoperabilitybridges.com/prototypes/websockets/websockets/info    -- WOOT it's possible to use web sockets on the client
-	} else {
-		fmt.Printf("Web socket is closed")
+	if connections == nil {
+		fmt.Printf("No clients listening.. not reporting")
+		return
+	}
+
+	fmt.Printf("Responding to %d listening clients\n", len(connections))
+	for _, client := range connections {
+		//get a websocket writer
+		wswriter, _ := client.NextWriter(websocket.OpText)
+
+		if wswriter != nil {
+			io.WriteString(wswriter, string(entry.latitude+","+entry.longitude)) //we want to write some JSON instead of text for now just do a dodgy string
+		} else {
+			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
+			client.Close()
+			//connections[index] = nil
+
+		}
+
 	}
 }
 
@@ -178,7 +191,6 @@ func handleClient(db *sql.DB, conn *net.UDPConn) {
 	updateClient(&entry)    //notify any HTTP observers //make this a goroutine later
 
 	conn.WriteToUDP([]byte("OK"), addr)
-	fmt.Printf("Responded to %s\n", addr)
 	conn.Close()
 
 }

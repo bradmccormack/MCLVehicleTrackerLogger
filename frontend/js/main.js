@@ -158,15 +158,15 @@ var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
 
 var System = (function(){
 
+	var Self = this;
     var MapAPI =
     {
-        //Active : Leaflet,
         Active: GoogleMaps,
         Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
     };
 
 
-    var mapAPI = {};
+    var mapAPI;
     var Con;
 	var Colours = [];
     var Vehicles = [];
@@ -194,12 +194,12 @@ var System = (function(){
 
 	return {
         getMapAPI: function() {
-          return mapAPI;
+          return this.mapAPI;
         },
 		init: function() {
 
             var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
-            this.mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+            Self.mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
 
 
             //add a couple of vehicles in hard coded for now
@@ -207,7 +207,7 @@ var System = (function(){
 
             if (window["WebSocket"]) {
                     //alert("Browser supports Web Sockets. Yay");
-                    Con = new WebSocket("ws://myclublink.com.au:8080/ws");
+                    Con = new WebSocket("ws://internal.myclublink.com.au:8080/ws");
                     //if(Con)
                     //    Con.send("test message");
 
@@ -222,7 +222,7 @@ var System = (function(){
                     Con.onmessage = function(evt) {
                         var cords = evt.data.split(",");
 
-                        mapAPI.setMarker(cords[0],cords[1]);
+                        Self.mapAPI.setMarker(cords[0],cords[1]);
                         /*
                         //TODO interpolate between cords
                         var X = cords[0];
@@ -329,7 +329,7 @@ $(document).ready(function() {
     var system = new System();
     system.init();
 
-    $('#myModal').modal('toggle');  //Perform login
+ 	// $('#myModal').modal('toggle');  //Perform login
 
     /*
 	mapAPI.onClick(function(e){
