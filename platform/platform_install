@@ -33,7 +33,7 @@ echo "- Update done"
 
 echo "* Setting up SSH keys .."
 #generate local ssh keys
-if [ ! -d "$HOME/.ssh" ]; then
+if [ ! -d "/home/myclublink/.ssh" ]; then
 	echo "- SSH keys don't exist so I'm creating them in /home/myclublink/.ssh"
 	sudo -u myclublink mkdir /home/myclublink/.ssh
 	sudo -u myclublink ssh-keygen -b 4096 -t rsa -f /home/myclublink/.ssh/id_rsa -P ""
@@ -108,23 +108,29 @@ fi
 #silence nagging off security prompt. Later add to ~/.ssh/known_hosts
 echo "* Pulling down latest code ...."
 #todo grep the file first before adding 
-echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+if [ ! -f "/home/myclublink/.ssh/config" ]; then
+	sudo -u myclublink touch /home/myclublink/.ssh/config
+fi
+
+
+echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> /home/myclublink/.ssh/config
 
 if [ ! -d "/home/myclublink/git" ]; then
 	sudo mkdir -p /home/myclublink/git
 	sudo chown -R brad:http /home/myclublink/git
+	sudo chmod 775 /home/myclublink/git
 fi
 
 cd /home/myclublink/git/
 
 if [ -d "myclublink" ]; then
 	echo "- myclublink repo already exists. Pulling latest code"
-	cd $HOME/git/myclublink
-	git clean -f --quiet
-        git pull --quiet
+	sudo -u myclublink git clean -f --quiet
+        sudo -u myclublink git pull --quiet
 else
 	echo "- Cloning repository"
-	git clone git@bitbucket.org:bradmccormack/myclublink.git --quiet
+	sudo -u myclublink git clone git@bitbucket.org:bradmccormack/myclublink.git --quiet
 fi
 
 echo "- Code pulled down."
@@ -135,11 +141,11 @@ if [ -d "/etc/nginx" ]; then
 	
 	#only create if they don't exist
 	if [ ! -L /etc/nginx/sites-available/internal.myClubLink.com.au.conf ]; then
-		sudo ln -s $HOME/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+		sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 	fi
 
 	if [ ! -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
-		sudo ln -s $HOME/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+		sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
 	fi
 	sudo rm /etc/nginx/sites-enabled/default -f
 else
@@ -153,12 +159,13 @@ if [ ! "/etc/samba" ]; then
 else
 	#hose the default one and link to our versioned one and add the curent user to samba
 	sudo rm /etc/samba/smb.conf -f
-	sudo ln -s $HOME/git/myclublink/Conf/samba/smb.conf /etc/samba/smb.conf
+	sudo ln -s /home/myclublink/git/myclublink/Conf/samba/smb.conf /etc/samba/smb.conf
 	(echo myclublink; echo myclublink) | smbpasswd -s 2>/dev/null 1>/dev/null
 	sudo service smbd restart --quiet
 	sudo service nmbd restart --quiet
 fi
 
+sudo service nginx restart --quiet
 
 ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 echo "myClubLink is now running . Hit it on"  $ip "or add it to the host file of the user or DNS server for the users on the local network"
