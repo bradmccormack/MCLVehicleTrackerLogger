@@ -4,7 +4,7 @@
 addgroup http
 echo "* Adding myclublink user to system"
 pass=$(perl -e 'print crypt($ARGV[0], "password")' "3enchm@rk789")
-useradd -m -p $pass "myclublink" -G http --quiet
+useradd -m -p $pass "myclublink" -G http 
 
 #Add current user to the http group so they can have access to myclublink directories etc
 sudo addgroup brad http --quiet
@@ -16,7 +16,6 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
-BITBUCKET_PUBLICKEY="97:8c:1b:f2:6f:14:6b:5c:3b:ec:aa:46:46:74:7c:40" 
 #Note - Later I'll add the public ssh key to bitbucket automatically for the current machine and generate it via ssh-keygen if one not generated
 
 echo "* Upating package sources"
@@ -37,6 +36,8 @@ echo "* Setting up SSH keys .."
 if [ ! -d "$HOME/.ssh" ]; then
 	echo "- SSH keys don't exist so I'm creating them in $HOME/.ssh"
 	ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/id_rsa -P ""
+	echo "SSH Keys have been created. Please enter them manually on BitBucket account for now"
+	exit 1
 else
 	echo "- SSH keys already in place. I won't create them"
 fi
