@@ -161,7 +161,7 @@ var System = (function(){
 	var Self = this;
     var MapAPI =
     {
-        Active: Leaflet,
+        Active: GoogleMaps,
         Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
     };
 
@@ -260,6 +260,7 @@ var System = (function(){
 });
 
 function bindHandlers() {
+    
     //Login
     $('#myModal').on("shown", function()
     {
@@ -278,6 +279,14 @@ function bindHandlers() {
         });
     });
 
+
+	//Menu Nav
+	$("#tabMap,#tabProfile, #tabSupport, #tabReports, #tabSettings").click(function(){
+		alert("Clicked nav with id " + $(this).attr("id"));
+	});
+
+
+	//Map controls
     $("div#Mainmapcontrols button").click(function(){
         var Self = $(this);
         function notAvailable() {
@@ -329,7 +338,7 @@ $(document).ready(function() {
     var system = new System();
     system.init();
 
- 	// $('#myModal').modal('toggle');  //Perform login
+ 	$('#myModal').modal('toggle');  //Perform login
 
     /*
 	mapAPI.onClick(function(e){

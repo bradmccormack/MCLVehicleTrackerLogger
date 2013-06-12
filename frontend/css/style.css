@@ -142,12 +142,12 @@ CONTENT
 
 .user-icon {
 	top:107px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
-	background: rgba(65,72,72,0.75) url(../../../Users/Brad/Desktop/creating-login-form-Dzyngiri/creating-login-form/images/user-icon.png) no-repeat center;
+	background: rgba(65,72,72,0.75) url(../img/user-icon.png) no-repeat center;
 }
 
 .pass-icon {
 	top:191px;
-	background: rgba(65,72,72,0.75) url(../../../Users/Brad/Desktop/creating-login-form-Dzyngiri/creating-login-form/images/pass-icon.png) no-repeat center;
+	background: rgba(65,72,72,0.75) url(../img/pass-icon.png) no-repeat center;
 }
 
 /* Animation */
