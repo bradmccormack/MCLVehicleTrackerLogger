@@ -26,7 +26,7 @@ for dep in git nginx htop vim samba; do
 	if dpkg -s $dep 2>/dev/null 1>/dev/null; then
 		echo $dep " is installed already. Skipping "
 	else
-		sudo apt-get install $dep
+		sudo apt-get install $dep -y
 	fi
 done
 echo "- Update done"
@@ -34,8 +34,9 @@ echo "- Update done"
 echo "* Setting up SSH keys .."
 #generate local ssh keys
 if [ ! -d "$HOME/.ssh" ]; then
-	echo "- SSH keys don't exist so I'm creating them in $HOME/.ssh"
-	ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/id_rsa -P ""
+	echo "- SSH keys don't exist so I'm creating them in /home/myclublink/.ssh"
+	sudo -u myclublink mkdir /home/myclublink/.ssh
+	sudo -u myclublink ssh-keygen -b 4096 -t rsa -f /home/myclublink/.ssh/id_rsa -P ""
 	echo "SSH Keys have been created. Please enter them manually on BitBucket account for now"
 	exit 1
 else
