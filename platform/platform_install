@@ -4,7 +4,11 @@
 addgroup http
 echo "* Adding myclublink user to system"
 pass=$(perl -e 'print crypt($ARGV[0], "password")' "3enchm@rk789")
-useradd -m -p $pass "myclublink" -G http 
+useradd -m -p $pass "myclublink" -G http  #add myclublink to http group
+
+CURRENTUSER="`logname`"
+usermod -a -G myclublink $CURRENTUSER #add current user to myclublink group
+
 
 #Add current user to the http group so they can have access to myclublink directories etc
 sudo addgroup brad http --quiet
@@ -114,7 +118,7 @@ if [ ! -f "/home/myclublink/.ssh/config" ]; then
 fi
 
 
-echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> /home/myclublink/.ssh/config
+sudo -u myclublink echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> /home/myclublink/.ssh/config
 
 if [ ! -d "/home/myclublink/git" ]; then
 	sudo mkdir -p /home/myclublink/git
