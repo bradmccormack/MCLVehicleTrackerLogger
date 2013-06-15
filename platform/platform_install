@@ -94,7 +94,7 @@ if [ -d "/etc/nginx" ]; then
 
 	if [ -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
 		echo "deleting sym link 2"
-		sudo rm -f /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+		sudo rm -f /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
 	fi
 
 #copy over all the files
