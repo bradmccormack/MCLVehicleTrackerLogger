@@ -1,7 +1,8 @@
 #/bin/bash
-echo "Home is " $HOME
 
-GITHOME=$HOME/git/myclublink
+GITHOME=$HOME/git
+MYCLUBLINKHOME=/home/myclublink
+
 
 #Add myclublink user to the system
 addgroup http
@@ -17,11 +18,6 @@ usermod -a -G myclublink $CURRENTUSER
 
 #Add current user to the http group so they can have access to myclublink directories etc
 sudo addgroup $CURRENTUSER http --quiet
-
-if [[ $EUID -ne 0 ]]; then
-	echo "This script needs to be run as root. Exiting .."
-	exit 1
-fi
 
 echo "* Upating package sources"
 #sudo apt-get update
@@ -39,23 +35,18 @@ echo "- Update done"
 echo "* Setting up SSH keys .."
 #Generate ssh keys
 
-#Remove me
-rm -R $HOME/.ssh
 if [ ! -d $HOME/.ssh ]; then
 	sudo -u $CURRENTUSER mkdir -p $HOME/.ssh
 	echo "- SSH keys don't exist so I'm creating them in " $HOME/".ssh"
 	sudo -u $CURRENTUSER ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/id_rsa -N '' -q
 	echo "SSH Keys have been created. "
+	#add the ssh public key to the bitbucket repository - TODO set the label as the host. Find a way to generate a unique myclublink host that makes sense
+	PUBLICKEY=`cat $HOME/.ssh/id_rsa.pub`
+	export PUBLICKEY
+	curl "https://bitbucket.org/api/1.0/users/bradmccormack/ssh-keys/" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: bitbucket.org" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: */*" -H "Cache-Control: no-cache" -H "Cookie: optimizelyEndUserId=oeu1371266234695r0.6271766992285848; optimizelySegments=%7B%22202765491%22%3A%22false%22%2C%22202916208%22%3A%22gc%22%2C%22202920152%22%3A%22search%22%7D; optimizelyBuckets=%7B%7D; bb_session=93c5927301f7a1a297bb8abafb2d062d; csrftoken=91d40f7b72f3e126367cd9ced6e36851; __utma=254090395.942569903.1371266236.1371266236.1371266236.1; __utmb=254090395.20.10.1371266236; __utmc=254090395; __utmz=254090395.1371266236.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=254090395.|1=isBBUser=true=1" -H "Connection: keep-alive" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data-urlencode "key=$PUBLICKEY" --data-urlencode "label=vmmyclublink"
 else
 	echo "- SSH keys already in place. I won't create them"
 fi
-
-#add the ssh public key to the bitbucket repository - TODO set the label as the host. Find a way to generate a unique myclublink host that makes sense
-PUBLICKEY=`cat $HOME/.ssh/id_rsa.pub`
-export PUBLICKEY
-echo "I think the space at the end of the public key might be screwing the curl attempt. Although should be urlencoded"
-curl "https://bitbucket.org/api/1.0/users/bradmccormack/ssh-keys/" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: bitbucket.org" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: */*" -H "Cache-Control: no-cache" -H "Cookie: optimizelyEndUserId=oeu1371266234695r0.6271766992285848; optimizelySegments=%7B%22202765491%22%3A%22false%22%2C%22202916208%22%3A%22gc%22%2C%22202920152%22%3A%22search%22%7D; optimizelyBuckets=%7B%7D; bb_session=93c5927301f7a1a297bb8abafb2d062d; csrftoken=91d40f7b72f3e126367cd9ced6e36851; __utma=254090395.942569903.1371266236.1371266236.1371266236.1; __utmb=254090395.20.10.1371266236; __utmc=254090395; __utmz=254090395.1371266236.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=254090395.|1=isBBUser=true=1" -H "Connection: keep-alive" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data-urlencode "key=$PUBLICKEY" --data-urlencode "label=vmmyclublink"
-
 
 #delete the current config file if one is there
 if [ -f $HOME/.ssh/config ]; then
@@ -65,17 +56,15 @@ fi
 #nuke the default SSH stuff (NOTE THIS SCRIPT SHOULD ONLY RUN ON FRESH MACHINES 
 
 sudo rm $HOME/.gitconfig
-touch $HOME/.ssh/config
+sudo -u $CURRENTUSER touch $HOME/.ssh/config
+sudo -u $CURRENTUSER touch $HOME/.gitconfig
 
 echo "[user]" >> $HOME/.gitconfig
 echo "	email = bradmccormack100@gmail.com" >> $HOME/.gitconfig
 echo "	name = Brad mccormack" >> $HOME/.gitconfig
 
 #Set user profile git config stuff
-echo "Host bitbucket.org" >> $HOME/.ssh/config 
-echo "Hostname	bithubket.org" >> $HOME/.ssh/config
 echo "StrictHostKeyChecking no" >> $HOME/.ssh/config
-
 
 if [ -d $GITHOME ]; then
 	cd $GITHOME
@@ -83,9 +72,12 @@ if [ -d $GITHOME ]; then
 	git clean -f --quiet
         git pull --quiet
 else
+	echo "Current dir is " `pwd`
 	sudo -u $CURRENTUSER mkdir -p $GITHOME
 	echo "- Cloning repository"
-	git clone git@bitbucket.org:bradmccormack/myclublink.git
+	cd $GITHOME
+	echo "Current directory for cloning is " `pwd`
+	sudo -u $CURRENTUSER git clone git@bitbucket.org:bradmccormack/myclublink.git
 fi
 
 echo "- Code pulled down."
@@ -97,16 +89,22 @@ if [ -d "/etc/nginx" ]; then
 	#delete existing symbolic links if they are there
 	if [ -L /etc/nginx/sites-available/internal.myClubLink.com.au.conf ]; then
 		echo "deleting sym link 1"
-		sudo unlink /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+		sudo rm -f /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 	fi
 
 	if [ -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
 		echo "deleting sym link 2"
-		sudo unlink /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+		sudo rm -f /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 	fi
 
-sudo ln -s $GITHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
-sudo ln -s $GITHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+#copy over all the files
+
+echo "Copying from " $GITHOME/myclublink " to " $MYCLUBLINKHOME/
+sudo cp -Rf $GITHOME/myclublink/* $MYCLUBLINKHOME/
+
+
+sudo ln -s $MYCLUBLINKHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+sudo ln -s $MYCLUBLINKHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
 
 	
 	sudo rm /etc/nginx/sites-enabled/default -f
