@@ -42,17 +42,15 @@ if [ ! -d "/home/myclublink/.ssh" ]; then
 	#this is probably bad but will do for now. Allow members of myclublink group to read from .ssh
 	sudo chmod -R 750 /home/myclublink/.ssh 
 	
-	echo "SSH Keys have been created. Please enter them manually on BitBucket account for now"
-	exit 1
+	echo "SSH Keys have been created. "
+	#echo "Please enter them manually on BitBucket account for now"
 else
 	echo "- SSH keys already in place. I won't create them"
 fi
 
-#add the ssh public key to the bitbucket rep
-
-PUBLICKEY=`cat /etc/home/myclublink/.ssh/id_rsa.pub`
-curl "https://bitbucket.org/api/1.0/users/bradmccormack/ssh-keys/" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: bitbucket.org" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: */*" -H "Cache-Control: no-cache" -H "Cookie: optimizelyEndUserId=oeu1371266234695r0.6271766992285848; optimizelySegments=%7B%22202765491%22%3A%22false%22%2C%22202916208%22%3A%22gc%22%2C%22202920152%22%3A%22search%22%7D; optimizelyBuckets=%7B%7D; bb_session=93c5927301f7a1a297bb8abafb2d062d; csrftoken=91d40f7b72f3e126367cd9ced6e36851; __utma=254090395.942569903.1371266236.1371266236.1371266236.1; __utmb=254090395.20.10.1371266236; __utmc=254090395; __utmz=254090395.1371266236.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=254090395.|1=isBBUser=true=1" -H "Connection: keep-alive" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data-urlencode "key=$PUBLICKEY" --data-urlencode "label=vmtest"
-
+#add the ssh public key to the bitbucket repository - TODO set the label as the host. Find a way to generate a unique myclublink host that makes sense
+PUBLICKEY=`cat /home/myclublink/.ssh/id_rsa.pub`
+curl "https://bitbucket.org/api/1.0/users/bradmccormack/ssh-keys/" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: bitbucket.org" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: */*" -H "Cache-Control: no-cache" -H "Cookie: optimizelyEndUserId=oeu1371266234695r0.6271766992285848; optimizelySegments=%7B%22202765491%22%3A%22false%22%2C%22202916208%22%3A%22gc%22%2C%22202920152%22%3A%22search%22%7D; optimizelyBuckets=%7B%7D; bb_session=93c5927301f7a1a297bb8abafb2d062d; csrftoken=91d40f7b72f3e126367cd9ced6e36851; __utma=254090395.942569903.1371266236.1371266236.1371266236.1; __utmb=254090395.20.10.1371266236; __utmc=254090395; __utmz=254090395.1371266236.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=254090395.|1=isBBUser=true=1" -H "Connection: keep-alive" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data-urlencode "key=$PUBLICKEY" --data-urlencode "label=vmmyclublink"  /dev/null 2>&1
 
 
 #delete the current config file if one is there
@@ -88,14 +86,19 @@ if [ -d "/etc/nginx" ]; then
 	echo "* Nginx config being deployed and web server being restarted"
 	#create symbolic links that point back to this config. Later it will be trivial to run this script and have updated web server configurations
 	
-	#only create if they don't exist
-	if [ ! -L /etc/nginx/sites-available/internal.myClubLink.com.au.conf ]; then
-		sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+	#delete existing symbolic links if they are there
+	if [ -L /etc/nginx/sites-available/internal.myClubLink.com.au.conf ]; then
+		sudo unlink /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 	fi
 
-	if [ ! -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
-		sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+	if [ -L /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf ]; then
+		sudo unlink /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 	fi
+
+sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+udo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+
+	
 	sudo rm /etc/nginx/sites-enabled/default -f
 else
 	echo "- Nginx didn't install correctly before. Aborting script!"
