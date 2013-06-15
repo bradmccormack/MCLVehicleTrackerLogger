@@ -101,7 +101,7 @@ if [ -d "/etc/nginx" ]; then
 
 echo "Copying from " $GITHOME/myclublink " to " $MYCLUBLINKHOME/
 sudo cp -Rf $GITHOME/myclublink/* $MYCLUBLINKHOME/
-
+sudo chown -R myclublink:http $MYCLUBLINKHOME
 
 sudo ln -s $MYCLUBLINKHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 sudo ln -s $MYCLUBLINKHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
@@ -119,7 +119,7 @@ if [ ! "/etc/samba" ]; then
 else
 	#hose the default one and link to our versioned one and add the curent user to samba
 	sudo rm /etc/samba/smb.conf -f
-	sudo ln -s $GITHOME/Conf/samba/smb.conf /etc/samba/smb.conf
+	sudo ln -s $MYCLUBLINKHOME/Conf/samba/smb.conf /etc/samba/smb.conf
 	(echo myclublink; echo myclublink) | smbpasswd -s 2>/dev/null 1>/dev/null
 	sudo service smbd restart --quiet
 	sudo service nmbd restart --quiet
@@ -127,5 +127,8 @@ fi
 
 sudo service nginx restart --quiet
 
+echo "- Note - Go backend binary is not currently part of source. So I need to do that still sorry"
+
 ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 echo "myClubLink is now running . Hit it on"  $ip "or add it to the host file of the user or DNS server for the users on the local network"
+
