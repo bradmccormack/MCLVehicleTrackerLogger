@@ -1,4 +1,7 @@
-l/bin/bash
+#/bin/bash
+echo "Home is " $HOME
+
+GITHOME=$HOME/git/myclublink
 
 #Add myclublink user to the system
 addgroup http
@@ -9,6 +12,7 @@ useradd -m -p $pass "myclublink" -G http  #add myclublink to http group
 
 #Add current user to myclublink group
 CURRENTUSER="`logname`"
+echo "Current user is " $CURRENTUSER
 usermod -a -G myclublink $CURRENTUSER 
 
 #Add current user to the http group so they can have access to myclublink directories etc
@@ -19,13 +23,11 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
-#Note - Later I'll add the public ssh key to bitbucket automatically for the current machine and generate it via ssh-keygen if one not generated
-
 echo "* Upating package sources"
 #sudo apt-get update
 
 echo "* Installing package dependencies"
-for dep in git nginx htop vim samba openssh-server curl expect; do
+for dep in git nginx htop vim samba openssh-server curl; do
 	if dpkg -s $dep 2>/dev/null 1>/dev/null; then
 		echo $dep " is installed already. Skipping "
 	else
@@ -35,23 +37,22 @@ done
 echo "- Update done"
 
 echo "* Setting up SSH keys .."
-#Generate ssh keys for myclublink user
-if [ ! -d "/home/myclublink/.ssh" ]; then
-	echo "- SSH keys don't exist so I'm creating them in /home/myclublink/.ssh"
-	sudo -u myclublink ssh-keygen -b 4096 -t rsa -f /home/myclublink/.ssh/id_rsa -P ""
-	#this is probably bad but will do for now. Allow members of myclublink group to read from .ssh
-	sudo chmod -R 750 /home/myclublink/.ssh 
-	
+#Generate ssh keys
+
+#Remove me
+rm -R $HOME/.ssh
+if [ ! -d $HOME/.ssh ]; then
+	sudo -u $CURRENTUSER mkdir -p $HOME/.ssh
+	echo "- SSH keys don't exist so I'm creating them in " $HOME/".ssh"
+	sudo -u $CURRENTUSER ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/id_rsa -N '' -q
 	echo "SSH Keys have been created. "
-	#echo "Please enter them manually on BitBucket account for now"
 else
 	echo "- SSH keys already in place. I won't create them"
 fi
 
 #add the ssh public key to the bitbucket repository - TODO set the label as the host. Find a way to generate a unique myclublink host that makes sense
-PUBLICKEY=`sudo -u myclublink cat /home/myclublink/.ssh/id_rsa.pub`
+PUBLICKEY=`cat $HOME/.ssh/id_rsa.pub`
 export PUBLICKEY
-echo "Public key is " $PUBLICKEY
 echo "I think the space at the end of the public key might be screwing the curl attempt. Although should be urlencoded"
 curl "https://bitbucket.org/api/1.0/users/bradmccormack/ssh-keys/" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: bitbucket.org" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: */*" -H "Cache-Control: no-cache" -H "Cookie: optimizelyEndUserId=oeu1371266234695r0.6271766992285848; optimizelySegments=%7B%22202765491%22%3A%22false%22%2C%22202916208%22%3A%22gc%22%2C%22202920152%22%3A%22search%22%7D; optimizelyBuckets=%7B%7D; bb_session=93c5927301f7a1a297bb8abafb2d062d; csrftoken=91d40f7b72f3e126367cd9ced6e36851; __utma=254090395.942569903.1371266236.1371266236.1371266236.1; __utmb=254090395.20.10.1371266236; __utmc=254090395; __utmz=254090395.1371266236.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=254090395.|1=isBBUser=true=1" -H "Connection: keep-alive" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data-urlencode "key=$PUBLICKEY" --data-urlencode "label=vmmyclublink"
 
@@ -62,36 +63,27 @@ if [ -f $HOME/.ssh/config ]; then
 fi
 
 #nuke the default SSH stuff (NOTE THIS SCRIPT SHOULD ONLY RUN ON FRESH MACHINES 
-if [ -d $HOME/.ssh]; then
-	sudo rm -R $HOME/.ssh
-fi
-mkdir $HOME/.ssh
-touch $HOME/.ssh/config
-
 
 sudo rm $HOME/.gitconfig
+touch $HOME/.ssh/config
+
 echo "[user]" >> $HOME/.gitconfig
 echo "	email = bradmccormack100@gmail.com" >> $HOME/.gitconfig
 echo "	name = Brad mccormack" >> $HOME/.gitconfig
+
 #Set user profile git config stuff
 echo "Host bitbucket.org" >> $HOME/.ssh/config 
 echo "Hostname	bithubket.org" >> $HOME/.ssh/config
 echo "StrictHostKeyChecking no" >> $HOME/.ssh/config
-echo "IdentityFile /home/myclublink/.ssh/id_rsa.pub" >> $HOME/.ssh/config
 
 
-#Create git directory for myclublink user ready to download if it doesn't exist
-if [ ! -d "/home/myclublink/git" ]; then
-	sudo -u myclublink mkdir -p /home/myclublink/git
-	sudo chmod 775 /home/myclublink/git
-fi
-
-cd /home/myclublink/git/
-if [ -d "myclublink" ]; then
+if [ -d $GITHOME ]; then
+	cd $GITHOME
 	echo "- myclublink repo already exists. Pulling latest code"
-	sudo -u myclublink git clean -f --quiet
-        sudo -u myclublink git pull --quiet
+	git clean -f --quiet
+        git pull --quiet
 else
+	sudo -u $CURRENTUSER mkdir -p $GITHOME
 	echo "- Cloning repository"
 	git clone git@bitbucket.org:bradmccormack/myclublink.git
 fi
@@ -113,8 +105,8 @@ if [ -d "/etc/nginx" ]; then
 		sudo unlink /etc/nginx/sites-available/internal.myClubLink.com.au.conf
 	fi
 
-sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
-sudo ln -s /home/myclublink/git/myclublink/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
+sudo ln -s $GITHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-available/internal.myClubLink.com.au.conf
+sudo ln -s $GITHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
 
 	
 	sudo rm /etc/nginx/sites-enabled/default -f
@@ -129,7 +121,7 @@ if [ ! "/etc/samba" ]; then
 else
 	#hose the default one and link to our versioned one and add the curent user to samba
 	sudo rm /etc/samba/smb.conf -f
-	sudo ln -s /home/myclublink/git/myclublink/Conf/samba/smb.conf /etc/samba/smb.conf
+	sudo ln -s $GITHOME/Conf/samba/smb.conf /etc/samba/smb.conf
 	(echo myclublink; echo myclublink) | smbpasswd -s 2>/dev/null 1>/dev/null
 	sudo service smbd restart --quiet
 	sudo service nmbd restart --quiet
