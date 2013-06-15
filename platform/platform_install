@@ -6,14 +6,13 @@ echo "* Adding myclublink user to system"
 pass=$(perl -e 'print crypt($ARGV[0], "password")' "3enchm@rk789")
 useradd -m -p $pass "myclublink" -G http  #add myclublink to http group
 
-CURRENTUSER="`logname`"
-usermod -a -G myclublink $CURRENTUSER #add current user to myclublink group
 
+#Add current user to myclublink group
+CURRENTUSER="`logname`"
+usermod -a -G myclublink $CURRENTUSER 
 
 #Add current user to the http group so they can have access to myclublink directories etc
-sudo addgroup brad http --quiet
-
-#Change the group to be http for /home/myclublink/
+sudo addgroup $CURRENTUSER http --quiet
 
 if [[ $EUID -ne 0 ]]; then
 	echo "This script needs to be run as root. Exiting .."
@@ -26,7 +25,7 @@ echo "* Upating package sources"
 #sudo apt-get update
 
 echo "* Installing package dependencies"
-for dep in git nginx htop vim samba; do
+for dep in git nginx htop vim samba openssh-server; do
 	if dpkg -s $dep 2>/dev/null 1>/dev/null; then
 		echo $dep " is installed already. Skipping "
 	else
@@ -36,11 +35,13 @@ done
 echo "- Update done"
 
 echo "* Setting up SSH keys .."
-#generate local ssh keys
+#Generate ssh keys for myclublink user
 if [ ! -d "/home/myclublink/.ssh" ]; then
 	echo "- SSH keys don't exist so I'm creating them in /home/myclublink/.ssh"
-	sudo -u myclublink mkdir /home/myclublink/.ssh
 	sudo -u myclublink ssh-keygen -b 4096 -t rsa -f /home/myclublink/.ssh/id_rsa -P ""
+	#this is probably bad but will do for now. Allow members of myclublink group to read from .ssh
+	sudo chmod -R 750 /home/myclublink/.ssh 
+	
 	echo "SSH Keys have been created. Please enter them manually on BitBucket account for now"
 	exit 1
 else
@@ -51,7 +52,6 @@ fi
 
 #example request
 #key and label have to be set in the body
-
 
 #POST /api/1.0/users/bradmccormack/ssh-keys/ HTTP/1.1
 #Authorization:
@@ -108,33 +108,31 @@ fi
 #}
 
 
-
-#silence nagging off security prompt. Later add to ~/.ssh/known_hosts
-echo "* Pulling down latest code ...."
-#todo grep the file first before adding 
-
-if [ ! -f "/home/myclublink/.ssh/config" ]; then
-	sudo -u myclublink touch /home/myclublink/.ssh/config
+#delete the current config file if one is there
+if [ -f $HOME/.ssh/config ]; then
+	sudo rm $HOME/.ssh/config
 fi
 
+#Silence the nagging of security prompt and set the identity to use for ssh
+sudo echo "Host bitbucket.org" >> $HOME/.ssh/config 
+sudo echo "StrictHostKeyChecking no" >> $HOME/.ssh/config
+sudo echo "IdentityFile /home/myclublink/.ssh/id_rsa.pub" >> $HOME/.ssh/config
 
-sudo -u myclublink echo "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> /home/myclublink/.ssh/config
 
+#Create git directory for myclublink user ready to download if it doesn't exist
 if [ ! -d "/home/myclublink/git" ]; then
-	sudo mkdir -p /home/myclublink/git
-	sudo chown -R brad:http /home/myclublink/git
+	sudo -u myclublink mkdir -p /home/myclublink/git
 	sudo chmod 775 /home/myclublink/git
 fi
 
 cd /home/myclublink/git/
-
 if [ -d "myclublink" ]; then
 	echo "- myclublink repo already exists. Pulling latest code"
 	sudo -u myclublink git clean -f --quiet
         sudo -u myclublink git pull --quiet
 else
 	echo "- Cloning repository"
-	sudo -u myclublink git clone git@bitbucket.org:bradmccormack/myclublink.git --quiet
+	git clone git@bitbucket.org:bradmccormack/myclublink.git --quiet
 fi
 
 echo "- Code pulled down."
