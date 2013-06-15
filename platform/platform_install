@@ -25,7 +25,7 @@ echo "* Upating package sources"
 #sudo apt-get update
 
 echo "* Installing package dependencies"
-for dep in git nginx htop vim samba openssh-server; do
+for dep in git nginx htop vim samba openssh-server curl; do
 	if dpkg -s $dep 2>/dev/null 1>/dev/null; then
 		echo $dep " is installed already. Skipping "
 	else
@@ -50,62 +50,9 @@ fi
 
 #add the ssh public key to the bitbucket rep
 
-#example request
-#key and label have to be set in the body
+PUBLICKEY=`cat /etc/home/myclublink/.ssh/id_rsa.pub`
+curl "https://bitbucket.org/api/1.0/users/bradmccormack/ssh-keys/" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: bitbucket.org" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: */*" -H "Cache-Control: no-cache" -H "Cookie: optimizelyEndUserId=oeu1371266234695r0.6271766992285848; optimizelySegments=%7B%22202765491%22%3A%22false%22%2C%22202916208%22%3A%22gc%22%2C%22202920152%22%3A%22search%22%7D; optimizelyBuckets=%7B%7D; bb_session=93c5927301f7a1a297bb8abafb2d062d; csrftoken=91d40f7b72f3e126367cd9ced6e36851; __utma=254090395.942569903.1371266236.1371266236.1371266236.1; __utmb=254090395.20.10.1371266236; __utmc=254090395; __utmz=254090395.1371266236.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=254090395.|1=isBBUser=true=1" -H "Connection: keep-alive" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data-urlencode "key=$PUBLICKEY" --data-urlencode "label=vmtest"
 
-#POST /api/1.0/users/bradmccormack/ssh-keys/ HTTP/1.1
-#Authorization:
-#Basic ****
-#X-HostCommonName:
-#bitbucket.org
-#Host:
-#bitbucket.org
-#Content-Length:
-#441
-#X-Target-URI:
-#https://bitbucket.org
-#Content-Type:
-#application/x-www-form-urlencoded; charset=UTF-8
-#Connection:
-#Keep-Alive
-#key=ssh-rsa+AAAAB3NzaC1yc2EAAAADAQABAAABAQDAgLp6lc%2F9dELRalcKaDWqkXjaCykgXIa4vxR0vQdbaef4lSlNLuAro38Qs6eZSmwV1hRiM482rHfytE7KC5UNMx1dIyHblnvBRgc5Ouqun2hqFFXvtJISfmBJXNGoEx5khOVKPjlX1D8AvgmmysT%2FKl71Q%2F%2BdvDdioqcw6QuxB6GjzQS7L%2FUXYuHXhRflr0oUpDnW5D2iNQjcGDIQl8C3SxzOzO%2FVy%2B%2FM%2Fc3anBPJCClTg00a4D60yqnQZz4UTJIPzagwpaUW8ATsD8RoIp2NibYLiIN5Qgwk8A0DK4aBwxikxxgVGsgElKaUpdQoNJsNav3XE%2FsqfU7nEgMxAL8L+myclublink%40ubuntu&label=testingAPI
-#RequestResponseView raw Share
-
-#example response
-#HTTP/1.1 200 OK
-#Content-Language:
-#en
-#ETag:
-#"fe1719adac8c02a6015289a32951c53e"
-#X-Render-Time:
-#0.461893081665
-#Content-Length:
-#460
-#X-Served-By:
-#bitbucket16
-#X-Version:
-#734bd9b293af
-#X-Request-Count:
-#257
-#Server:
-#nginx/1.2.4
-#X-Content-Type-Options:
-#nosniff
-#Strict-Transport-Security:
-#max-age=2592000
-#Date:
-#Fri, 07 Jun 2013 07:59:27 GMT
-#Vary:
-#Authorization, Accept-Language, Cookie
-#X-Static-Version:
-#0c9e84a522b5
-#Content-Type:
-#application/json; charset=utf-8
-#{
-#  "pk": 741340,
-#  "key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAgLp6lc/9dELRalcKaDWqkXjaCykgXIa4vxR0vQdbaef4lSlNLuAro38Qs6eZSmwV1hRiM482rHfytE7KC5UNMx1dIyHblnvBRgc5Ouqun2hqFFXvtJISfmBJXNGoEx5khOVKPjlX1D8AvgmmysT/Kl71Q/+dvDdioqcw6QuxB6GjzQS7L/UXYuHXhRflr0oUpDnW5D2iNQjcGDIQl8C3SxzOzO/Vy+/M/c3anBPJCClTg00a4D60yqnQZz4UTJIPzagwpaUW8ATsD8RoIp2NibYLiIN5Qgwk8A0DK4aBwxikxxgVGsgElKaUpdQoNJsNav3XE/sqfU7nEgMxAL8L myclublink@ubuntu",
-#  "label": "testingAPI"
-#}
 
 
 #delete the current config file if one is there
