@@ -20,7 +20,10 @@ usermod -a -G myclublink $CURRENTUSER
 sudo addgroup $CURRENTUSER http --quiet
 
 echo "* Upating package sources"
-#sudo apt-get update
+sudo apt-get update 
+
+echo "* Updating all system packages"
+sudo apt-get -y upgrade
 
 echo "* Installing package dependencies"
 for dep in git nginx htop vim samba openssh-server curl; do
