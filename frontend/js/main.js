@@ -282,7 +282,38 @@ function bindHandlers() {
 
 	//Menu Nav
 	$("#tabMap,#tabProfile, #tabSupport, #tabReports, #tabSettings").click(function(){
-		alert("Clicked nav with id " + $(this).attr("id"));
+        var Self = $(this);
+        var Main = $("#Mainmap");
+        var actions = {
+            tabMap: function() {
+                throw "Not Implemented";
+            },
+            tabProfile: function() {
+                throw "Not Implemented";
+
+            },
+            tabSupport: function() {
+                throw "Not Implemented";
+            },
+            tabReports: function() {
+                throw "Not Implemented";
+            },
+            tabSettings: function() {
+                $.ajax({
+                    type: "GET",
+                    URL: "/settings",
+                    contentType: "HTML",
+                    success: function(HTML) {
+                        var something = HTML;
+                    },
+                    error: function(a,b,c) {
+                      //TODO
+                    }
+                })
+                Main.html("<p>Lol</p>");
+
+            }
+        }[Self.attr("id")]();
 	});
 
 
