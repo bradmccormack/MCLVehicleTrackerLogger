@@ -131,9 +131,10 @@ func main() {
 	}
 	defer db.Close()
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", *service)
+	//tcpAddr, err := net.ResolveTCPAddr("tcp", *service)
+	lnk, err := net.Listen("tcp", *service)
 	if err != nil {
-		fmt.Printf("Failed to resolve TCP address")
+		fmt.Printf("Failed to get tcp listener")
 		os.Exit(1)
 	}
 	fmt.Printf("Listening on TCP Port %s\n", *service)
@@ -143,12 +144,14 @@ func main() {
 
 	//wait around for tcp requests and handle them when they come in
 	for {
-		tcpcon, err := net.ListenTCP("tcp", tcpAddr)
+		//tcpcon, err := net.ListenTCP("tcp", tcpAddr)
+		tcpcon, err := lnk.Accept()
 		if err != nil {
 			fmt.Printf("Failed to create tcp connection - %s", err)
 			os.Exit(1)
 		}
-		handleClient(db, tcpcon)
+		//note to self, the part after tcpcon. is called type assertion. TODO find out how it relates to casting in other languages
+		handleClient(db, tcpcon.(*net.TCPConn))
 	}
 }
 
