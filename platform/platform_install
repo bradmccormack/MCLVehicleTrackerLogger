@@ -20,10 +20,10 @@ usermod -a -G myclublink $CURRENTUSER
 sudo addgroup $CURRENTUSER http --quiet
 
 echo "* Upating package sources"
-sudo apt-get update 
+#sudo apt-get update 
 
 echo "* Updating all system packages"
-sudo apt-get -y upgrade
+#sudo apt-get -y upgrade
 
 echo "* Installing package dependencies"
 for dep in git nginx htop vim samba openssh-server curl golang sqlite3 libsqlite3-dev pkg-config; do
@@ -72,8 +72,9 @@ echo "StrictHostKeyChecking no" >> $HOME/.ssh/config
 if [ -d $GITHOME ]; then
 	cd $GITHOME/myclublink
 	echo "- myclublink repo already exists. Pulling latest code"
-	git clean -f --quiet
-        git pull --quiet
+	sudo -u $CURRENTUSER git clean -f --quiet
+        sudo -u $CURRENTUSER git pull --quiet
+	exit 1
 else
 	echo "Current dir is " `pwd`
 	sudo -u $CURRENTUSER mkdir -p $GITHOME
