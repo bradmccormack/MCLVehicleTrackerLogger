@@ -135,15 +135,17 @@ sudo go get github.com/gorilla/mux
 sudo go get github.com/garyburd/go-websocket/websocket
 sudo go get github.com/mattn/go-sqlite3
 
-echo "Building backend"
+echo "Building backend .."
 sudo -u myclublink mkdir $MYCLUBLINKHOME/bin
 sudo -u myclublink go build -o $MYCLUBLINKHOME/bin/mcl $GITHOME/myclublink/backend/src/main/mcl.go
 sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
 
-echo "Cleaning up"
-sudo rm -$ $MYCLUBLINKHOME/backend
- 
+echo "Cleaning up .."
+sudo rm -Rf $MYCLUBLINKHOME/backend
+sudo rm -Rf $MYCLUBLINKHOME/platform 
 
 ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 echo "myClubLink is now running . Hit it on"  $ip "or add it to the host file of the user or DNS server for the users on the local network"
 
+sudo -u myclublink $MYCLUBLINKHOME/bin/mcl &
+echo "myClubLink binary running from " $MYCLUBLINKHOME/bin/mcl
