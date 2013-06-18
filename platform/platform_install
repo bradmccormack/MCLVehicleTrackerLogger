@@ -133,7 +133,7 @@ sudo service nginx restart --quiet
 echo "Setting up development environment for backend .."
 sudo go get github.com/gorilla/mux
 sudo go get github.com/garyburd/go-websocket/websocket
-sudo go get github.com/matnn/go-sqlite3
+sudo go get github.com/mattn/go-sqlite3
 
 echo "Building backend"
 sudo -u myclublink mkdir $MYCLUBLINKHOME/bin
