@@ -29,7 +29,7 @@ type GPSRecord struct {
 	ID        string
 }
 
-var service = flag.String("service", ":6969", "udp port to bind to")
+var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
 var db *sql.DB
@@ -131,24 +131,24 @@ func main() {
 	}
 	defer db.Close()
 
-	udpAddr, err := net.ResolveUDPAddr("udp4", *service)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", *service)
 	if err != nil {
-		fmt.Printf("Failed to resolve UDP address")
+		fmt.Printf("Failed to resolve TCP address")
 		os.Exit(1)
 	}
-	fmt.Printf("Listening on UDP Port %s\n", *service)
+	fmt.Printf("Listening on TCP Port %s\n", *service)
 
 	//handle web requests in a seperate go-routine
 	go handleHTTP()
 
-	//wait around for UDP requests and handle them when they come in
+	//wait around for tcp requests and handle them when they come in
 	for {
-		udpcon, err := net.ListenUDP("udp", udpAddr)
+		tcpcon, err := net.ListenTCP("tcp", tcpAddr)
 		if err != nil {
-			fmt.Printf("Failed to create udp connection - %s", err)
+			fmt.Printf("Failed to create tcp connection - %s", err)
 			os.Exit(1)
 		}
-		handleClient(db, udpcon)
+		handleClient(db, tcpcon)
 	}
 }
 
@@ -196,15 +196,15 @@ func logEntry(entry *GPSRecord) {
 }
 
 //palm off reading and writing to a go routine
-func handleClient(db *sql.DB, conn *net.UDPConn) {
+func handleClient(db *sql.DB, conn *net.TCPConn) {
 
 	defer conn.Close()
 	var buff [512]byte
 	var entry GPSRecord
 
-	n, addr, err := conn.ReadFromUDP(buff[:])
+	n, err := conn.Read(buff[:])
 	if err != nil {
-		fmt.Printf("Error reading from UDP")
+		fmt.Printf("Error reading from TCP")
 	}
 
 	gpsfields := strings.Split(string(buff[:n]), ",")
@@ -240,6 +240,6 @@ func handleClient(db *sql.DB, conn *net.UDPConn) {
 	go logEntry(&entry)  //save to database
 	updateClient(&entry) //notify any HTTP observers //make this a goroutine later
 
-	conn.WriteToUDP([]byte("OK"), addr)
+	conn.Write([]byte("OK"))
 
 }
