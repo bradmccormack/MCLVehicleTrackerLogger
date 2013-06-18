@@ -71,3 +71,6 @@ _testmain.go
 *.jar
 *.war
 *.ear
+
+#IDE crap
+.idea*
