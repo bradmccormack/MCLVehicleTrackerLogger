@@ -74,7 +74,6 @@ if [ -d $GITHOME ]; then
 	echo "- myclublink repo already exists. Pulling latest code"
 	sudo -u $CURRENTUSER git clean -f --quiet
         sudo -u $CURRENTUSER git pull --quiet
-	exit 1
 else
 	echo "Current dir is " `pwd`
 	sudo -u $CURRENTUSER mkdir -p $GITHOME
@@ -104,6 +103,7 @@ if [ -d "/etc/nginx" ]; then
 	if [ -L /etc/nginx/sites-available/dev.myClubLink.com.au.conf ]; then
 		echo "deleting dev sym link 1"
 		sudo rm -f /etc/nginx/sites-available/dev.myClubLink.com.au.conf
+	fi 
 
 	if [ -L /etc/nginx/sites-enabled/dev.myClubLink.com.au.conf ]; then
 		echo "deleting dev sym link 2"
@@ -150,7 +150,11 @@ sudo go get github.com/garyburd/go-websocket/websocket
 sudo go get github.com/mattn/go-sqlite3
 
 echo "Building backend .."
-sudo -u myclublink mkdir $MYCLUBLINKHOME/bin
+
+if [ ! -d $MYCLUBLINKHOME/bin ]; then 
+	sudo -u myclublink mkdir $MYCLUBLINKHOME/bin
+fi
+
 sudo -u myclublink go build -o $MYCLUBLINKHOME/bin/mcl $GITHOME/myclublink/backend/src/main/mcl.go
 sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
 
@@ -161,6 +165,9 @@ sudo rm -Rf $MYCLUBLINKHOME/platform
 ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 echo "myClubLink is now running !"
 echo "You will need to add " $ip " for internal.myclublink.com.au and dev.myclublink.com.au to DNS server for the users on the local network"
+
+#kill any other existing instances that are running of mcl
+kill -9 $(pidof mcl)
 
 sudo -u myclublink $MYCLUBLINKHOME/bin/mcl &
 echo "myClubLink binary running from " $MYCLUBLINKHOME/bin/mcl
