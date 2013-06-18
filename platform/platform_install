@@ -158,7 +158,8 @@ sudo rm -Rf $MYCLUBLINKHOME/backend
 sudo rm -Rf $MYCLUBLINKHOME/platform 
 
 ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
-echo "myClubLink is now running . Hit it on"  $ip "or add it to the host file of the user or DNS server for the users on the local network"
+echo "myClubLink is now running !"
+echo "You will need to add " $ip " for internal.myclublink.com.au and dev.myclublink.com.au to DNS server for the users on the local network"
 
 sudo -u myclublink $MYCLUBLINKHOME/bin/mcl &
 echo "myClubLink binary running from " $MYCLUBLINKHOME/bin/mcl
