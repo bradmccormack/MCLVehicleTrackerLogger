@@ -26,7 +26,7 @@ echo "* Updating all system packages"
 sudo apt-get -y upgrade
 
 echo "* Installing package dependencies"
-for dep in git nginx htop vim samba openssh-server curl; do
+for dep in git nginx htop vim samba openssh-server curl golang sqlite3 libsqlite3-dev pkg-config; do
 	if dpkg -s $dep 2>/dev/null 1>/dev/null; then
 		echo $dep " is installed already. Skipping "
 	else
@@ -130,7 +130,19 @@ fi
 
 sudo service nginx restart --quiet
 
-echo "- Note - Go backend binary is not currently part of source. So I need to do that still sorry"
+echo "Setting up development environment for backend .."
+sudo go get github.com/gorilla/mux
+sudo go get github.com/garyburd/go-websocket/websocket
+sudo go get github.com/matnn/go-sqlite3
+
+echo "Building backend"
+sudo -u myclublink mkdir $MYCLUBLINKHOME/bin
+sudo -u myclublink go build -o $MYCLUBLINKHOME/bin/mcl $GITHOME/myclublink/backend/src/main/mcl.go
+sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
+
+echo "Cleaning up"
+sudo rm -$ $MYCLUBLINKHOME/backend
+ 
 
 ip=`ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 echo "myClubLink is now running . Hit it on"  $ip "or add it to the host file of the user or DNS server for the users on the local network"
