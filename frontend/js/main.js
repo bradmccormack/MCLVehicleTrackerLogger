@@ -207,7 +207,7 @@ var System = (function(){
 
             if (window["WebSocket"]) {
                     //alert("Browser supports Web Sockets. Yay");
-                    Con = new WebSocket("ws://internal.myclublink.com.au:8080/ws");
+                    Con = new WebSocket("ws://dev.myclublink.com.au/ws");
                     //if(Con)
                     //    Con.send("test message");
 
@@ -301,10 +301,10 @@ function bindHandlers() {
             tabSettings: function() {
                 $.ajax({
                     type: "GET",
-                    URL: "/settings",
-                    contentType: "HTML",
+                    url: "/system/settings",
+                    dataType: "HTML",
                     success: function(HTML) {
-                        var something = HTML;
+                        Main.replaceWith(HTML);
                     },
                     error: function(a,b,c) {
                       //TODO
