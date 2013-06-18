@@ -39,6 +39,7 @@ func ActionSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func ViewSettings(w http.ResponseWriter, r *http.Request) {
+	//fmt.Printf("In ViewSettings\n")
 	w.Header().Add("Content-Type", "text/html")
 
 	var err error
@@ -71,6 +72,7 @@ func ViewSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
+	//fmt.Printf("in handleWebSocket\n")
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
@@ -105,7 +107,9 @@ func handleHTTP() {
 	Router := mux.NewRouter()
 
 	Router.HandleFunc("/ws", handleWebSocketInit)
-	Router.HandleFunc("/settings", ViewSettings)
+
+	//Note - Need to check POST / GET and send off to View or action.. clean up this gross stuff
+	Router.HandleFunc("/system/settings", ViewSettings)
 
 	http.Handle("/", Router)
 
