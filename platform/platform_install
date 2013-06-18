@@ -70,7 +70,7 @@ echo "	name = Brad mccormack" >> $HOME/.gitconfig
 echo "StrictHostKeyChecking no" >> $HOME/.ssh/config
 
 if [ -d $GITHOME ]; then
-	cd $GITHOME
+	cd $GITHOME/myclublink
 	echo "- myclublink repo already exists. Pulling latest code"
 	git clean -f --quiet
         git pull --quiet
