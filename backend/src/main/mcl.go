@@ -112,24 +112,27 @@ func main() {
 	}
 	defer Db.Close()
 
-	udpAddr, err := net.ResolveUDPAddr("udp4", *service)
+	//tcpAddr, err := net.ResolveTCPAddr("tcp", *service)
+	lnk, err := net.Listen("tcp", *service)
 	if err != nil {
-		fmt.Printf("Failed to resolve UDP address")
+		fmt.Printf("Failed to get tcp listener")
 		os.Exit(1)
 	}
-	fmt.Printf("Listening on UDP Port %s\n", *service)
+	fmt.Printf("Listening on TCP Port %s\n", *service)
 
 	//handle web requests in a seperate go-routine
 	go handleHTTP()
 
-	//wait around for UDP requests and handle them when they come in
+	//wait around for tcp requests and handle them when they come in
 	for {
-		udpcon, err := net.ListenUDP("udp", udpAddr)
+		//tcpcon, err := net.ListenTCP("tcp", tcpAddr)
+		tcpcon, err := lnk.Accept()
 		if err != nil {
-			fmt.Printf("Failed to create udp connection - %s", err)
+			fmt.Printf("Failed to create tcp connection - %s", err)
 			os.Exit(1)
 		}
-		handleClient(Db, udpcon)
+		//note to self, the part after tcpcon. is called type assertion. TODO find out how it relates to casting in other languages
+		handleClient(Db, tcpcon.(*net.TCPConn))
 	}
 }
 
@@ -177,13 +180,13 @@ func logEntry(entry *GPSRecord) {
 }
 
 //palm off reading and writing to a go routine
-func handleClient(Db *sql.DB, conn *net.UDPConn) {
+func handleClient(Db *sql.DB, conn *net.TCPConn) {
 
 	defer conn.Close()
 	var buff [512]byte
 	var entry GPSRecord
 
-	n, addr, err := conn.ReadFromUDP(buff[:])
+	n, err := conn.Read(buff[:])
 	if err != nil {
 		fmt.Printf("Error reading from UDP")
 	}
@@ -221,6 +224,6 @@ func handleClient(Db *sql.DB, conn *net.UDPConn) {
 	go logEntry(&entry)  //save to database
 	updateClient(&entry) //notify any HTTP observers //make this a goroutine later
 
-	conn.WriteToUDP([]byte("OK"), addr)
+	conn.Write([]byte("OK"))
 
 }
