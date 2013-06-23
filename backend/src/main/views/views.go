@@ -1,13 +1,21 @@
 package views
 
 import (
+	"database/sql"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"net/http"
 )
 
+var Db *sql.DB
+
+func ViewInvalid(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Invalid view", 403)
+}
+
 func ViewLogin(w http.ResponseWriter, r *http.Request) {
-	
+
 	var err error
 	t := template.New("Login")
 	t, err = template.ParseFiles("templates/login.html")
@@ -15,8 +23,8 @@ func ViewLogin(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Failed to parse the template file!\n")
 		return
 	}
-	t.Execute(w, login)
-)
+	t.Execute(w, nil)
+}
 
 func ViewSettings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html")

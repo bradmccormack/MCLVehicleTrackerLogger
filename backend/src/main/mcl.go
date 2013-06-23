@@ -9,9 +9,9 @@ import (
 	"github.com/garyburd/go-websocket/websocket"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
-	"html/template"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -78,18 +78,14 @@ func handleHTTP() {
 	//TODO - Look at moving non-websocket traffic to fastcgi protocol
 
 	//View Routes
-	viewRouter.HandleFunc("/settings", ViewSettings)
-	viewRouter.HandleFunc("/settings")
-	viewRouter.HandleFunc("/", func(w http.ResponseWriter, request *http.Request) {
-		http.Error(w, "Invalid view", 403)
-	})
+	viewRouter.HandleFunc("/settings", views.ViewSettings)
+	viewRouter.HandleFunc("/login", views.ViewLogin)
+	viewRouter.HandleFunc("/", views.ViewInvalid)
 
 	//Action Routes
-	actionRouter.HandleFunc("/login", ActionLogin)
-	actionRouter.HandleFunc("/settings", ActionSettings)
-	actionRouter.HandleFunc("/", func(w http.ResponseWriter, request *http.Request) {
-		http.Error(w, "Invalid action", 403)
-	})
+	actionRouter.HandleFunc("/login", actions.ActionLogin)
+	actionRouter.HandleFunc("/settings", actions.ActionSettings)
+	actionRouter.HandleFunc("/", actions.ActionInvalid)
 
 	//Use the router
 	http.Handle("/", Router)
