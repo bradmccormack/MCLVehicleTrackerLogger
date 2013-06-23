@@ -196,6 +196,25 @@ var System = (function(){
         getMapAPI: function() {
           return this.mapAPI;
         },
+        login: function(cbobj) {
+       		if("session" in $.cookie())
+       		{
+       			if("complete" in cbobj && typeof cbobj == "function") {
+       				obj.complete();
+       			}
+       		}
+        	$('#myModal').modal('toggle');  //Perform login	
+        	
+        	/*
+        	//do the login stuff
+        	if("success" in obj)
+        		obj.success();
+        	if("error" in obj)
+        		obj.fail();
+        		*/
+        
+        },
+        
 		init: function() {
 
             var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
@@ -368,9 +387,23 @@ $(document).ready(function() {
 
     //Startup the main system
     var system = new System();
-    system.init();
-
- 	$('#myModal').modal('toggle');  //Perform login
+    
+    //attempt to login
+    system.login(
+    	{ 
+    		success: function() {
+    			  //display success message or something
+    		},
+    		error: function() {
+    			
+    		},
+    		complete: function() {
+    			  system.init();
+    		}
+    		
+	});
+    	
+    	
 
     /*
 	mapAPI.onClick(function(e){
