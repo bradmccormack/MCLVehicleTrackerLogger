@@ -211,11 +211,14 @@ var System = (function(){
        			url: "/system/login",
        			success: function(HTML) 
        			{
+       				$('body').append(HTML);
+       				$('#myModal').toggle();
        				$('#myModal login-form').submit(function(e) 
        				{
 	       				e.preventDefault();
 	       				$.ajax({
 	       					type: "POST",
+	       					///system/settings
 	       					url: "/system/login",
 	       					dataType: "json",
 	       					data: {name:"guest", password:""},

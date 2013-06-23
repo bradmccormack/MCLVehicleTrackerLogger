@@ -69,6 +69,7 @@ var views = map[string]interface{}{
 	},
 
 	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("In ViewSettings")
 		w.Header().Add("Content-Type", "text/html")
 
 		var err error
@@ -144,12 +145,12 @@ func handleHTTP() {
 
 	//View Routes
 	viewRouter.HandleFunc("/system/settings", views["ViewSettings"].(func(http.ResponseWriter, *http.Request)))
-	viewRouter.HandleFunc("/login", views["ViewLogin"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/system/login", views["ViewLogin"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/", views["ViewInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Action Routes
-	actionRouter.HandleFunc("/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
-	actionRouter.HandleFunc("/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/system/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/system/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/", actions["ActionInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Use the router
