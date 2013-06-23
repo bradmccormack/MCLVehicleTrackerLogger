@@ -39,14 +39,14 @@ func ActionSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func ViewSettings(w http.ResponseWriter, r *http.Request) {
-	//fmt.Printf("In ViewSettings\n")
+	fmt.Printf("In ViewSettings\n")
 	w.Header().Add("Content-Type", "text/html")
 
 	var err error
 	t := template.New("Settings")
 	t, err = template.ParseFiles("templates/settings.html")
 	if err != nil {
-		fmt.Printf("Failed to parse the template file!\n")
+		fmt.Printf("Failed to parse the template file!\n %s", err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func ViewSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
-	//fmt.Printf("in handleWebSocket\n")
+	fmt.Printf("in handleWebSocket\n")
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
@@ -94,6 +94,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
+		fmt.Printf("error is %s", err)
 		log.Println(err)
 		return
 	}
