@@ -15,7 +15,7 @@ func ViewInvalid(w http.ResponseWriter, r *http.Request) {
 }
 
 func ViewLogin(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Printf("In ViewLogin")
 	var err error
 	t := template.New("Login")
 	t, err = template.ParseFiles("templates/login.html")

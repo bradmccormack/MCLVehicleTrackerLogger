@@ -30,7 +30,7 @@ type GPSRecord struct {
 	ID        string
 }
 
-var service = flag.String("service", ":6969", "udp port to bind to")
+var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
 var Db *sql.DB
