@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
@@ -29,6 +30,19 @@ type GPSRecord struct {
 	ID        string
 }
 
+type User struct {
+	id          int
+	firstname   string
+	lastname    string
+	password    string
+	company     string
+	accesslevel int
+}
+
+type Session struct {
+	user User
+}
+
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
@@ -41,6 +55,31 @@ var actions = map[string]interface{}{
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
+
+		var user User
+		name := r.FormValue("name")
+		password := r.FormValue("password")
+
+		err := Db.QueryRow("SELECT ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", name, password)
+
+		switch {
+		case err == sql.ErrNoRows:
+			log.Printf("No user with that ID.")
+			//decrease the retries and send failure back with reduced retries
+		case err != nil:
+			log.Fatal(err)
+		default:
+			//read the row and make a session cookie and send it back with some JSON
+			row.Scan(&user.id)
+
+		}
+
+		json, err := json.Marshal(user)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
 		fmt.Printf("In Action Login")
 	},
 
@@ -50,6 +89,7 @@ var actions = map[string]interface{}{
 	},
 }
 
+//Note - Template caching needs to be implemented http://golang.org/doc/articles/wiki/ There is an inefficiency in this code: renderTemplate calls ParseFiles every time a page is rendered.
 var views = map[string]interface{}{
 
 	"ViewInvalid": func(w http.ResponseWriter, r *http.Request) {

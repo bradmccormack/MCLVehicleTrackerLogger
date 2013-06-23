@@ -212,16 +212,19 @@ var System = (function(){
        			success: function(HTML) 
        			{
        				$('body').append(HTML);
-       				$('#myModal').toggle();
-       				$('#myModal login-form').submit(function(e) 
+       		
+       				$('#myModal form.login-form').submit(function(e) 
        				{
+       					
 	       				e.preventDefault();
+	       				var name = $(this).find("input[name=username]").val();
+	       				var pass = $(this).find("input[name=password]").val();
+	       				
 	       				$.ajax({
 	       					type: "POST",
-	       					///system/settings
 	       					url: "/system/login",
-	       					dataType: "json",
-	       					data: {name:"guest", password:""},
+	       					dataType: "JSON",
+	       					data: {name: name, password: pass},
        						success: function(JSON) 
        						{
 	       						if("session" in $.cookie()) 
@@ -252,8 +255,11 @@ var System = (function(){
 	       					}
        						
        					});
+       					
        				});
+       				$('#myModal').modal('toggle');  
        			}
+       			
        		});
        		
        					
