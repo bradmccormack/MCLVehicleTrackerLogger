@@ -1,6 +1,8 @@
 package main
 
 import (
+	"./actions"
+	"./views"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -10,7 +12,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -29,50 +30,12 @@ type GPSRecord struct {
 	ID        string
 }
 
-var service = flag.String("service", ":6969", "tcp port to bind to")
+var service = flag.String("service", ":6969", "udp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
-var db *sql.DB
-
-func ActionSettings(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func ViewSettings(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("In ViewSettings\n")
-	w.Header().Add("Content-Type", "text/html")
-
-	var err error
-	t := template.New("Settings")
-	t, err = template.ParseFiles("templates/settings.html")
-	if err != nil {
-		fmt.Printf("Failed to parse the template file!\n %s", err)
-		return
-	}
-
-	userID := 1 //this should come from the request form
-
-	row := db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName FROM Settings S, User U WHERE S.UserID = ?", userID)
-
-	var settings = map[string]string{
-		"MapAPI":    "",
-		"FirstName": "",
-		"LastName":  "",
-	}
-
-	var MapAPI, FirstName, LastName string
-	row.Scan(&MapAPI, &FirstName, &LastName)
-
-	settings["MapAPI"] = MapAPI
-	settings["FirstName"] = FirstName
-	settings["LastName"] = LastName
-
-	t.Execute(w, settings) //second param is the data interface. It's the equiv of Bondi's AddDataSet I believe'
-
-}
+var Db *sql.DB
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("in handleWebSocket\n")
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
@@ -94,7 +57,6 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
-		fmt.Printf("error is %s", err)
 		log.Println(err)
 		return
 	}
@@ -107,11 +69,29 @@ func handleHTTP() {
 
 	Router := mux.NewRouter()
 
+	viewRouter := Router.Methods("GET").Subrouter()
+	actionRouter := Router.Methods("POST").Subrouter()
+
+	//Handle web socket traffic specially
 	Router.HandleFunc("/ws", handleWebSocketInit)
 
-	//Note - Need to check POST / GET and send off to View or action.. clean up this gross stuff
-	Router.HandleFunc("/system/settings", ViewSettings)
+	//TODO - Look at moving non-websocket traffic to fastcgi protocol
 
+	//View Routes
+	viewRouter.HandleFunc("/settings", ViewSettings)
+	viewRouter.HandleFunc("/settings")
+	viewRouter.HandleFunc("/", func(w http.ResponseWriter, request *http.Request) {
+		http.Error(w, "Invalid view", 403)
+	})
+
+	//Action Routes
+	actionRouter.HandleFunc("/login", ActionLogin)
+	actionRouter.HandleFunc("/settings", ActionSettings)
+	actionRouter.HandleFunc("/", func(w http.ResponseWriter, request *http.Request) {
+		http.Error(w, "Invalid action", 403)
+	})
+
+	//Use the router
 	http.Handle("/", Router)
 
 	fmt.Printf("Listening for HTTP on %s\n", *addr)
@@ -129,34 +109,31 @@ func main() {
 
 	var err error
 
-	db, err = sql.Open("sqlite3", "./backend.db")
+	Db, err = sql.Open("sqlite3", "./backend.db")
 	if err != nil {
 		fmt.Printf("Cannot open backend.db . Exiting")
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer Db.Close()
 
-	//tcpAddr, err := net.ResolveTCPAddr("tcp", *service)
-	lnk, err := net.Listen("tcp", *service)
+	udpAddr, err := net.ResolveUDPAddr("udp4", *service)
 	if err != nil {
-		fmt.Printf("Failed to get tcp listener")
+		fmt.Printf("Failed to resolve UDP address")
 		os.Exit(1)
 	}
-	fmt.Printf("Listening on TCP Port %s\n", *service)
+	fmt.Printf("Listening on UDP Port %s\n", *service)
 
 	//handle web requests in a seperate go-routine
 	go handleHTTP()
 
-	//wait around for tcp requests and handle them when they come in
+	//wait around for UDP requests and handle them when they come in
 	for {
-		//tcpcon, err := net.ListenTCP("tcp", tcpAddr)
-		tcpcon, err := lnk.Accept()
+		udpcon, err := net.ListenUDP("udp", udpAddr)
 		if err != nil {
-			fmt.Printf("Failed to create tcp connection - %s", err)
+			fmt.Printf("Failed to create udp connection - %s", err)
 			os.Exit(1)
 		}
-		//note to self, the part after tcpcon. is called type assertion. TODO find out how it relates to casting in other languages
-		handleClient(db, tcpcon.(*net.TCPConn))
+		handleClient(Db, udpcon)
 	}
 }
 
@@ -186,7 +163,7 @@ func updateClient(entry *GPSRecord) {
 
 func logEntry(entry *GPSRecord) {
 
-	_, err := db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
+	_, err := Db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
 		entry.message,
 		entry.latitude,
 		entry.longitude,
@@ -204,15 +181,15 @@ func logEntry(entry *GPSRecord) {
 }
 
 //palm off reading and writing to a go routine
-func handleClient(db *sql.DB, conn *net.TCPConn) {
+func handleClient(Db *sql.DB, conn *net.UDPConn) {
 
 	defer conn.Close()
 	var buff [512]byte
 	var entry GPSRecord
 
-	n, err := conn.Read(buff[:])
+	n, addr, err := conn.ReadFromUDP(buff[:])
 	if err != nil {
-		fmt.Printf("Error reading from TCP")
+		fmt.Printf("Error reading from UDP")
 	}
 
 	gpsfields := strings.Split(string(buff[:n]), ",")
@@ -248,6 +225,6 @@ func handleClient(db *sql.DB, conn *net.TCPConn) {
 	go logEntry(&entry)  //save to database
 	updateClient(&entry) //notify any HTTP observers //make this a goroutine later
 
-	conn.Write([]byte("OK"))
+	conn.WriteToUDP([]byte("OK"), addr)
 
 }
