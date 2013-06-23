@@ -212,6 +212,7 @@ var System = (function(){
                     //    Con.send("test message");
 
                     Con.onopen = function() {
+                    	log("Web Socket connection opened");
                         //Con.send("test message");
                     };
 
@@ -304,14 +305,14 @@ function bindHandlers() {
                     url: "/system/settings",
                     dataType: "HTML",
                     success: function(HTML) {
-                        Main.replaceWith(HTML);
+                    	Main.html(HTML);
+                        //Main.replaceWith(HTML);
                     },
                     error: function(a,b,c) {
-                      //TODO
+                      Main.addClass("div-pnel");
+                      Main.html("<p class='text-warning'><i class='icon-warning-sign'></i> Failed to contact Server</p>");
                     }
                 })
-                Main.html("<p>Lol</p>");
-
             }
         }[Self.attr("id")]();
 	});
