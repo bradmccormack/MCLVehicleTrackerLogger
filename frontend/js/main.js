@@ -208,7 +208,7 @@ var System = (function(){
        		$.ajax(
        		{
        			type: "GET",
-       			url: "/login",
+       			url: "/system/login",
        			success: function(HTML) 
        			{
        				$('#myModal login-form').submit(function(e) 
@@ -216,8 +216,9 @@ var System = (function(){
 	       				e.preventDefault();
 	       				$.ajax({
 	       					type: "POST",
-	       					url: "/login",
+	       					url: "/system/login",
 	       					dataType: "json",
+	       					data: {name:"guest", password:""},
        						success: function(JSON) 
        						{
 	       						if("session" in $.cookie()) 
@@ -372,7 +373,7 @@ function bindHandlers() {
                         //Main.replaceWith(HTML);
                     },
                     error: function(a,b,c) {
-                      Main.addClass("div-pnel");
+                      Main.addClass("div-panel");
                       Main.html("<p class='text-warning'><i class='icon-warning-sign'></i> Failed to contact Server</p>");
                     }
                 })
