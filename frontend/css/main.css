@@ -181,7 +181,15 @@ div#Mainmapcontrols .btn-group
 	height: 100%;
 }
 
-
+/* For any panels (e.g any divs that are a result of clicking on the navs on the left) */
+div.div-panel
+{
+	padding-left: 20px;
+	padding-top: 20px;
+	width: 100%;
+	height: 100%;
+	background-color: white;
+}
 
 
 

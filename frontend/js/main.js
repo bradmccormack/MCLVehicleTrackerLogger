@@ -203,15 +203,59 @@ var System = (function(){
        				obj.complete();
        			}
        		}
-        	$('#myModal').modal('toggle');  //Perform login	
-        	
-        	/*
-        	//do the login stuff
-        	if("success" in obj)
-        		obj.success();
-        	if("error" in obj)
-        		obj.fail();
-        		*/
+       		
+       		//get the login view
+       		$.ajax(
+       		{
+       			type: "GET",
+       			url: "/login",
+       			success: function(HTML) 
+       			{
+       				$('#myModal login-form').submit(function(e) 
+       				{
+	       				e.preventDefault();
+	       				$.ajax({
+	       					type: "POST",
+	       					url: "/login",
+	       					dataType: "json",
+       						success: function(JSON) 
+       						{
+	       						if("session" in $.cookie()) 
+	       						{
+	       							alert("cookie is valid baby \n " + $.cookie("session"))	;
+       								if("success" in cobj && typeof cobj.success == "function")
+        									cobj.success();
+	       							
+	       							
+	       							//remove the login form and enable everything
+	       						}
+	       						else if("retries" in JSON) 
+	       						{
+	       							var retries = parseInt(JSON.retries);
+	       							if(retries == 0) 
+	       							{
+	       									//disable the submit button
+	       								if("error" in cobj && typeof cobj.error == "function")
+	       									cobj.error();
+	       							}
+	       							else
+	       							{
+	       								var failed = "failed"; //add some Login failed text
+	       							}
+	       							
+	       						}
+	       						
+	       					}
+       						
+       					});
+       				});
+       			}
+       		});
+       		
+       					
+       			
+       		
+       	
         
         },
         

@@ -20,6 +20,7 @@
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/dzyngiri.css">
         <link rel="stylesheet" href="css/style.css">
+        
         <script src="js/modernizr-2.6.2.min.js"></script>
 
         
@@ -57,7 +58,7 @@
 		<div id="Maincontent" class="container-fluid">
 			<div class="row-fluid row-heightmax">
 			
-				<div id="Mainnav" class="span2">
+				<div id="Mainnav" class="span2 ">
 					<ul class="nav nav-list">
                       <li class="active"><a id="tabMap" href="#tabMap"><i class="icon-globe icon-3"> </i> Map</a></li>
 					  <li><a id="tabProfile" href="#tabProfile"><i class="icon-user icon-white"> </i> Profile</a></li>
@@ -66,7 +67,9 @@
 					  <li><a id="tabSettings" href="#tabSettings"><i class="icon-cog"> </i> Settings</a></li>
 					</ul>
 				</div> <!--Nav -->
-				<div id="Mainmapcontrols" class="btn-toolbar">
+				
+				
+				<div id="Mainmapcontrols" class="btn-toolbar" >
 					<div class="btn-group">
 						<button id="mapRefresh" class="btn" ><i class="icon-refresh" data-toggle="tooltip" data-placement="top" title="" data-original-title="Tooltip on top"> </i></button>
 						<button id="mapZoomIn" class="btn"><i class="icon-zoom-in"> </i></button>
@@ -85,10 +88,10 @@
 
 				</div>
 				
-				<div id="Mainmap" class="span8">	
+				<div id="Mainmap" class="span8 div-panel" >	
 				</div> <!-- map overlay -->
 				
-				<div id="Maindashboard" class="span2 well row-heightmax">
+				<div id="Maindashboard" class="span2 well">
 					<div class="container">
 						<h4> <i class="icon-dashboard icon-4"></i>  Dashboard</h4>
 						<p>
@@ -151,44 +154,11 @@
         <script src="js/bootstrap.min.js"></script>
         <script src="js/leaflet/leaflet.js"></script>
         <script src="js/plugins.js"></script>
+        <script src="js/jquery.cookie.js"></script>
         <script src="js/main.js"></script>
 
 
-        <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="myModalLabel">Login</h3>
-            </div>
-
-            <div class="modal-body">
-                <div id="wrapper">
-                    <div class="user-icon"> </div>
-                    <div class="pass-icon"> </div>
-
-                    <form name="login-form" class="login-form" action="" method="post">
-
-                        <div class="header">
-                            <h1>myClubLink</h1>
-                            <p>Please login to use myClubLink facilities</p>
-                        </div>
-                        <div class="content">
-                           <input name="username" type="text" class="input username" placeholder="Username">
-                           <input name="password" type="password" class="input password" placeholder="Password">
-                        </div>
-
-                        <div class="footer">
-                            <input type="submit" name="submit" value="Login" class="button">
-                        </div>
-                    </form>
-                </div>
-
-            </div>
-            <div class="modal-footer">
-                <strong>myClubLink (ALPHA) &copy 2013</strong>
-            </div>
-        </div>
-
+        
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
         <!--
