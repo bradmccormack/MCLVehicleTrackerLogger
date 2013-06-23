@@ -1,8 +1,6 @@
 package main
 
 import (
-	"./actions"
-	"./views"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -35,6 +33,72 @@ var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
 var Db *sql.DB
+
+var actions = map[string]interface{}{
+	"ActionInvalid": func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Invalid Action", 403)
+	},
+
+	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		fmt.Printf("In Action Login")
+	},
+
+	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		fmt.Printf("In Action Settings")
+	},
+}
+
+var views = map[string]interface{}{
+
+	"ViewInvalid": func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Invalid view", 403)
+	},
+
+	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("In ViewLogin")
+		var err error
+		t := template.New("Login")
+		t, err = template.ParseFiles("templates/login.html")
+		if err != nil {
+			fmt.Printf("Failed to parse the template file!\n")
+			return
+		}
+		t.Execute(w, nil)
+	},
+
+	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+
+		var err error
+		t := template.New("Settings")
+		t, err = template.ParseFiles("templates/settings.html")
+		if err != nil {
+			fmt.Printf("Failed to parse the template file!\n")
+			return
+		}
+
+		userID := 1 //this should come from the request form
+
+		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName FROM Settings S, User U WHERE S.UserID = ?", userID)
+
+		var settings = map[string]string{
+			"MapAPI":    "",
+			"FirstName": "",
+			"LastName":  "",
+		}
+
+		var MapAPI, FirstName, LastName string
+		row.Scan(&MapAPI, &FirstName, &LastName)
+
+		settings["MapAPI"] = MapAPI
+		settings["FirstName"] = FirstName
+		settings["LastName"] = LastName
+
+		t.Execute(w, settings)
+	},
+}
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -70,8 +134,6 @@ func handleHTTP() {
 
 	Router := mux.NewRouter()
 
-	Router.HandleFunc("/settings", views.ViewSettings)
-
 	viewRouter := Router.Methods("GET").Subrouter()
 	actionRouter := Router.Methods("POST").Subrouter()
 
@@ -81,14 +143,14 @@ func handleHTTP() {
 	//TODO - Look at moving non-websocket traffic to fastcgi protocol
 
 	//View Routes
-	//viewRouter.HandleFunc("/settings", ViewSettings)
-	viewRouter.HandleFunc("/login", views.ViewLogin)
-	viewRouter.HandleFunc("/", views.ViewInvalid)
+	viewRouter.HandleFunc("/system/settings", views["ViewSettings"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/login", views["ViewLogin"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/", views["ViewInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Action Routes
-	actionRouter.HandleFunc("/login", actions.ActionLogin)
-	actionRouter.HandleFunc("/settings", actions.ActionSettings)
-	actionRouter.HandleFunc("/", actions.ActionInvalid)
+	actionRouter.HandleFunc("/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/", actions["ActionInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Use the router
 	http.Handle("/", Router)
