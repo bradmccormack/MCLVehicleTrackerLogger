@@ -131,7 +131,7 @@ else
 fi
 
 #create a file share for the installer - TODO put this in a chroot
-if [ ! "/etc/samba" ]; then
+if [ ! -d "/etc/samba" ]; then
 	echo "- Samba didn't install correctly. Aborting script!"
 else
 	#hose the default one and link to our versioned one and add the curent user to samba
@@ -155,8 +155,14 @@ if [ ! -d $MYCLUBLINKHOME/bin ]; then
 	sudo -u myclublink mkdir $MYCLUBLINKHOME/bin
 fi
 
+#put the binary in /home/myclublink and copy the templates across
 sudo -u myclublink go build -o $MYCLUBLINKHOME/bin/mcl $GITHOME/myclublink/backend/src/main/mcl.go
-sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
+sudo -u myclublink cp -R $GITHOME/myclublink/backend/src/main/templates $MYCLUBLINKHOME/bin/
+
+
+if [ ! -f $MYCLUBLINKHOME/bin/backend.db ]; then
+	sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
+fi
 
 echo "Cleaning up .."
 sudo rm -Rf $MYCLUBLINKHOME/backend
@@ -167,7 +173,7 @@ echo "myClubLink is now running !"
 echo "You will need to add " $ip " for internal.myclublink.com.au and dev.myclublink.com.au to DNS server for the users on the local network"
 
 #kill any other existing instances that are running of mcl
-kill -9 $(pidof mcl)
+killall -15 mcl
 
-sudo -u myclublink $MYCLUBLINKHOME/bin/mcl &
+cd /home/myclublink/bin && sudo -u myclublink $MYCLUBLINKHOME/bin/mcl
 echo "myClubLink binary running from " $MYCLUBLINKHOME/bin/mcl
