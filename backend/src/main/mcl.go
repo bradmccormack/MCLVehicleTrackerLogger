@@ -30,23 +30,45 @@ type GPSRecord struct {
 	ID        string
 }
 
+type Company struct {
+	name	string
+	maxusers int
+	expiry	time.Time
+}
+
 type User struct {
 	id          int
 	firstname   string
 	lastname    string
 	password    string
-	company     string
 	accesslevel int
 }
 
 type Session struct {
-	user User
+	user *User
+	company *Company
 }
+
+type Response map[string]interface{}
+
 
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
 var Db *sql.DB
+
+
+func (r Response) String() (s string) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		s = ""
+		return
+	}
+	s = string(b)
+	return	
+}
+
+
 
 var actions = map[string]interface{}{
 	"ActionInvalid": func(w http.ResponseWriter, r *http.Request) {
@@ -57,30 +79,32 @@ var actions = map[string]interface{}{
 		w.Header().Add("Content-Type", "application/json")
 
 		var user User
+		var company Company
+		var session Session
+
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		err := Db.QueryRow("SELECT ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", name, password)
+		result := Db.QueryRow("SELECT ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", name, password)
 
 		switch {
-		case err == sql.ErrNoRows:
-			log.Printf("No user with that ID.")
+			//case result == sql.ErrNoRows:
+			//	log.Printf("No user with that ID.")
 			//decrease the retries and send failure back with reduced retries
-		case err != nil:
-			log.Fatal(err)
-		default:
+			case result != nil:
+				log.Fatal(result)
+				fmt.Fprint(w, Response{ "success" : false, "message" : "Incorrect ID", "retries" : 0 })
+			default:
 			//read the row and make a session cookie and send it back with some JSON
-			row.Scan(&user.id)
+			result.Scan(&user.id, &user.firstname, &user.lastname, &user.accesslevel, &company.name, &company.maxusers, &company.expiry)
 
 		}
+		session.user = &user
+		session.company = &company		
 
-		json, err := json.Marshal(user)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
+		//TODO the session stuff should be stored in a secure cookie
+		fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
 
-		fmt.Printf("In Action Login")
 	},
 
 	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
