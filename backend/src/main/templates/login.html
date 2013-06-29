@@ -9,6 +9,7 @@
              <div class="user-icon"> </div>
              <div class="pass-icon"> </div>
 
+	     {{if .LoggedOut}}
              <form name="login-form" class="login-form" action="" method="post">
 
                  <div class="header">
@@ -24,6 +25,10 @@
                      <input type="submit" name="submit" value="Login" class="button">
                  </div>
              </form>
+	     {{else}}
+		<p> Yolo </p>
+	     {{end}}
+
          </div>
 
      </div>

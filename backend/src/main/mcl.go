@@ -132,7 +132,11 @@ var views = map[string]interface{}{
 			fmt.Printf("Failed to parse the template file!\n")
 			return
 		}
-		t.Execute(w, nil)
+
+		var LoginInfo = map[string]bool {
+			"LoggedOut" : false,
+		}
+		t.Execute(w, LoginInfo)
 	},
 
 	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
@@ -151,7 +155,7 @@ var views = map[string]interface{}{
 
 		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName FROM Settings S, User U WHERE S.UserID = ?", userID)
 
-		var settings = map[string]string{
+		var settings = map[string]string {
 			"MapAPI":    "",
 			"FirstName": "",
 			"LastName":  "",
