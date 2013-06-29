@@ -52,6 +52,9 @@ type Session struct {
 type Response map[string]interface{}
 
 
+//set the domain based upon the path the executable was run from
+var domain string = "dev.myclublink.com.au"
+
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
@@ -94,7 +97,6 @@ var actions = map[string]interface{}{
 
 		switch {
 			case result == sql.ErrNoRows:
-				fmt.Printf("NO FUCKING ROWS\n")
 				fmt.Fprint(w, Response{"success" : false, "message" : "IncorrectLogin", "retries" : 0})
 				return
 			case result != nil:
@@ -106,6 +108,9 @@ var actions = map[string]interface{}{
 				session.Company = &company
 
 				//TODO the session stuff should be stored in a secure cookie
+				expire := time.Now().AddDate(0, 0, 1)
+				cookie := http.Cookie{ "Session", "test", "/", domain , expire, expire.Format(time.UnixDate), 86400, true, true, "test=testcookie", []string{"test=testcookie"}}	
+				http.SetCookie(w, &cookie)
 				fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
 		}
 
