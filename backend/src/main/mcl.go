@@ -33,7 +33,7 @@ type GPSRecord struct {
 type Company struct {
 	name	string
 	maxusers int
-	expiry	time.Time
+	expiry	string
 }
 
 type User struct {
@@ -65,6 +65,7 @@ func (r Response) String() (s string) {
 		return
 	}
 	s = string(b)
+	fmt.Printf("JSON result is %s", s)
 	return	
 }
 
@@ -76,8 +77,9 @@ var actions = map[string]interface{}{
 	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("In ActionLogin\n")
 		w.Header().Add("Content-Type", "application/json")
-
+		
 		var user User
 		var company Company
 		var session Session
@@ -85,25 +87,32 @@ var actions = map[string]interface{}{
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		result := Db.QueryRow("SELECT ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", name, password)
+		if(Db == nil) {
+			fmt.Printf("The Db ref is nil wtf\n")
+			return
+		} else {
+			fmt.Printf("The db res is not nil \n")
+		}
+		
+		
+		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", 
+			name, password).Scan(&user.id, &user.firstname, &user.lastname, &user.accesslevel, &company.name, &company.maxusers, &company.expiry)
+
 
 		switch {
-			//case result == sql.ErrNoRows:
-			//	log.Printf("No user with that ID.")
-			//decrease the retries and send failure back with reduced retries
+			case result == sql.ErrNoRows:
+				fmt.Fprint(w, Response{"success" : false, "message" : "IncorrectLogin", "retries" : 0})
+				return
 			case result != nil:
 				log.Fatal(result)
-				fmt.Fprint(w, Response{ "success" : false, "message" : "Incorrect ID", "retries" : 0 })
-			default:
-			//read the row and make a session cookie and send it back with some JSON
-			result.Scan(&user.id, &user.firstname, &user.lastname, &user.accesslevel, &company.name, &company.maxusers, &company.expiry)
+			default: 
+				fmt.Printf("user id = %d, user name = %s, user lastname = %s, user accesslevel = %d", user.id, user.firstname, user.lastname, user.accesslevel)
+				session.user = &user
+				session.company = &company
 
+				//TODO the session stuff should be stored in a secure cookie
+				fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
 		}
-		session.user = &user
-		session.company = &company		
-
-		//TODO the session stuff should be stored in a secure cookie
-		fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
 
 	},
 
@@ -196,7 +205,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 //TODO look at implementing trinity mvc framework
 func handleHTTP() {
-
+	fmt.Printf("Setting up the routing functionality\n");
 	Router := mux.NewRouter()
 
 	viewRouter := Router.Methods("GET").Subrouter()
