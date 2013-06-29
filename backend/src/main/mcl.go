@@ -107,10 +107,13 @@ var actions = map[string]interface{}{
 				session.User = &user
 				session.Company = &company
 
-				//TODO the session stuff should be stored in a secure cookie
+				var sessionstr string
+
+				//TODO the session stuff should be stored in a secure cookie - gorillatoolkit.org/pkg/securecookie
 				expire := time.Now().AddDate(0, 0, 1)
-				cookie := http.Cookie{ "Session", "test", "/", domain , expire, expire.Format(time.UnixDate), 86400, true, true, "test=testcookie", []string{"test=testcookie"}}	
-				http.SetCookie(w, &cookie)
+				cookie := http.Cookie{ Name: "Session", Value: sessionstr, Path: "/", 
+					Domain: domain, Expires: expire, RawExpires: expire.Format(time.UnixDate), MaxAge: 86400, Secure: true, HttpOnly: true}	
+				http.SetCookie(w, &cookie) 
 				fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
 		}
 
