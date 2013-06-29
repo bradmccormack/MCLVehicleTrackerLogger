@@ -125,7 +125,6 @@ var views = map[string]interface{}{
 	},
 
 	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("In ViewLogin")
 		var err error
 		t := template.New("Login")
 		t, err = template.ParseFiles("templates/login.html")
