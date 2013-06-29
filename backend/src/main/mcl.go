@@ -92,7 +92,6 @@ var actions = map[string]interface{}{
 		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", 
 			name, password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
-		fmt.Printf("First name is %s Last name is %s", user.Firstname, user.Lastname)
 		switch {
 			case result == sql.ErrNoRows:
 				fmt.Printf("NO FUCKING ROWS\n")
@@ -170,6 +169,109 @@ var views = map[string]interface{}{
 	},
 }
 
+func createDb() {
+
+	file , err := os.Open("./backend.db")
+        if(err != nil) {
+                fmt.Printf("./backend.db didn't exist. Creating it ! \n")
+        } else {
+		file.Close()
+		return
+	}
+
+
+
+	fHandle, err := os.Create("./backend.db")	
+	if(err != nil) {
+		log.Fatal("Cannot create ./backend.db ! Bailing from running server\n")
+	}
+	fHandle.Close()
+
+
+	//TODO add indexes
+	statements := []string {
+
+	"BEGIN EXCLUSIVE TRANSACTION;",
+
+	//Use a string array of raw string literals
+
+	`CREATE TABLE GPSRecords (
+         id integer primary key autoincrement, Message text,
+         Latitude text not null,
+         Longitude text not null,
+         Speed integer not null,
+         Heading float not null,
+         Fix boolean not null,
+         DateTime date not null default current_timestamp,
+        BusID text not null);`,
+
+
+	`CREATE TABLE Errors (
+        id integer primary key autoincrement,
+        GPSRecordID integer not null,
+        Error text,
+        DateTime date not null default current_timestamp,
+        FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
+	);`,
+
+
+
+	`CREATE TABLE Network (
+        id integer primary key autoincrement,
+        GPSRecordID integer not null,
+        Acknowledge boolean not null default 0,
+        FOREIGN KEY (GPSRecordID) REFERENCES GPSRecords(id)
+	);`,
+
+
+
+	`CREATE TABLE Company (
+        ID integer primary key autoincrement,
+        Name text not null,
+        Expiry date not null default current_timestamp,
+        MaxUsers integer not null default 0
+	);`,
+
+
+	`CREATE TABLE User (
+        ID integer primary key autoincrement,
+        FirstName text not null,
+        LastName text not null,
+        CompanyID integer not null,
+        Password text not null,
+        AccessLevel integer not null default 0,
+        FOREIGN KEY (CompanyID) REFERENCES Company(ID)
+	);`,
+
+
+	`CREATE TABLE Settings (
+        ID integer primary key autoincrement,
+        UserID integer not null,
+        MapAPI text not null default 'GoogleMaps',
+        FOREIGN KEY (UserID) REFERENCES User(ID)
+	);`,
+
+	"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
+	"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
+	"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
+	"COMMIT TRANSACTION;",
+
+}
+	Db, err = sql.Open("sqlite3", "./backend.db")
+
+	for _, statement := range statements {
+		_, err := Db.Exec(statement)
+		if(err != nil) {
+			log.Fatal(err)
+		}
+	}
+
+	Db.Close()
+	fmt.Printf("Finished creating\n")
+}
+
+
+
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
@@ -239,10 +341,13 @@ func main() {
 
 	var err error
 
+
+	createDb()
+
 	Db, err = sql.Open("sqlite3", "./backend.db")
 	if err != nil {
 		fmt.Printf("Cannot open backend.db . Exiting")
-		os.Exit(1)
+		//os.Exit(1)
 	}
 	defer Db.Close()
 
