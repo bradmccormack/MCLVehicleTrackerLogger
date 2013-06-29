@@ -63,7 +63,7 @@ CREATE TABLE Settings (
 	FOREIGN KEY (UserID) REFERENCES User(ID)	
 );
 
-INSERT INTO Company (Name, Expiry, MaxUsers) VALUES ('myClubLink', '', 1);
+INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);
 INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, '', 0);
 INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');
 

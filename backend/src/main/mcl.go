@@ -31,22 +31,22 @@ type GPSRecord struct {
 }
 
 type Company struct {
-	name	string
-	maxusers int
-	expiry	string
+	Name	string
+	Maxusers int
+	Expiry	string
 }
 
 type User struct {
-	id          int
-	firstname   string
-	lastname    string
-	password    string
-	accesslevel int
+	ID          int
+	Firstname   string
+	Lastname    string
+	Password    string
+	Accesslevel int
 }
 
 type Session struct {
-	user *User
-	company *Company
+	User *User
+	Company *Company
 }
 
 type Response map[string]interface{}
@@ -65,7 +65,6 @@ func (r Response) String() (s string) {
 		return
 	}
 	s = string(b)
-	fmt.Printf("JSON result is %s", s)
 	return	
 }
 
@@ -77,7 +76,6 @@ var actions = map[string]interface{}{
 	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("In ActionLogin\n")
 		w.Header().Add("Content-Type", "application/json")
 		
 		var user User
@@ -88,27 +86,25 @@ var actions = map[string]interface{}{
 		password := r.FormValue("password")
 
 		if(Db == nil) {
-			fmt.Printf("The Db ref is nil wtf\n")
-			return
-		} else {
-			fmt.Printf("The db res is not nil \n")
+			log.Fatal(Db)
 		}
 		
-		
 		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", 
-			name, password).Scan(&user.id, &user.firstname, &user.lastname, &user.accesslevel, &company.name, &company.maxusers, &company.expiry)
+			name, password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
-
+		fmt.Printf("First name is %s Last name is %s", user.Firstname, user.Lastname)
 		switch {
 			case result == sql.ErrNoRows:
+				fmt.Printf("NO FUCKING ROWS\n")
 				fmt.Fprint(w, Response{"success" : false, "message" : "IncorrectLogin", "retries" : 0})
 				return
 			case result != nil:
 				log.Fatal(result)
 			default: 
-				fmt.Printf("user id = %d, user name = %s, user lastname = %s, user accesslevel = %d", user.id, user.firstname, user.lastname, user.accesslevel)
-				session.user = &user
-				session.company = &company
+				fmt.Printf("user id = %d, user name = %s, user lastname = %s, user accesslevel = %d", user.ID, user.Firstname, user.Lastname, user.Accesslevel)
+				fmt.Printf("company name = %s, company maxusers = %d, company expiry = %s", company.Name, company.Maxusers, company.Expiry)
+				session.User = &user
+				session.Company = &company
 
 				//TODO the session stuff should be stored in a secure cookie
 				fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
@@ -205,7 +201,6 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 //TODO look at implementing trinity mvc framework
 func handleHTTP() {
-	fmt.Printf("Setting up the routing functionality\n");
 	Router := mux.NewRouter()
 
 	viewRouter := Router.Methods("GET").Subrouter()
