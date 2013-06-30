@@ -32,9 +32,9 @@ type GPSRecord struct {
 }
 
 type Company struct {
-	Name	string
+	Name     string
 	Maxusers int
-	Expiry	string
+	Expiry   string
 }
 
 type User struct {
@@ -46,12 +46,11 @@ type User struct {
 }
 
 type Session struct {
-	User *User
+	User    *User
 	Company *Company
 }
 
 type Response map[string]interface{}
-
 
 //set the domain based upon the path the executable was run from
 var domain string = "dev.myclublink.com.au"
@@ -61,11 +60,15 @@ var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
 
 //for generating secure cookies
-var hashKey = securecookie.GenerateRandomKey(32);
-var blockKey = securecookie.GenerateRandomKey(32);
+var hashKey = securecookie.GenerateRandomKey(32)
+var blockKey = securecookie.GenerateRandomKey(32)
 var s = securecookie.New(hashKey, nil) //don't supply the blockkey for now and not encrypt the data. hashkey is used to identify, block key is used to hash
-
 var Db *sql.DB
+
+/*TODO make the following a map and use a cookiejar too to keep track of cookies per user */
+var user User
+var company Company
+var session Session
 
 
 func (r Response) String() (s string) {
@@ -75,10 +78,8 @@ func (r Response) String() (s string) {
 		return
 	}
 	s = string(b)
-	return	
+	return
 }
-
-
 
 var actions = map[string]interface{}{
 	"ActionInvalid": func(w http.ResponseWriter, r *http.Request) {
@@ -87,43 +88,43 @@ var actions = map[string]interface{}{
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		
-		var user User
-		var company Company
-		var session Session
+
+		//var user User
+		//var company Company
+		//var session Session
 
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		if(Db == nil) {
+		if Db == nil {
 			log.Fatal(Db)
 		}
-		
-		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID", 
+
+		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID",
 			name, password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
 		switch {
-			case result == sql.ErrNoRows:
-				fmt.Fprint(w, Response{"success" : false, "message" : "IncorrectLogin", "retries" : 0})
+		case result == sql.ErrNoRows:
+			fmt.Fprint(w, Response{"success": false, "message": "IncorrectLogin", "retries": 0})
+			return
+		case result != nil:
+			log.Fatal(result)
+		default:
+			session.User = &user
+			session.Company = &company
+
+			//TODO think about multiple users and cookie jar implementation?
+			encoded, err := s.Encode("Session", session)
+			if err != nil {
+				fmt.Fprint(w, Response{"success": false, "message": "Failed to create Session cookie"})
 				return
-			case result != nil:
-				log.Fatal(result)
-			default: 
-				session.User = &user
-				session.Company = &company
+			}
 
-				//TODO think about multiple users and cookie jar implementation?
-				encoded, err := s.Encode("Session", session)
-				if(err != nil) {	
-					fmt.Fprint(w, Response{"success" : false, "message" : "Failed to create Session cookie"})
-					return
-				}
-
-				expire := time.Now().AddDate(0, 0, 1)
-				cookie := http.Cookie{ Name: "Session", Value: encoded, Path: "/", 
-					Domain: domain, Expires: expire, RawExpires: expire.Format(time.UnixDate), MaxAge: 86400, Secure: true, HttpOnly: true}	
-				http.SetCookie(w, &cookie) 
-				fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
+			expire := time.Now().AddDate(0, 0, 1)
+			cookie := http.Cookie{Name: "Session", Value: encoded, Path: "/",
+				Domain: domain, Expires: expire, RawExpires: expire.Format(time.UnixDate), MaxAge: 86400, Secure: true, HttpOnly: true}
+			http.SetCookie(w, &cookie)
+			fmt.Fprint(w, Response{"success": true, "message": "All good", "session": session})
 		}
 
 	},
@@ -150,21 +151,24 @@ var views = map[string]interface{}{
 			return
 		}
 
-		var LoginInfo = map[string]bool {
-			"LoggedOut" : false,
+		var LoginInfo = map[string]bool{
+			"LoggedOut": false,
 		}
 		t.Execute(w, LoginInfo)
 	},
-	"ViewLicense" : func(w http.ResponseWriter, r *http.Request) {
+	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		
+
 		var err error
 		t := template.New("License")
 		t, err = template.ParseFiles("templates/license.html")
 		if err != nil {
 			log.Fatal("Failed to read the template file for license. Fix it")
 		}
-			
+		//TODO fix this fucker
+		fmt.Printf("Session user is %s", session.User.Firstname)
+		t.Execute(w, session)
+
 	},
 
 	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
@@ -181,7 +185,7 @@ var views = map[string]interface{}{
 
 		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName FROM Settings S, User U WHERE S.UserID = ?", userID)
 
-		var settings = map[string]string {
+		var settings = map[string]string{
 			"MapAPI":    "",
 			"FirstName": "",
 			"LastName":  "",
@@ -200,31 +204,28 @@ var views = map[string]interface{}{
 
 func createDb() {
 
-	file , err := os.Open("./backend.db")
-        if(err != nil) {
-                fmt.Printf("./backend.db didn't exist. Creating it ! \n")
-        } else {
+	file, err := os.Open("./backend.db")
+	if err != nil {
+		fmt.Printf("./backend.db didn't exist. Creating it ! \n")
+	} else {
 		file.Close()
 		return
 	}
 
-
-
-	fHandle, err := os.Create("./backend.db")	
-	if(err != nil) {
+	fHandle, err := os.Create("./backend.db")
+	if err != nil {
 		log.Fatal("Cannot create ./backend.db ! Bailing from running server\n")
 	}
 	fHandle.Close()
 
-
 	//TODO add indexes
-	statements := []string {
+	statements := []string{
 
-	"BEGIN EXCLUSIVE TRANSACTION;",
+		"BEGIN EXCLUSIVE TRANSACTION;",
 
-	//Use a string array of raw string literals
+		//Use a string array of raw string literals
 
-	`CREATE TABLE GPSRecords (
+		`CREATE TABLE GPSRecords (
          id integer primary key autoincrement, Message text,
          Latitude text not null,
          Longitude text not null,
@@ -234,8 +235,7 @@ func createDb() {
          DateTime date not null default current_timestamp,
         BusID text not null);`,
 
-
-	`CREATE TABLE Errors (
+		`CREATE TABLE Errors (
         id integer primary key autoincrement,
         GPSRecordID integer not null,
         Error text,
@@ -243,26 +243,21 @@ func createDb() {
         FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
 	);`,
 
-
-
-	`CREATE TABLE Network (
+		`CREATE TABLE Network (
         id integer primary key autoincrement,
         GPSRecordID integer not null,
         Acknowledge boolean not null default 0,
         FOREIGN KEY (GPSRecordID) REFERENCES GPSRecords(id)
 	);`,
 
-
-
-	`CREATE TABLE Company (
+		`CREATE TABLE Company (
         ID integer primary key autoincrement,
         Name text not null,
         Expiry date not null default current_timestamp,
         MaxUsers integer not null default 0
 	);`,
 
-
-	`CREATE TABLE User (
+		`CREATE TABLE User (
         ID integer primary key autoincrement,
         FirstName text not null,
         LastName text not null,
@@ -272,25 +267,23 @@ func createDb() {
         FOREIGN KEY (CompanyID) REFERENCES Company(ID)
 	);`,
 
-
-	`CREATE TABLE Settings (
+		`CREATE TABLE Settings (
         ID integer primary key autoincrement,
         UserID integer not null,
         MapAPI text not null default 'GoogleMaps',
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
 
-	"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
-	"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
-	"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
-	"COMMIT TRANSACTION;",
-
-}
+		"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
+		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
+		"COMMIT TRANSACTION;",
+	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 
 	for _, statement := range statements {
 		_, err := Db.Exec(statement)
-		if(err != nil) {
+		if err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -298,8 +291,6 @@ func createDb() {
 	Db.Close()
 	fmt.Printf("Finished creating\n")
 }
-
-
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -345,6 +336,7 @@ func handleHTTP() {
 	//View Routes
 	viewRouter.HandleFunc("/system/settings", views["ViewSettings"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/system/login", views["ViewLogin"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/system/license", views["ViewLicense"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/", views["ViewInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Action Routes
@@ -369,7 +361,6 @@ func main() {
 	flag.Parse()
 
 	var err error
-
 
 	createDb()
 
