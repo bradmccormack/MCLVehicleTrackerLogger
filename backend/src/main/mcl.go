@@ -442,12 +442,21 @@ func logEntry(entry *GPSRecord) {
 func handleClient(Db *sql.DB, conn *net.TCPConn) {
 
 	defer conn.Close()
-	var buff [512]byte
+	var buff = make([]byte, 512)
 	var entry GPSRecord
 
-	n, err := conn.Read(buff[:])
-	if err != nil {
-		fmt.Printf("Error reading from UDP")
+	conn.SetReadBuffer(512)
+
+	var n int
+	var err error
+	
+	var fuck = 69
+	for(fuck == 69) {
+		n, err = conn.Read(buff)
+		if err != nil {
+			fmt.Printf("Error reading from UDP")
+		}
+		fmt.Printf("Read %s",string(buff[:n]))
 	}
 
 	gpsfields := strings.Split(string(buff[:n]), ",")
