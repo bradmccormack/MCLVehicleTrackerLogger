@@ -175,6 +175,10 @@ var System = (function(){
     var Settings = { Marker: { InterpolateCount : 10}};
     var Position = { Last: {}};
 
+	function showLostConnection() {
+		$('#systemError').modal('toggle');  
+	}
+
     function updateLegend(JSON) {
         //We need to know if the GPS signal is correct or not (Fix status is true)
         if(JSON.Vehicles.length > 0) {
@@ -197,10 +201,11 @@ var System = (function(){
           return this.mapAPI;
         },
         login: function(cbobj) {
-       		if("session" in $.cookie())
+        	var cookies = $.cookie();
+       		if("Session" in $.cookie())
        		{
-       			if("complete" in cbobj && typeof cbobj == "function") {
-       				obj.complete();
+       			if("success" in cbobj && typeof cbobj.success == "function") {
+       				cbobj.success();
        			}
        		}
        		
@@ -209,10 +214,12 @@ var System = (function(){
        		{
        			type: "GET",
        			url: "/system/login",
+       			error: function(jqXHR, textStatus, errorThrown) {showLostConnection();},
        			success: function(HTML) 
        			{
        				$('body').append(HTML);
-       		
+       				bindHandlers();
+       				
        				$('#myModal form.login-form').submit(function(e) 
        				{
        					
@@ -225,31 +232,31 @@ var System = (function(){
 	       					url: "/system/login",
 	       					dataType: "JSON",
 	       					data: {name: name, password: pass},
+	       					error: function(jqXHR, textStatus, errorThrown) {showLostConnection();},
        						success: function(JSON) 
        						{
-	       						if("session" in $.cookie()) 
+       							var logSuccess = ("success" in JSON) && JSON.success;
+       							//&& "Session" in $.cookie()
+	       						if(logSuccess) 
 	       						{
-	       							alert("cookie is valid baby \n " + $.cookie("session"))	;
-       								if("success" in cobj && typeof cobj.success == "function")
-        									cobj.success();
-	       							
-	       							
-	       							//remove the login form and enable everything
+       								if("success" in cbobj && typeof cbobj.success == "function")
+        									cbobj.success();
+        							return;
 	       						}
 	       						else if("retries" in JSON) 
 	       						{
 	       							var retries = parseInt(JSON.retries);
 	       							if(retries == 0) 
 	       							{
-	       									//disable the submit button
-	       								if("error" in cobj && typeof cobj.error == "function")
-	       									cobj.error();
+	       								if("fail" in cbobj && typeof cbobj.fail == "function")
+	       									cbobj.fail();
 	       							}
 	       							else
 	       							{
-	       								var failed = "failed"; //add some Login failed text
+	       								
+	       								if("retry" in cbojb && typeof cbojb.retry == "function")
+	       									cbobj.retry();
 	       							}
-	       							
 	       						}
 	       						
 	       					}
@@ -259,14 +266,7 @@ var System = (function(){
        				});
        				$('#myModal').modal('toggle');  
        			}
-       			
        		});
-       		
-       					
-       			
-       		
-       	
-        
         },
         
 		init: function() {
@@ -334,6 +334,16 @@ var System = (function(){
 });
 
 function bindHandlers() {
+    
+    
+    
+   //systemError
+   $("#systemError").submit(function(){
+   	//redirect back to the home page for now
+   	//window.location = "dev.myclublink.com.au";
+  	window.location = "www.google.com.au";
+   	
+   })
     
     //Login
     $('#myModal').on("shown", function()
@@ -437,22 +447,28 @@ function bindHandlers() {
 
 $(document).ready(function() {
 
-    bindHandlers();
+
 
     //Startup the main system
     var system = new System();
     
+    bindHandlers();
     //attempt to login
+    var Loginmodal = $("#myModal");
     system.login(
     	{ 
     		success: function() {
+    			  $("#myModal").modal("toggle");
+    			  system.init();
+    			  
     			  //display success message or something
     		},
-    		error: function() {
+    		fail: function() {
     			
+    			modal.find("div.modal-body").html("<p>Sorry you do not have access to the system</p>");
     		},
-    		complete: function() {
-    			  system.init();
+    		retry: function() {
+    			modalbody.append("<span class='text-error'> Incorrect details </span>");
     		}
     		
 	});

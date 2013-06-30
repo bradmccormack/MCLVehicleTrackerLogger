@@ -146,6 +146,7 @@ sudo service nginx restart --quiet
 
 echo "Setting up development environment for backend .."
 sudo go get github.com/gorilla/mux
+sudo go get github.com/gorilla/securecookie
 sudo go get github.com/garyburd/go-websocket/websocket
 sudo go get github.com/mattn/go-sqlite3
 
@@ -160,9 +161,10 @@ sudo -u myclublink go build -o $MYCLUBLINKHOME/bin/mcl $GITHOME/myclublink/backe
 sudo -u myclublink cp -R $GITHOME/myclublink/backend/src/main/templates $MYCLUBLINKHOME/bin/
 
 
-if [ ! -f $MYCLUBLINKHOME/bin/backend.db ]; then
-	sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
-fi
+#Not needed anymore the binary will make the db if it doesn't exist
+#if [ ! -f $MYCLUBLINKHOME/bin/backend.db ]; then
+#	sudo -u myclublink sqlite3 $MYCLUBLINKHOME/bin/backend.db < $GITHOME/myclublink/backend/src/main/databasesetup.sql
+#fi
 
 echo "Cleaning up .."
 sudo rm -Rf $MYCLUBLINKHOME/backend
