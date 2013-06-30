@@ -164,6 +164,17 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for license. Fix it")
 		}
+		var license = map[string]string {
+			"Users" : "",
+			"Expiry" : "",
+		}
+		
+
+		userID := 1
+		row := Db.QueryRow("SELECT Expiry, MaxUsers FROM Company C, User U WHERE C.ID =  U.CompanyID AND U.ID = ?", userID)
+		
+		
+
 			
 	},
 
@@ -177,6 +188,7 @@ var views = map[string]interface{}{
 			log.Fatal("Failed to parse the template file for settings. Fix it")
 		}
 
+		
 		userID := 1 //this should come from the request form
 
 		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName FROM Settings S, User U WHERE S.UserID = ?", userID)
