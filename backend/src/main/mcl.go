@@ -450,15 +450,23 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) {
 	var n int
 	var err error
 	
-	var fuck = 69
-	for(fuck == 69) {
+	var isRunning = true
+	for(isRunning) {
 		n, err = conn.Read(buff)
 		if err != nil {
-			fmt.Printf("Error reading from UDP")
+			fmt.Printf("Error reading from TCP")
+			return
 		}
-		fmt.Printf("Read %s",string(buff[:n]))
+		//TODO shane needs to send something signifying the end of data
+		if(n == 0) {
+			fmt.Printf("Finished reading packet")
+			break
+		} else {
+			fmt.Printf("Read another %d bytes\n", n)
+		}
+		fmt.Printf("Sentence was %s", string(buff))
 	}
-
+	//NEVER gets down here
 	gpsfields := strings.Split(string(buff[:n]), ",")
 	if len(gpsfields) != 8 {
 		fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
