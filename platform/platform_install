@@ -142,6 +142,11 @@ else
 	sudo service nmbd restart --quiet
 fi
 
+#update the nginx conf with the current users home dir
+sudo sed -i "s|{HOME}|${HOME}|g" /etc/nginx/sites-enabled/dev.myClubLink.com.au.conf
+
+
+
 sudo service nginx restart --quiet
 
 echo "Setting up development environment for backend .."
