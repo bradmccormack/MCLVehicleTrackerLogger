@@ -197,6 +197,9 @@ var System = (function(){
     }
 
 	return {
+		showLostConnection: function() {
+			return this.showLostConnection;
+		},
         getMapAPI: function() {
           return this.mapAPI;
         },
@@ -341,7 +344,7 @@ function bindHandlers() {
    $("#systemError").submit(function(){
    	//redirect back to the home page for now
    	//window.location = "dev.myclublink.com.au";
-  	window.location = "www.google.com.au";
+  	window.location = "dev.myclublink.com.au";
    	
    })
     
@@ -365,7 +368,7 @@ function bindHandlers() {
 
 
 	//Menu Nav
-	$("#tabMap,#tabProfile, #tabSupport, #tabReports, #tabSettings").click(function(){
+	$("#tabMap,#tabProfile, #tabSupport, #tabReports, #tabSettings,#tabLicense").click(function(){
         var Self = $(this);
         var Main = $("#Mainmap");
         var actions = {
@@ -392,10 +395,25 @@ function bindHandlers() {
                         //Main.replaceWith(HTML);
                     },
                     error: function(a,b,c) {
+                      //TODO rewrite this to use the System
+                      System.showLostConnection();
+                      /*
                       Main.addClass("div-panel");
                       Main.html("<p class='text-warning'><i class='icon-warning-sign'></i> Failed to contact Server</p>");
+                      */
+                     
                     }
                 })
+            },
+            tabLicense: function() {
+            	$.ajax({
+            		type: "GET",
+            		url: "/system/license",
+            		dataType: "HTML",
+            		success: function(HTML) {
+            			Main.html(HTML);
+            		}
+            	});
             }
         }[Self.attr("id")]();
 	});
@@ -460,11 +478,10 @@ $(document).ready(function() {
     		success: function() {
     			  $("#myModal").modal("toggle");
     			  system.init();
-    			  
+    			
     			  //display success message or something
     		},
     		fail: function() {
-    			
     			modal.find("div.modal-body").html("<p>Sorry you do not have access to the system</p>");
     		},
     		retry: function() {
