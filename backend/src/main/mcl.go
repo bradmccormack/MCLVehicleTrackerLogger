@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
 	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"io"
@@ -58,6 +59,12 @@ var domain string = "dev.myclublink.com.au"
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
+
+//for generating secure cookies
+var hashKey = securecookie.GenerateRandomKey(32);
+var blockKey = securecookie.GenerateRandomKey(32);
+var s = securecookie.New(hashKey, nil) //don't supply the blockkey for now and not encrypt the data. hashkey is used to identify, block key is used to hash
+
 var Db *sql.DB
 
 
@@ -102,16 +109,18 @@ var actions = map[string]interface{}{
 			case result != nil:
 				log.Fatal(result)
 			default: 
-				fmt.Printf("user id = %d, user name = %s, user lastname = %s, user accesslevel = %d", user.ID, user.Firstname, user.Lastname, user.Accesslevel)
-				fmt.Printf("company name = %s, company maxusers = %d, company expiry = %s", company.Name, company.Maxusers, company.Expiry)
 				session.User = &user
 				session.Company = &company
 
-				var sessionstr string
+				//TODO think about multiple users and cookie jar implementation?
+				encoded, err := s.Encode("Session", session)
+				if(err != nil) {	
+					fmt.Fprint(w, Response{"success" : false, "message" : "Failed to create Session cookie"})
+					return
+				}
 
-				//TODO the session stuff should be stored in a secure cookie - gorillatoolkit.org/pkg/securecookie
 				expire := time.Now().AddDate(0, 0, 1)
-				cookie := http.Cookie{ Name: "Session", Value: sessionstr, Path: "/", 
+				cookie := http.Cookie{ Name: "Session", Value: encoded, Path: "/", 
 					Domain: domain, Expires: expire, RawExpires: expire.Format(time.UnixDate), MaxAge: 86400, Secure: true, HttpOnly: true}	
 				http.SetCookie(w, &cookie) 
 				fmt.Fprint(w, Response{"success" : true, "message" : "All good", "session": session})
