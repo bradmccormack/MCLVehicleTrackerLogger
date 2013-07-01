@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"encoding/gob"
-	"bytes"
 	"flag"
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
@@ -97,6 +96,7 @@ var actions = map[string]interface{}{
 		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID",
 			name, password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
+
 		switch {
 		case result == sql.ErrNoRows:
 			fmt.Fprint(w, Response{"success": false, "message": "IncorrectLogin", "retries": 0})
@@ -104,10 +104,10 @@ var actions = map[string]interface{}{
 		case result != nil:
 			log.Fatal(result)
 		default:
-
 			session, _ := store.Get(r, "session")
-			session.Values["User"], _ =  serialize(user)
-			session.Values["Company"], _ = serialize(company) 
+			
+			session.Values["User"] =  user
+			session.Values["Company"] = company 
 			
 			fmt.Printf("Session.User is %s and Session.Company is %s", session.Values["User"], session.Values["Company"])
 			session.Options = &sessions.Options{
@@ -152,9 +152,12 @@ var views = map[string]interface{}{
 		t.Execute(w, LoginInfo)
 	},
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
+		
 		w.Header().Add("Content-Type", "text/html")
 
-		session, _ := store.Get(r, "session-name")
+		session , _ := store.Get(r, "session")
+		fmt.Printf("Session is %s", Response {"session": session})
+		
 
 		var err error
 		t := template.New("License")
@@ -351,23 +354,11 @@ func handleHTTP() {
 
 }
 
-//move serialize and deserialize to utility file
-func serialize(src interface{}) ([]byte, error) {
-        buf := new(bytes.Buffer)
-        enc := gob.NewEncoder(buf)
-        if err := enc.Encode(src); err != nil {
-                return nil, err
-        }
-        return buf.Bytes(), nil
+func init() {
+	gob.Register(User{})
+	gob.Register(Company{})
 }
 
-func deserialize(src []byte, dst interface{}) error {
-        dec := gob.NewDecoder(bytes.NewBuffer(src))
-        if err := dec.Decode(dst); err != nil {
-                return err
-        }
-        return nil
-}
 
 func main() {
 
