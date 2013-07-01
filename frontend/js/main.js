@@ -234,6 +234,9 @@ var System = (function(){
 	       					type: "POST",
 	       					url: "/system/login",
 	       					dataType: "JSON",
+	       					xhrFields: {
+     							withCredentials: true
+   							},
 	       					data: {name: name, password: pass},
 	       					error: function(jqXHR, textStatus, errorThrown) {showLostConnection();},
        						success: function(JSON) 

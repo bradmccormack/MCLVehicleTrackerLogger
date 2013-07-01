@@ -165,8 +165,6 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for license. Fix it")
 		}
-		//TODO fix this fucker
-		fmt.Printf("Session user is %s", session.User.Firstname)
 		t.Execute(w, session)
 
 	},

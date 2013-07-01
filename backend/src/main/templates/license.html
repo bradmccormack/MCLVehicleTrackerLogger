@@ -1,22 +1,24 @@
 
 
 <div class="div-panel">
-	{.session}}
-	<div class="row-fluid">
-		<h4><i class="icon-user"></i> Current User </h4>
-		<label> {{.FirstName}} {{.LastName}} </label>
-	</div>
 
 	<div class="row-fluid">
 		<h4><i class="icon-user"></i> License Information </h4>
-		<span><strong>Company</strong> {{.Name}}</span>
+		<span><strong>Company</strong> {{.Company.Name}}</span>
 	</div>
-	
+	<hr>
 	<div class="row-fluid">
-		<h4><i class="icond-globe"></i> Constraints</h4>
-		<span>User Limit <Label>{{.MaxUsers}} </label></span>
-		<span>License Expiry <Label>{{.Expiry}} </label></span>
+		<h4><i class="icon-key"></i> License Restrictions</h4>
+		<span><strong>User Limit</strong> {{.Company.Maxusers}} </span> </br>
+		<span><strong>License Expiry</strong> {{.Company.Expiry}} </span>
 	</div>
+
+	<div class="row-fluid">
+		<span><strong>Current User</strong> {{.User.Firstname}} {{.User.Lastname}} </span>
+	</div>
+
+
+	
 </div>
 
 
