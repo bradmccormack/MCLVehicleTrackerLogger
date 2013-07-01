@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"encoding/gob"
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"io"
@@ -59,16 +61,9 @@ var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
 
-//for generating secure cookies
-var hashKey = securecookie.GenerateRandomKey(32)
-var blockKey = securecookie.GenerateRandomKey(32)
-var s = securecookie.New(hashKey, nil) //don't supply the blockkey for now and not encrypt the data. hashkey is used to identify, block key is used to hash
+//Session information
+var store = sessions.NewCookieStore([]byte("emtec789"))
 var Db *sql.DB
-
-/*TODO make the following a map and use a cookiejar too to keep track of cookies per user */
-var user User
-var company Company
-var session Session
 
 
 func (r Response) String() (s string) {
@@ -89,9 +84,8 @@ var actions = map[string]interface{}{
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
-		//var user User
-		//var company Company
-		//var session Session
+		var user User
+		var company Company
 
 		name := r.FormValue("name")
 		password := r.FormValue("password")
@@ -110,21 +104,22 @@ var actions = map[string]interface{}{
 		case result != nil:
 			log.Fatal(result)
 		default:
-			session.User = &user
-			session.Company = &company
 
-			//TODO think about multiple users and cookie jar implementation?
-			encoded, err := s.Encode("Session", session)
-			if err != nil {
-				fmt.Fprint(w, Response{"success": false, "message": "Failed to create Session cookie"})
-				return
+			session, _ := store.Get(r, "session")
+			session.Values["User"], _ =  serialize(user)
+			session.Values["Company"], _ = serialize(company) 
+			
+			fmt.Printf("Session.User is %s and Session.Company is %s", session.Values["User"], session.Values["Company"])
+			session.Options = &sessions.Options{
+				Path: "/",
+				MaxAge: 86400, //1 day
 			}
 
-			expire := time.Now().AddDate(0, 0, 1)
-			cookie := http.Cookie{Name: "Session", Value: encoded, Path: "/",
-				Domain: domain, Expires: expire, RawExpires: expire.Format(time.UnixDate), MaxAge: 86400, Secure: true, HttpOnly: true}
-			http.SetCookie(w, &cookie)
-			fmt.Fprint(w, Response{"success": true, "message": "All good", "session": session})
+			if err := session.Save(r, w); err != nil {
+				fmt.Printf("Can't save session data (%s)\n", err.Error())
+			
+			}
+			fmt.Fprint(w, Response{"success": true, "message": "All good"})
 		}
 
 	},
@@ -158,6 +153,8 @@ var views = map[string]interface{}{
 	},
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
+
+		session, _ := store.Get(r, "session-name")
 
 		var err error
 		t := template.New("License")
@@ -354,7 +351,26 @@ func handleHTTP() {
 
 }
 
+//move serialize and deserialize to utility file
+func serialize(src interface{}) ([]byte, error) {
+        buf := new(bytes.Buffer)
+        enc := gob.NewEncoder(buf)
+        if err := enc.Encode(src); err != nil {
+                return nil, err
+        }
+        return buf.Bytes(), nil
+}
+
+func deserialize(src []byte, dst interface{}) error {
+        dec := gob.NewDecoder(bytes.NewBuffer(src))
+        if err := dec.Decode(dst); err != nil {
+                return err
+        }
+        return nil
+}
+
 func main() {
+
 
 	flag.Parse()
 
