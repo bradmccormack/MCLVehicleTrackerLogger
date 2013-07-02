@@ -33,6 +33,13 @@ BODY STYLING
     margin-bottom: 50px;
 }
 
+/******* The vertical center area that contains views for the various areas such as Settings/License and so on */
+div#Maintab {
+	padding-right: 20px;
+	height: 100%;
+	padding-bottom: 30px;
+}
+
 
 /*******************
 LOGIN FORM

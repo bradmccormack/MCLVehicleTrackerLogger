@@ -167,15 +167,46 @@ var views = map[string]interface{}{
 		}
 		t.Execute(w, session)
 	},
+	"ViewReport" : func(w http.ResponseWriter, r *http.Request) {
+		//TODO redirect to root if not logged in
+		
+		w.Header().Add("Content-Type", "test/html")
+		
+		session , _ := store.Get(r, "session")
+		fmt.Printf("Session is %s", session)
+		
+		var err error
+		t := template.New("Reports")
+		t, err = template.ParseFiles("templates/report.html")
+		if err != nil {
+			log.Fatal("Failed to read the template file for Reports. Fix it")
+		}
+		t.Execute(w, session)
+	},
+
+	"ViewMap" : func(w http.ResponseWriter, r *http.Request) {
+		//TODO redirect to root if not logged in
+		w.Header().Add("Content-Type", "text/html")
+		
+		session , _ := store.Get(r, "session")
+		fmt.Printf("Session is %s", Response {"session": session})
+		
+		var err error	
+		t := template.New("Map")
+		t, err = template.ParseFiles("templates/map.html")
+		if err != nil {
+			log.Fatal("Failed to read the template file for map. Fix it")
+		}
+		t.Execute(w, session)		
+	},
 
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
-		
+		//TODO redirect to root if not logged in
 		w.Header().Add("Content-Type", "text/html")
 
 		session , _ := store.Get(r, "session")
 		fmt.Printf("Session is %s", Response {"session": session})
 		
-
 		var err error
 		t := template.New("License")
 		t, err = template.ParseFiles("templates/license.html")
@@ -187,6 +218,7 @@ var views = map[string]interface{}{
 	},
 
 	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
+		//TODO redirect to root if not logged in
 		w.Header().Add("Content-Type", "text/html")
 
 		var err error
@@ -357,6 +389,8 @@ func handleHTTP() {
 	viewRouter.HandleFunc("/system/login", views["ViewLogin"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/system/license", views["ViewLicense"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/system/support", views["ViewSupport"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/system/map", views["ViewMap"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/system/report", views["ViewReport"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/", views["ViewInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Action Routes
