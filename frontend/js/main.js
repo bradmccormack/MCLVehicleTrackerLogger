@@ -205,11 +205,12 @@ var System = (function(){
         },
         login: function(cbobj) {
         	var cookies = $.cookie();
-       		if("Session" in $.cookie())
+       		if("session" in $.cookie())
        		{
        			if("success" in cbobj && typeof cbobj.success == "function") {
        				cbobj.success();
        			}
+       			return;
        		}
        		
        		//get the login view
@@ -339,7 +340,14 @@ var System = (function(){
 	}
 });
 
+
+//All this disgusting crap needs ripping out and implementing angularJS
 function bindHandlers() {
+    
+    
+   $("#settings").load(function() {
+   		$(this).find("")
+   }) 
     
     
     

@@ -181,20 +181,24 @@ var views = map[string]interface{}{
 
 		userID := 1 //this should come from the request form
 
-		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName FROM Settings S, User U WHERE S.UserID = ?", userID)
+		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName, U.AccessLevel FROM Settings S, User U WHERE S.UserID = ?", userID)
 
 		var settings = map[string]string{
 			"MapAPI":    "",
 			"FirstName": "",
 			"LastName":  "",
+			"AccessLevel": "",
 		}
 
+		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */
+		var AccessLevel int
 		var MapAPI, FirstName, LastName string
-		row.Scan(&MapAPI, &FirstName, &LastName)
+		row.Scan(&MapAPI, &FirstName, &LastName, &AccessLevel)
 
 		settings["MapAPI"] = MapAPI
 		settings["FirstName"] = FirstName
 		settings["LastName"] = LastName
+		settings["AccessLevel"] = string(AccessLevel)
 
 		t.Execute(w, settings)
 	},

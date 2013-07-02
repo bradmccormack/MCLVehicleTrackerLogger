@@ -154,6 +154,7 @@ sudo go get github.com/gorilla/mux
 sudo go get github.com/gorilla/securecookie
 sudo go get github.com/garyburd/go-websocket/websocket
 sudo go get github.com/mattn/go-sqlite3
+sudo go get github.com/gorilla/sessions
 
 echo "Building backend .."
 

@@ -1,17 +1,67 @@
 
 
-<div class="div-panel">
+<div id="settings" class="container-fluid div-panel">
 		
-	<div class="row-fluid">
-		<h4><i class="icon-user"></i> User Settings </h4>
-		<span><strong>User</strong> {{.FirstName}} {{.LastName}}</span>
+	<h5><i class="icon-user"> </i> User Settings </h5>
+	<div class="well">
+		<label><strong>Current User</strong> {{.FirstName}} {{.LastName}}</label>
+		<label><strong>Access Level</strong> {{.AccessLevel}}</label>
+		
+		<div class="control-group" >
+			<div class="controls">
+				<div class="input-prepend">
+				
+					<button id="settingsReset" class="btn"> Reset Password</button>
+					<input type="text" placeholder="Old Password ..." name="userOptionOldPassword" hidden>
+					<input type="text" placeholder="New Password ..." name="userOptionNewPassword">
+					
+					<button class="btn"><i class="icon-remove"> </i> Cancel</button>
+					<button class="btn btn-primary"><i class="icon-pencil"> </i> Update</button>
+				</div>
+			</div>
+		</div>
 	</div>
 	
-	<div class="row-fluid">
-		<h4><i class="icond-globe"></i> Map Settings</h4>
-		<label>Current Map API -</label>
-		<label>{{.MapAPI}}</label>
+	<hr>
+	
+	<h5><i class="icon-globe"> </i> Map API </h5>
+	<div class="well">
+		<div class="btn-group">
+              <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{.MapAPI}}</a>
+              <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                 <span class="caret"> </span>
+                </a>
+              <ul class="dropdown-menu">
+              	<li><a href="#"><i class="icon-globe"> </i>  Google Maps</a></li>
+              	<li><a href="#"><i class="icon-globe"> </i>  Leaflet </a></li>
+                <li><a href="#"><i class="icon-globe"> </i>  Bing Maps</a></li>
+              </ul>
+        </div>
+        
 	</div>
+	
+  	<h5> <i class="icon-check-sign"> </i>Map Options</h5>
+  	
+  	<div class="well">
+	  	<form id="mapOptionsNew">
+	  		<div class="control-group">
+	  			<div class="controls">
+	  				<label class="text"> <input type="checkbox" name="mapOptionInterpolate">  Interpolate movement </label>
+	  			</div>	
+	  		</div>
+	  		
+	  		<div class="control-group">
+	  			<div class="controls">
+	  				<label class="text"> <input type="checkbox" name="mapOptionSnapToRoad"> Snap to Road </label>
+	  				
+	  			</div>
+	  		</div>
+	  	</form>
+	</div>
+	
+  
+    
+
 </div>
 
 
