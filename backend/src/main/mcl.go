@@ -432,34 +432,41 @@ func main() {
 	}
 	defer Db.Close()
 
-	//tcpAddr, err := net.ResolveTCPAddr("tcp", *service)
-	lnk, err := net.Listen("tcp", *service)
-	if err != nil {
-		fmt.Printf("Failed to get tcp listener")
-		os.Exit(1)
-	}
-	fmt.Printf("Listening on TCP Port %s\n", *service)
 
 	//handle web requests in a seperate go-routine
 	go handleHTTP()
 
+	var recreateConnection bool = true
+	var tcpcon net.Conn
+
 	//wait around for tcp requests and handle them when they come in
 	for {
-		//tcpcon, err := net.ListenTCP("tcp", tcpAddr)
-		tcpcon, err := lnk.Accept()
-		if err != nil {
-			fmt.Printf("Failed to create tcp connection - %s", err)
-			os.Exit(1)
+		if(recreateConnection) {
+			lnk, err := net.Listen("tcp", *service)
+			if err != nil {
+				fmt.Printf("Failed to get tcp listener - %s", err.Error())
+				os.Exit(1)
+			}
+			fmt.Printf("Listening on TCP Port %s\n", *service)
+
+			tcpcon, err = lnk.Accept()
+			if err != nil {
+				fmt.Printf("Failed to create tcp connection - %s", err)
+				os.Exit(1)
+			}
+			recreateConnection = handleClient(Db, tcpcon.(*net.TCPConn))
+			if(recreateConnection) {
+				lnk.Close()
+			}
+
 		}
-		//note to self, the part after tcpcon. is called type assertion. TODO find out how it relates to casting in other languages
-		handleClient(Db, tcpcon.(*net.TCPConn))
 	}
 }
 
 func updateClient(entry *GPSRecord) {
 
 	if connections == nil {
-		fmt.Printf("No clients listening.. not reporting")
+		//fmt.Printf("No clients listening.. not reporting")
 		return
 	}
 
@@ -500,9 +507,7 @@ func logEntry(entry *GPSRecord) {
 }
 
 //palm off reading and writing to a go routine
-func handleClient(Db *sql.DB, conn *net.TCPConn) {
-
-	defer conn.Close()
+func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
 	var buff = make([]byte, 512)
 	var entry GPSRecord
 
@@ -510,45 +515,36 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) {
 
 	var n int
 	var err error
-	
-	var isRunning = true
-	for(isRunning) {
+	var data bool = true
+
+	for(data) {
+
 		n, err = conn.Read(buff)
 		if err != nil {
-			fmt.Printf("Error reading from TCP")
-			return
+			fmt.Printf("Error reading from TCP - Will recreate the connection \n")	
+			return true
 		}
-		//TODO shane needs to send something signifying the end of data
-		if(n == 0) {
-			fmt.Printf("Finished reading packet")
-			break
-		} else {
-			fmt.Printf("Read another %d bytes\n", n)
-		}
+	
+
 		fmt.Printf("Sentence was %s", string(buff))
-	}
-	//NEVER gets down here
-	gpsfields := strings.Split(string(buff[:n]), ",")
-	if len(gpsfields) != 8 {
-		fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
-		fmt.Printf("The source string was %s\n", string(buff[:n]))
-		os.Exit(1)
-	}
-	//All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
+		gpsfields := strings.Split(string(buff[:n]), ",")
+		if len(gpsfields) != 8 {
+			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
+			fmt.Printf("The source string was %s\n", string(buff[:n]))
+			continue
+		}
+		//All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
 
-	entry.message = gpsfields[0][1:]
-	entry.latitude = gpsfields[1][1:]
-	entry.longitude = gpsfields[2]
-	entry.speed, _ = strconv.Atoi(gpsfields[3][1:])
-	entry.heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
+		entry.message = gpsfields[0][1:]
+		entry.latitude = gpsfields[1][1:]
+		entry.longitude = gpsfields[2]
+		entry.speed, _ = strconv.Atoi(gpsfields[3][1:])
+		entry.heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
+		entry.date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
+		entry.fix = gpsfields[6][1:] == "true"
+		entry.ID = gpsfields[7]
 
-	fmt.Printf("The date that I was sent was %s\n", gpsfields[5][1:])
-
-	entry.date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
-	entry.fix = gpsfields[6][1:] == "true"
-	entry.ID = gpsfields[7]
-
-	fmt.Printf("Message %s Lat %s Long %s speed %d heading %f fix %t date %s time %s id %s\n",
+		fmt.Printf("Message %s Lat %s Long %s speed %d heading %f fix %t date %s time %s id %s\n",
 		entry.message,
 		entry.latitude,
 		entry.longitude,
@@ -558,9 +554,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) {
 		entry.date,
 		entry.ID)
 
-	go logEntry(&entry)  //save to database
-	updateClient(&entry) //notify any HTTP observers //make this a goroutine later
+		go logEntry(&entry)  //save to database
+		updateClient(&entry) //notify any HTTP observers //make this a goroutine later
 
-	conn.Write([]byte("OK"))
-
+		conn.Write([]byte("OK"))
+	}
+	return false
 }
