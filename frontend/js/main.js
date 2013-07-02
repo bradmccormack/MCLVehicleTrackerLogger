@@ -1,5 +1,6 @@
 
 
+
 var System = (function(){
 
 	var Self = this;
@@ -39,7 +40,8 @@ var System = (function(){
 		},
 		setMapAPI: function(mapAPI) {
 			if(mapAPI) {
-				this.mapAPI = mapAPI;
+				this.mapAPI = mapAPI(this);
+				//this.mapAPI(this); // 
 			}
 		},
         getMapAPI: function() {
@@ -120,10 +122,6 @@ var System = (function(){
         
 		init: function() {
 
-            var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
-            //Self.mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
-
-
             //add a couple of vehicles in hard coded for now
             //system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
 
@@ -180,7 +178,7 @@ var System = (function(){
             }
         }
 	}
-});
+})();
 
 
 //All this disgusting crap needs ripping out and implementing angularJS
@@ -229,9 +227,10 @@ function bindHandlers() {
                  $.ajax({
                     type: "GET",
                     url: "/system/map",
-                    dataType: "HTML",
+                    dataType: "html",
                     success: function(HTML) {
                     	Main.html(HTML);
+                    	System.setMapAPI(map);
                     },
                     error: function(a,b,c) {
                       System.showLostConnection();
@@ -294,16 +293,16 @@ function bindHandlers() {
 $(document).ready(function() {
 
     //Startup the main system
-    var system = new System();
-    
+
+
     bindHandlers();
     //attempt to login
     var Loginmodal = $("#myModal");
-    system.login(
+    System.login(
     	{ 
     		success: function() {
     			  $("#myModal").modal("toggle");
-    			  system.init();
+    			  System.init();
     			
     			  //display success message or something
     		},
