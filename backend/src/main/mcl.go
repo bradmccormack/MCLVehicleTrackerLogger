@@ -151,6 +151,23 @@ var views = map[string]interface{}{
 		}
 		t.Execute(w, LoginInfo)
 	},
+	"ViewSupport": func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+		session,err := store.Get(r, "session")
+		if(session == nil) {
+			fmt.Printf("Session is nil \n")
+		}
+		
+		if(err != nil) {
+			fmt.Printf("Error loading session information %s", err.Error()) 
+		}
+		t, err := template.ParseFiles("templates/support.html")
+		if err != nil {
+			log.Fatal("Failed to read the template file for support. Fix it")
+		}
+		t.Execute(w, session)
+	},
+
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
 		
 		w.Header().Add("Content-Type", "text/html")
@@ -339,6 +356,7 @@ func handleHTTP() {
 	viewRouter.HandleFunc("/system/settings", views["ViewSettings"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/system/login", views["ViewLogin"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/system/license", views["ViewLicense"].(func(http.ResponseWriter, *http.Request)))
+	viewRouter.HandleFunc("/system/support", views["ViewSupport"].(func(http.ResponseWriter, *http.Request)))
 	viewRouter.HandleFunc("/", views["ViewInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Action Routes

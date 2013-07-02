@@ -391,7 +391,17 @@ function bindHandlers() {
 
             },
             tabSupport: function() {
-                throw "Not Implemented";
+                  $.ajax({
+                    type: "GET",
+                    url: "/system/support",
+                    dataType: "HTML",
+                    success: function(HTML) {
+                    	Main.html(HTML);
+                    },
+                    error: function(a,b,c) {
+                      System.showLostConnection();
+                    }
+                })
             },
             tabReports: function() {
                 throw "Not Implemented";
@@ -403,16 +413,9 @@ function bindHandlers() {
                     dataType: "HTML",
                     success: function(HTML) {
                     	Main.html(HTML);
-                        //Main.replaceWith(HTML);
                     },
                     error: function(a,b,c) {
-                      //TODO rewrite this to use the System
                       System.showLostConnection();
-                      /*
-                      Main.addClass("div-panel");
-                      Main.html("<p class='text-warning'><i class='icon-warning-sign'></i> Failed to contact Server</p>");
-                      */
-                     
                     }
                 })
             },
