@@ -122,8 +122,6 @@ if [ -d "/etc/nginx" ]; then
 	sudo ln -s $MYCLUBLINKHOME/Conf/nginx/internal.myClubLink.com.au.conf /etc/nginx/sites-enabled/internal.myClubLink.com.au.conf
 	sudo ln -s $MYCLUBLINKHOME/Conf/nginx/dev.myClubLink.com.au.conf /etc/nginx/sites-available/dev.myClubLink.com.au.conf
 	sudo ln -s $MYCLUBLINKHOME/Conf/nginx/dev.myClubLink.com.au.conf /etc/nginx/sites-enabled/dev.myClubLink.com.au.conf
-
-	
 	sudo rm /etc/nginx/sites-enabled/default -f
 else
 	echo "- Nginx didn't install correctly before. Aborting script!"
@@ -144,7 +142,7 @@ fi
 
 #update the nginx conf with the current users home dir
 sudo sed -i "s|{HOME}|${HOME}|g" /etc/nginx/sites-enabled/dev.myClubLink.com.au.conf
-
+sudo sed -i "s|{USER}|${USER}|g" /etc/samba/smb.conf
 
 
 sudo service nginx restart --quiet
