@@ -1,18 +1,18 @@
 <div id="license" class="container-fluid div-panel">
 
+	
 	<div class="row-fluid">
 		<h4>Request Support <i class="icon-group"> </i>  </h4>
-		<span><strong>Company</strong> {{.Company.Name}}</span>
+		<label><strong>Company</strong> {{.Company.Name}} </label>
+		<label><strong>User</strong> {{.User.Firstname}} {{.User.Lastname}} </label>
 	</div>
 	<hr>
-	<div class="row-fluid">
-		<h4><i class="icon-key"> </i> License Restrictions</h4>
-		<span><strong>User Limit</strong> {{.Company.Maxusers}} </span> </br>
-		<span><strong>License Expiry</strong> {{.Company.Expiry}} </span>
-	</div>
 
 	<div class="row-fluid">
-		<span><strong>Current User</strong> {{.User.Firstname}} {{.User.Lastname}} </span>
+		Please type your message below to send a support request to myClubLink support.
+		<form id="#support_textarea" method="post" >
+    			<textarea name="content" style="width:100%"></textarea>
+			<input type="button" type=submit value='Send' class='btn btn-primary'> </input>
+		</form>
 	</div>
-	
 </div>

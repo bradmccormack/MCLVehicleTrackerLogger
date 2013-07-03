@@ -169,7 +169,7 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for support. Fix it")
 		}
-		t.Execute(w, session)
+		t.Execute(w, session.Values)
 	},
 	"ViewReport" : func(w http.ResponseWriter, r *http.Request) {
 		//TODO redirect to root if not logged in
@@ -247,8 +247,6 @@ var views = map[string]interface{}{
 				"Interpolate" : interpolate,
 				"SnaptoRoad" : snaptoroad,
 			}
-			fmt.Printf("Seeings is %s", Response{ "settings" : session.Values["Settings"]})
-
 			session.Save(r, w)
 		}
 		var err error
