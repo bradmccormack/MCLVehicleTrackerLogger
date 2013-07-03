@@ -10,6 +10,7 @@ var System = (function(){
     var Vehicles = [];
 
     //System wide settings
+    var mapAPI = {};
     var Settings = { Marker: { InterpolateCount : 10}};
     var Position = { Last: {}};
 
@@ -40,12 +41,11 @@ var System = (function(){
 		},
 		setMapAPI: function(mapAPI) {
 			if(mapAPI) {
-				this.mapAPI = mapAPI(this);
-				//this.mapAPI(this); // 
+				mapAPI = mapAPI;
 			}
 		},
         getMapAPI: function() {
-          return this.mapAPI;
+          return mapAPI;
         },
         login: function(cbobj) {
         	var cookies = $.cookie();
@@ -122,6 +122,9 @@ var System = (function(){
         
 		init: function() {
 
+			mapAPI = map; //set reference
+			mapAPI.SetAPI("GoogleMaps");
+			
 			tinymce.init({
 			    selector: "textarea",
 			    plugins: [
@@ -151,7 +154,7 @@ var System = (function(){
                     Con.onmessage = function(evt) {
                         var cords = evt.data.split(",");
 
-                        Self.mapAPI.setMarker(cords[0],cords[1]);
+                        mapAPI.Active.setMarker(cords[0],cords[1]);
                         /*
                         //TODO interpolate between cords
                         var X = cords[0];
@@ -238,7 +241,7 @@ function bindHandlers() {
                     dataType: "html",
                     success: function(HTML) {
                     	Main.html(HTML);
-                    	System.setMapAPI(map);
+                    	
                     },
                     error: function(a,b,c) {
                       System.showLostConnection();
@@ -311,7 +314,7 @@ $(document).ready(function() {
     		success: function() {
     			  $("#myModal").modal("toggle");
     			  System.init();
-    			
+
     			  //display success message or something
     		},
     		fail: function() {

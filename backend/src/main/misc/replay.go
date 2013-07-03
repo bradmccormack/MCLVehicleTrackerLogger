@@ -79,7 +79,7 @@ func main() {
                 msg += cord.Latitude + ","
                 msg += cord.Longitude + ","
                 msg += "S" + string(cord.Speed) + ","
-		msg += "H" + fmt.Sprint(cord.Heading, ',')
+		msg += "H" + fmt.Sprint(cord.Heading) + ","
                 msg += "D" + cord.DateTime.Format(time.RFC3339) + ","
                 msg += "F" + Fix + ","
                 msg += cord.BusID

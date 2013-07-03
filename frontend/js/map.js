@@ -2,6 +2,7 @@ var genericCallback;
 
 var map = (function(){
 	
+	var current = {};
 	
 	var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
 		throw "Not Implemented";
@@ -163,20 +164,34 @@ var map = (function(){
 	
 	var defaultLocation = { Latitude: -34.50118, Longitude: 150.81071 };
 	
-	var MapAPI =
+	var Settings =
     {
         Active: GoogleMaps, //needs to come from cookie settings
-        Vendors: [Leaflet, GoogleMaps, BingMaps, MapQuest]
+        Vendors: {
+        	"Leaflet" : Leaflet,
+        	"GoogleMaps": GoogleMaps,
+        	"BingMaps": BingMaps,
+        	"MapQuest": MapQuest
+        }
     };
-
-	var mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+	
 	//setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 		
-	
+	return {
+		Current: function() {
+			return current;
+		},
+		SetAPI: function(API) {
+			matchingAPI = Settings.Vendors[API];
+			if(matchingAPI) {
+				current = new Settings.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+			}
+		}
+	}
 	
    
 
-});
+})();
 
 
 //Map controls
