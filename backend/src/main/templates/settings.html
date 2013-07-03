@@ -5,8 +5,8 @@
 	
 	<h5><i class="icon-user"> </i> User Settings </h5>
 	<div class="well">
-		<label><strong>Current User</strong> {{.FirstName}} {{.LastName}}</label>
-		<label><strong>Access Level</strong> {{.AccessLevel}}</label>
+		<label><strong>Current User</strong> {{.User.Firstname}} {{.User.Lastname}}</label>
+		<label><strong>Access Level</strong> {{.User.Accesslevel}}</label>
 		
 		<div class="control-group" >
 			<div class="controls">
@@ -28,7 +28,7 @@
 	<h5><i class="icon-globe"> </i> Map API </h5>
 	<div class="well">
 		<div class="btn-group">
-              <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{.MapAPI}}</a>
+              <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{.Settings.MapAPI}}</a>
               <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
                  <span class="caret"> </span>
                 </a>
@@ -48,13 +48,13 @@
 	  	<form id="mapOptionsNew">
 	  		<div class="control-group">
 	  			<div class="controls">
-	  				<label class="text"> <input type="checkbox" name="mapOptionInterpolate">  Interpolate movement </label>
+	  				<label class="text"> <input type="checkbox" name="mapOptionInterpolate" {{if .Settings.Interpolate}} checked {{end}}>  Interpolate movement </label>
 	  			</div>	
 	  		</div>
 	  		
 	  		<div class="control-group">
 	  			<div class="controls">
-	  				<label class="text"> <input type="checkbox" name="mapOptionSnapToRoad"> Snap to Road </label>
+	  				<label class="text"> <input type="checkbox" name="mapOptionSnapToRoad" {{if .Settings.SnaptoRoad}} checked {{end}}> Snap to Road </label>
 	  				
 	  			</div>
 	  		</div>

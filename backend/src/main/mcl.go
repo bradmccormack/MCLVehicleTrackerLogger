@@ -44,6 +44,7 @@ type User struct {
 	Lastname    string
 	Password    string
 	Accesslevel int
+	MapAPI	    string
 }
 
 type Session struct {
@@ -93,7 +94,10 @@ var actions = map[string]interface{}{
 			log.Fatal(Db)
 		}
 
-		result := Db.QueryRow("SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry FROM User U, Company C WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID",
+		result := Db.QueryRow(`
+			SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry 
+			FROM User U, Company C
+			WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID`,
 			name, password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
 
@@ -173,7 +177,6 @@ var views = map[string]interface{}{
 		w.Header().Add("Content-Type", "test/html")
 		
 		session , _ := store.Get(r, "session")
-		fmt.Printf("Session is %s", session)
 		
 		var err error
 		t := template.New("Reports")
@@ -181,7 +184,7 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for Reports. Fix it")
 		}
-		t.Execute(w, session)
+		t.Execute(w, session.Values)
 	},
 
 	"ViewMap" : func(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +200,7 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for map. Fix it")
 		}
-		t.Execute(w, session)		
+		t.Execute(w, session.Values)		
 	},
 
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
@@ -205,7 +208,6 @@ var views = map[string]interface{}{
 		w.Header().Add("Content-Type", "text/html")
 
 		session , _ := store.Get(r, "session")
-		fmt.Printf("Session is %s", Response {"session": session})
 		
 		var err error
 		t := template.New("License")
@@ -213,14 +215,42 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for license. Fix it")
 		}
-		t.Execute(w, session)
-
+		t.Execute(w, session.Values)
 	},
 
 	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
 		//TODO redirect to root if not logged in
 		w.Header().Add("Content-Type", "text/html")
 
+		session, _ := store.Get(r, "session")
+
+		var mapAPI string
+		var interpolate, snaptoroad bool
+
+		var user User = session.Values["User"].(User)
+		fmt.Printf("User info is %s", Response{ "user": user})
+		
+		result := Db.QueryRow(`
+                        SELECT S.MapAPI, S.Interpolate, S.SnaptoRoad
+                        FROM Settings S, User U
+			WHERE S.UserID = U.ID 
+			AND U.ID = ?`, user.ID).Scan(&mapAPI, &interpolate, &snaptoroad)
+
+                switch {
+                case result != nil:
+                        log.Fatal(result)
+                default:
+                        session, _ := store.Get(r, "session")
+						
+                        session.Values["Settings"] =  map[string]interface{}{
+				"MapAPI": mapAPI,
+				"Interpolate" : interpolate,
+				"SnaptoRoad" : snaptoroad,
+			}
+			fmt.Printf("Seeings is %s", Response{ "settings" : session.Values["Settings"]})
+
+			session.Save(r, w)
+		}
 		var err error
 		t := template.New("Settings")
 		t, err = template.ParseFiles("templates/settings.html")
@@ -228,28 +258,8 @@ var views = map[string]interface{}{
 			log.Fatal("Failed to parse the template file for settings. Fix it")
 		}
 
-		userID := 1 //this should come from the request form
-
-		row := Db.QueryRow("SELECT S.MapAPI, U.FirstName, U.LastName, U.AccessLevel FROM Settings S, User U WHERE S.UserID = ?", userID)
-
-		var settings = map[string]string{
-			"MapAPI":    "",
-			"FirstName": "",
-			"LastName":  "",
-			"AccessLevel": "",
-		}
-
-		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */
-		var AccessLevel int
-		var MapAPI, FirstName, LastName string
-		row.Scan(&MapAPI, &FirstName, &LastName, &AccessLevel)
-
-		settings["MapAPI"] = MapAPI
-		settings["FirstName"] = FirstName
-		settings["LastName"] = LastName
-		settings["AccessLevel"] = string(AccessLevel)
-
-		t.Execute(w, settings)
+		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */		
+		t.Execute(w, session.Values)
 	},
 }
 
@@ -322,13 +332,15 @@ func createDb() {
         ID integer primary key autoincrement,
         UserID integer not null,
         MapAPI text not null default 'GoogleMaps',
+	Interpolate boolean not null default 1,
+	SnaptoRoad boolean not null default 1, 
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
 
-		"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
-		"COMMIT TRANSACTION;",
+	"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
+	"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
+	"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
+	"COMMIT TRANSACTION;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 

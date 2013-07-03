@@ -170,7 +170,7 @@ var map = (function(){
     };
 
 	var mapAPI = new MapAPI.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
-	//setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
+	setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 		
 	
 	
