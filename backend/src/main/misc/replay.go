@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"net"
+	"log"
 	"flag"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
@@ -10,9 +12,9 @@ import (
 )
 
 
-var ip = flag.String("ip", "dev.myclublink.com.au", "ip address to send gps co-ordinates to")
+var ip = flag.String("ip", "localhost:6969", "ip address to send gps co-ordinates to")
 var dbname = flag.String("database", "backend.db", "database to open gps records from")
-var query = flag.String("query", "select * from GPSRecords", "query to obtain gps records -eg select * from GPSRecords")
+var query = flag.String("query", "select id, Latitude, Longitude, Speed, Heading, Fix, BusID from GPSRecords", "query to obtain gps records -eg select * from GPSRecords")
 var db *sql.DB
 
 type GPS struct {
@@ -26,9 +28,6 @@ type GPS struct {
 	DateTime time.Time
 	BusID string
 }
-
-
-
 func main() {
 	flag.Parse()
 	var err error
@@ -37,9 +36,6 @@ func main() {
 		fmt.Printf("Failed to open %s", db)
 		os.Exit(1)
 	}
-
-		
-
 
 	rows, err := db.Query(*query)
 	if err != nil {
@@ -51,15 +47,24 @@ func main() {
 
 	for rows.Next() {
 		var row GPS
-		err = rows.Scan(&row.ID, &row.Message, &row.Latitude, &row.Longitude, &row.Speed, &row.Heading, &row.Fix, &row.DateTime, &row.BusID)		
+		err = rows.Scan(&row.ID, &row.Latitude, &row.Longitude, &row.Speed, &row.Heading, &row.Fix, &row.BusID)		
 		if(err != nil) {
-			fmt.Printf("Error reading row - %s", err.Error())	
+			fmt.Printf("Error reading row - %s\n", err.Error())	
 		}
+		row.Message = ""
+		row.DateTime = time.Now()
 		cords = append(cords, row)
 	}
 	db.Close()
-
+ 
+	fmt.Printf("Sending data to %s", *ip)
 	//for now just spit across the latitude and longitude
+	conn, err := net.Dial("tcp", *ip)
+	if err != nil {
+		log.Fatal("Cannot do tcp connection - %s", err.Error()) 
+	}
+
+
 	var msg string
 	for _, cord := range cords {
 		var Fix string
@@ -69,23 +74,23 @@ func main() {
 			Fix = "false"
 		}
 
-		msg = cord.Message + ",L"
+		//T signifies testing. The server will not log replayed co-ordinates
+		msg = "T" + cord.Message + ",L"
                 msg += cord.Latitude + ","
                 msg += cord.Longitude + ","
                 msg += "S" + string(cord.Speed) + ","
 		msg += "H" + fmt.Sprint(cord.Heading, ',')
                 msg += "D" + cord.DateTime.Format(time.RFC3339) + ","
                 msg += "F" + Fix + ","
-                msg += cord.BusID;
-                //Byte[] sendBytes = Encoding.ASCII.GetBytes(data);
-                /*
-                Byte[] sendBytes = Encoding.ASCII.GetBytes("PHi there buddy,L" + lat +
-                ",150.81094,S0.00,H147.2,D" + dt + ",Ftrue,BRADSBUS");
-                */
+                msg += cord.BusID
 
-                //udpClient.Send(sendBytes, sendBytes.Length);
-                //System.Threading.Thread.Sleep(1000);
-       
+		//convert string to bytes.. send to server then wait a second and loop
+		//bytes := []byte(msg)
+
+		fmt.Fprintf(conn, msg)
+		time.Sleep(1000 * time.Millisecond)
+
+		fmt.Printf("sentence is %s\n", msg)       
 		
 	}
 

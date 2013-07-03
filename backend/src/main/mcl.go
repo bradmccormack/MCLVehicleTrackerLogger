@@ -568,8 +568,15 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
 		entry.fix,
 		entry.date,
 		entry.ID)
+		
+		//don't log to DB
+		//TODO - Remove this out for more performance
+		if(string(buff[0:1]) != "T") {
+			go logEntry(&entry)  //save to database
+		} else {
+			fmt.Printf("Replayed packets. Not saving to DB\n")
+		}
 
-		go logEntry(&entry)  //save to database
 		updateClient(&entry) //notify any HTTP observers //make this a goroutine later
 
 		conn.Write([]byte("OK"))

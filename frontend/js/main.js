@@ -136,12 +136,11 @@ var System = (function(){
 
             if (window["WebSocket"]) {
                     //alert("Browser supports Web Sockets. Yay");
-                    Con = new WebSocket("ws://dev.myclublink.com.au/ws");
-                    //if(Con)
-                    //    Con.send("test message");
-
+                    //Con = new WebSocket("ws://dev.myclublink.com.au/ws");
+                    Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
+                 
                     Con.onopen = function() {
-                    	log("Web Socket connection opened");
+                    	//log("Web Socket connection opened");
                         //Con.send("test message");
                     };
 
