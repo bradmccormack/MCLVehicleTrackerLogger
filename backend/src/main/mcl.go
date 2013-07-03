@@ -354,7 +354,9 @@ func createDb() {
 }
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("Web socket requested from %s", r.RemoteAddr)
 	if r.Method != "GET" {
+		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
@@ -372,6 +374,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 	connection, err = websocket.Upgrade(w, r.Header, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
+		fmt.Printf("Not a websocket handshake \n")
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
@@ -379,7 +382,8 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	connections = append(connections, connection)
-	fmt.Printf("Amount of clients listening is %d", len(connections))
+	fmt.Printf("New client OK\n")
+	fmt.Printf("Amount of clients listening is %d\n", len(connections))
 }
 
 //TODO look at implementing trinity mvc framework
@@ -481,17 +485,18 @@ func updateClient(entry *GPSRecord) {
 	}
 
 	fmt.Printf("Responding to %d listening clients\n", len(connections))
-	for _, client := range connections {
+	for index, client := range connections {
 		//get a websocket writer
 		wswriter, _ := client.NextWriter(websocket.OpText)
 
 		if wswriter != nil {
+			fmt.Printf("Sentence sent across to web client")
 			io.WriteString(wswriter, string(entry.latitude+","+entry.longitude)) //we want to write some JSON instead of text for now just do a dodgy string
 		} else {
 			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
 			client.Close()
-			//connections[index] = nil
-
+			//remove from slice
+			connections = append(connections[: index], connections[index + 1:]...)	
 		}
 
 	}
