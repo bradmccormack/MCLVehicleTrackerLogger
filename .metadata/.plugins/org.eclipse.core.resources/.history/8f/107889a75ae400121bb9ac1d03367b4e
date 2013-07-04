@@ -146,7 +146,7 @@ var System = (function(){
                     Con.onmessage = function(evt) {
                         var cords = evt.data.split(",");
 
-                        mapAPI.Current().setMarker(cords[0],cords[1]);
+                        mapAPI.Active.setMarker(cords[0],cords[1]);
                         /*
                         //TODO interpolate between cords
                         var X = cords[0];
