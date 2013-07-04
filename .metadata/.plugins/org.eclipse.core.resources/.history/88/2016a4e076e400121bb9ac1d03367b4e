@@ -167,14 +167,10 @@ var System = (function(){
                       	var VehicleInfo = $(tabVehicles).find("span[data-vehicle = '" + data.ID + "']");
                       	VehicleInfo.remove();
 
-                      	var html = "<span data-vehicle='" + data.ID + "'> <i class='icon-truck'></i> " + data.ID + "  <strong>Speed(KM/Hr)</strong> " + data.Speed 
-                      	+ " <strong>Heading Degrees)</strong> " + Math.round(data.Heading) + " <strong>Time</strong> " + data.Date + "</span>"
+                      	var html = "<span data-vehicle='" + data.ID + "'> " + data.ID + "Speed (est KM/H) " + data.Speed + " Heading (Degrees) " + Math.round(data.Heading) + " at " + data.Date + "</span>"
                       	$(tabVehicles).append(html);
                                      
-                        /*
-                       
-
-
+                     
                         mapAPI.Current().setMarker(cords[0],cords[1]);
                         */
                         /*

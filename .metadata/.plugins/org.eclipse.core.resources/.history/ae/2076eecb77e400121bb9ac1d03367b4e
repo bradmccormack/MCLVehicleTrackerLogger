@@ -47,10 +47,6 @@ div.charts {
 	margin-right: auto;	
 }
 
-div.tab-pane {
-	overflow-y: scroll;
-}
-
 /*******************
 LOGIN FORM
 *******************/

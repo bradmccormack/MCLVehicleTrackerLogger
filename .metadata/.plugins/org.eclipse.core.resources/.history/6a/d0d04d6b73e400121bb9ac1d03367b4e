@@ -163,16 +163,17 @@ var System = (function(){
                         
                         mapAPI.Current().setMarker(data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
                       	
-						$(tabVehicles).find("span.text-error").remove();
-                      	var VehicleInfo = $(tabVehicles).find("span[data-vehicle = '" + data.ID + "']");
-                      	VehicleInfo.remove();
 
-                      	var html = "<span data-vehicle='" + data.ID + "'> <i class='icon-truck'></i> " + data.ID + "  <strong>Speed(KM/Hr)</strong> " + data.Speed 
-                      	+ " <strong>Heading Degrees)</strong> " + Math.round(data.Heading) + " <strong>Time</strong> " + data.Date + "</span>"
-                      	$(tabVehicles).append(html);
-                                     
+                      	var VehicleInfo = $(tabVehicles).find("span").find("[data-vehicle = 'data.ID']");
+                      	VehicleInfo.remove();
+                      	
+                      	$(tabVehicles).append("<span data-vehicle='" + data.ID + "'> Last read Speed (est KM/H) " + data.Speed + "</span>");
+                      	$(tabVehicles).append("<span data-vehicle='" + data.ID + "'> Last Update at " + data.DateTime + "</span");
+                      	
+                      
+                      
                         /*
-                       
+                        var cords = evt.data.split(",");
 
 
                         mapAPI.Current().setMarker(cords[0],cords[1]);

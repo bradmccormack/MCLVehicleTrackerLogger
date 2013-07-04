@@ -86,16 +86,16 @@
 
                     <div class="tab-content">
                         <div id="tab1" class="tab-pane active">
-                            <span>System Statistics can be shown here (Total time on air etc)</span>
+                            <span>Tab1</span>
                         </div>
 
                         <div id="tab2" class="tab-pane">
 
-                            <span class="text-error"> No vehicle data yet </span>
+                            <span>Tab2</span>
                         </div>
 
                         <div id="tab3" class="tab-pane">
-                            <span>Employee statistics can be shown here (Who is on duty etc)</span>
+                            <span>Tab3</span>
                         </div>
 
                     </div>
