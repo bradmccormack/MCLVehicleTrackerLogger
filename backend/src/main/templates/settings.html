@@ -54,10 +54,17 @@
 	  		
 	  		<div class="control-group">
 	  			<div class="controls">
-	  				<label class="text"> <input type="checkbox" name="mapOptionSnapToRoad" {{if .Settings.SnaptoRoad}} checked {{end}}> Snap to Road </label>
-	  				
+	  				<label class="text"> <input type="checkbox" name="mapOptionSnapToRoad" {{if .Settings.SnaptoRoad}} checked {{end}}> Snap to Road </label>	
 	  			</div>
 	  		</div>
+			<div class="control-group">
+				<div class="controls">
+					<label class="text"> <input type="checkbox" name="mapOptionReceiveRF" checked> Allow communication from Radio Frequencies </label>
+					<label class="text"> <input type="checkbox" name="mapOptionReceiveInternet" checked> Allow communication from 3G </label>
+				</div>
+
+			</div>
+
 	  	</form>
 	</div>
 	
