@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"bytes"
 	"encoding/json"
 	"encoding/gob"
 	"flag"
@@ -11,6 +12,7 @@ import (
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
 	"html/template"
+	"math/rand"
 	"io"
 	"log"
 	"net"
@@ -60,7 +62,7 @@ var domain string = "dev.myclublink.com.au"
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
 var connections []*websocket.Conn //slice of Websocket connections
-
+var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
 var store = sessions.NewCookieStore([]byte("emtec789"))
 var Db *sql.DB
@@ -111,9 +113,7 @@ var actions = map[string]interface{}{
 			session, _ := store.Get(r, "session")
 			
 			session.Values["User"] =  user
-			session.Values["Company"] = company 
-			
-			fmt.Printf("Session.User is %s and Session.Company is %s", session.Values["User"], session.Values["Company"])
+			session.Values["Company"] = company 			
 			session.Options = &sessions.Options{
 				Path: "/",
 				MaxAge: 86400, //1 day
@@ -174,7 +174,7 @@ var views = map[string]interface{}{
 	"ViewReport" : func(w http.ResponseWriter, r *http.Request) {
 		//TODO redirect to root if not logged in
 		
-		w.Header().Add("Content-Type", "test/html")
+		w.Header().Add("Content-Type", "application/json")
 		
 		session , _ := store.Get(r, "session")
 		
@@ -184,6 +184,22 @@ var views = map[string]interface{}{
 		if err != nil {
 			log.Fatal("Failed to read the template file for Reports. Fix it")
 		}
+ 		
+		//execute to string and send back JSON with the view and the data view the charts
+		var viewsettings bytes.Buffer 
+        	t.Execute(&viewsettings, session.Values) 
+        	s := viewsettings.String() 
+		
+		var percentAvailable int = random.Intn(75)
+		availability := [...]int { percentAvailable, 100 - percentAvailable}
+		
+		var kmPerDay [7]int
+		for i := 0; i < 7; i++ {
+			kmPerDay[i] = random.Intn(60)
+		}
+
+
+		fmt.Fprint(w, Response {"HTML" : s, "Availability" : availability, "KMPerDay" : kmPerDay})
 		t.Execute(w, session.Values)
 	},
 
@@ -226,9 +242,7 @@ var views = map[string]interface{}{
 
 		var mapAPI string
 		var interpolate, snaptoroad bool
-
 		var user User = session.Values["User"].(User)
-		fmt.Printf("User info is %s", Response{ "user": user})
 		
 		result := Db.QueryRow(`
                         SELECT S.MapAPI, S.Interpolate, S.SnaptoRoad
@@ -241,7 +255,8 @@ var views = map[string]interface{}{
                         log.Fatal(result)
                 default:
                         session, _ := store.Get(r, "session")
-						
+
+			//TODO add the receive data settings here and get from the DB						
                         session.Values["Settings"] =  map[string]interface{}{
 				"MapAPI": mapAPI,
 				"Interpolate" : interpolate,
