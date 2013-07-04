@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"strings"
 	"bytes"
 	"encoding/json"
 	"encoding/gob"
@@ -19,7 +20,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -99,8 +99,8 @@ var actions = map[string]interface{}{
 		result := Db.QueryRow(`
 			SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry 
 			FROM User U, Company C
-			WHERE U.FirstName = ? AND U.Password = ? AND C.ID = U.CompanyID`,
-			name, password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
+			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID`,
+			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
 
 		switch {
@@ -357,7 +357,7 @@ func createDb() {
 	"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
 	"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
 	
-	"INSERT INTO Company (Name, MaxUsers) VALUES ('Sussex Inlet RSL Group', 5);",
+	"INSERT INTO Company (Name, MaxUsers, Expiry) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00');",
 	"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel) VALUES ('Craig', 'Smith', 2, 'craig', 10);",
 	"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
 	"COMMIT TRANSACTION;",
