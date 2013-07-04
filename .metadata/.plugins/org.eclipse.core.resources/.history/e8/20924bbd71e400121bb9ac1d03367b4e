@@ -148,8 +148,12 @@ var map = (function(){
 			        );
 			    		
 	                marker = new google.maps.Marker({
-	              	              
-				    icon: pinImage,
+	                /*
+	                icon: {
+				        icon: pinImage,
+				        scale: 3
+			    	},
+			    	*/
 	                position: new google.maps.LatLng(Latitude, Longitude),
 	                map: map});
 	                if(Text)

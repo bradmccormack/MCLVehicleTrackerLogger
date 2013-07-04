@@ -141,15 +141,23 @@ var map = (function(){
 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
 	            if(!marker) {
 	            	
-    				var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
-			       		new google.maps.Size(21, 34),
-			        	new google.maps.Point(0,0),
-			        	new google.maps.Point(10, 34)
-			        );
-			    		
+	            	var pinColor = Color;
+    				var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + pinColor,
+		       		new google.maps.Size(21, 34),
+		        	new google.maps.Point(0,0),
+		        	new google.maps.Point(10, 34));
+		    	
+		    		var pinShadow = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_shadow",
+		        	new google.maps.Size(40, 37),
+		        	new google.maps.Point(0, 0),
+		        	new google.maps.Point(12, 35));
+	            	
 	                marker = new google.maps.Marker({
-	              	              
-				    icon: pinImage,
+	                icon: {
+				        icon: pinImage,
+                		shadow: pinShadow,
+				        scale: 3
+			    	},
 	                position: new google.maps.LatLng(Latitude, Longitude),
 	                map: map});
 	                if(Text)
@@ -161,6 +169,9 @@ var map = (function(){
 	                    marker.setTitle(Text);
 	            }
 	
+	        },
+	        setMarkerColor: function(Color) {
+	        	marker.setColor
 	        },
 	        onClick: function(funct) {
 	            map.on("click", function(e) {

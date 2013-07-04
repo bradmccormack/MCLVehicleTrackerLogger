@@ -37,7 +37,7 @@ var System = (function(){
         	DateTime: new Date(),
         	Color: Utility.RandomColor()
         }
-        Legend.find("ul").append('<li><a href="#" style="color: #' + Vehicles[VehicleID].Color + '"><i class="icon-truck"></i> ' + VehicleID +'</a></li>');
+        Legend.find("ul").append('<li><a href="#" style="color:' + Vehicles[VehicleID].Color + '"><i class="icon-truck"></i> ' + VehicleID +'</a></li>');
           //mapAPI.Current().setMarkerColor(Vehicles[VehicleID].Color);
         //remove everything from the legend if there has been no contact in over 1 hour or whatever
         
