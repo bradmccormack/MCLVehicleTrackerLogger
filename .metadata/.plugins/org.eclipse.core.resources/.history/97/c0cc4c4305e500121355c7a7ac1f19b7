@@ -390,12 +390,13 @@ $(document).ready(function() {
     		},
     		fail: function(msg) {
     			var Loginmodal = $("#myModal div.modal-footer");
-    			$(Loginmodal).find("strong.text-error").remove();
+    			$(Loginmodal).find("label.text-error").remove();
+    			var text = $(Loginmodal).find("strong");
     		$("<strong class='text-error pull-left'> <i class='icon-warning-sign icon-white'></i> " + msg + "</strong>").insertBefore($(Loginmodal).find("strong"));
     		},
     		retry: function(msg) {
     			var Loginmodal = $("#myModal div.modal-footer");
-    			$(Loginmodal).find("strong.text-warning").remove();
+    			$(Loginmodal).find("label.text-error").remove();
     		$("<strong class='text-warning pull-left'> <i class='icon-warning-sign icon-white'></i> " + msg + "</strong>").insertBefore($(Loginmodal).find("strong"));
     		}
 	});
