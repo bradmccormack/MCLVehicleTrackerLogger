@@ -24,13 +24,13 @@ import (
 )
 
 type GPSRecord struct {
-	latitude  string
-	longitude string
-	message   string
-	speed     int
-	heading   float64
-	fix       bool
-	date      time.Time
+	Latitude  string
+	Longitude string
+	Message   string
+	Speed     int
+	Heading   float64
+	Fix       bool
+	Date      time.Time
 	ID        string
 }
 
@@ -499,16 +499,15 @@ func updateClient(entry *GPSRecord) {
 		return
 	}
 
-	fmt.Printf("Responding to %d listening clients\n", len(connections))
+	//fmt.Printf("Responding to %d listening clients\n", len(connections))
 	for index, client := range connections {
 		//get a websocket writer
 		wswriter, _ := client.NextWriter(websocket.OpText)
 
 		if wswriter != nil {
-			fmt.Printf("Sentence sent across to web client")
-			io.WriteString(wswriter, string(entry.latitude+","+entry.longitude)) //we want to write some JSON instead of text for now just do a dodgy string
+			io.WriteString(wswriter, Response { "Entry": entry}.String())
 		} else {
-			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
+			//fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
 			client.Close()
 			//remove from slice
 			connections = append(connections[: index], connections[index + 1:]...)	
@@ -520,13 +519,13 @@ func updateClient(entry *GPSRecord) {
 func logEntry(entry *GPSRecord) {
 
 	_, err := Db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
-		entry.message,
-		entry.latitude,
-		entry.longitude,
-		entry.speed,
-		entry.heading,
-		entry.fix,
-		entry.date,
+		entry.Message,
+		entry.Latitude,
+		entry.Longitude,
+		entry.Speed,
+		entry.Heading,
+		entry.Fix,
+		entry.Date,
 		entry.ID)
 
 	if err != nil {
@@ -565,23 +564,23 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
 		}
 		//All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
 
-		entry.message = gpsfields[0][1:]
-		entry.latitude = gpsfields[1][1:]
-		entry.longitude = gpsfields[2]
-		entry.speed, _ = strconv.Atoi(gpsfields[3][1:])
-		entry.heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
-		entry.date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
-		entry.fix = gpsfields[6][1:] == "true"
+		entry.Message = gpsfields[0][1:]
+		entry.Latitude = gpsfields[1][1:]
+		entry.Longitude = gpsfields[2]
+		entry.Speed, _ = strconv.Atoi(gpsfields[3][1:])
+		entry.Heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
+		entry.Date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
+		entry.Fix = gpsfields[6][1:] == "true"
 		entry.ID = gpsfields[7]
 
 		fmt.Printf("Message %s Lat %s Long %s speed %d heading %f fix %t date %s time %s id %s\n",
-		entry.message,
-		entry.latitude,
-		entry.longitude,
-		entry.speed,
-		entry.heading,
-		entry.fix,
-		entry.date,
+		entry.Message,
+		entry.Latitude,
+		entry.Longitude,
+		entry.Speed,
+		entry.Heading,
+		entry.Fix,
+		entry.Date,
 		entry.ID)
 		
 		//don't log to DB

@@ -1,4 +1,12 @@
 
+var Utility = (function(){
+	return {
+		RandomColor: function() {
+			return (function lol(m,s,c){return s[m.floor(m.random() * s.length)] +
+  			(c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4)
+		}
+	}	
+})();
 
 
 var System = (function(){
@@ -18,21 +26,21 @@ var System = (function(){
 		$('#systemError').modal('toggle');  
 	}
 
-    function updateLegend(JSON) {
+    function updateLegend(VehicleID) {
+  
         //We need to know if the GPS signal is correct or not (Fix status is true)
-        if(JSON.Vehicles.length > 0) {
-            var Legend = $("div#Mainlegend div#Vehiclelegend ul");
-
-            //Add any Vehicles to the Legend that are not there .. If GPS fix is not true then show warning etc
-            //if there is no information for Vechile BLAH
-            JSON.Vehicles.forEach(function(Vehicle){
-                Legend.append('<li><a href="#"><i class="icon-truck"></i> ' + Vehicle +'</a></li>');
-            });
-
+      	
+        var Legend = $("div#Mainlegend div#Vehiclelegend");
+        Legend.find("span.text-error").remove();
+      
+        Vehicles[VehicleID] = {
+        	DateTime: new Date(),
+        	Color: Utility.RandomColor()
         }
-        else {
-            //remove everything from the legend if there has been no contact in over 1 hour or whatever
-        }
+        Legend.find("ul").append('<li><a href="#" style="color:' + Vehicles[VehicleID].Color + '"><i class="icon-truck"></i> ' + VehicleID +'</a></li>');
+          //mapAPI.Current().setMarkerColor(Vehicles[VehicleID].Color);
+        //remove everything from the legend if there has been no contact in over 1 hour or whatever
+        
     }
 
 	return {
@@ -124,11 +132,8 @@ var System = (function(){
 
 			mapAPI = map; //set reference
 			$("#tabMap").click();
-			mapAPI.SetAPI("GoogleMaps");
+			//mapAPI.SetAPI("GoogleMaps");
 			
-            //add a couple of vehicles in hard coded for now
-            //system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
-
             if (window["WebSocket"]) {
                     //alert("Browser supports Web Sockets. Yay");
                     //Con = new WebSocket("ws://dev.myclublink.com.au/ws");
@@ -144,9 +149,20 @@ var System = (function(){
                         //appendLog($("<div><b>Connection closed.</b></div>"))
                     }
                     Con.onmessage = function(evt) {
+                    	var data = JSON.parse(evt.data).Entry;
+                         
+                        if(!(data.ID in Vehicles)) {
+                        	updateLegend(data.ID);
+                        }
+                        
+                        mapAPI.Current().setMarker(data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
+                      
+                        /*
                         var cords = evt.data.split(",");
 
+
                         mapAPI.Current().setMarker(cords[0],cords[1]);
+                        */
                         /*
                         //TODO interpolate between cords
                         var X = cords[0];
@@ -233,7 +249,9 @@ function bindHandlers() {
                     dataType: "html",
                     success: function(HTML) {
                     	Main.html(HTML);
-                    	
+                    	var MapAPI = System.getMapAPI(); //probably need a refresh method on the MapAPI
+                    	MapAPI.SetAPI("GoogleMaps");
+                    
                     },
                     error: function(a,b,c) {
                       System.showLostConnection();
