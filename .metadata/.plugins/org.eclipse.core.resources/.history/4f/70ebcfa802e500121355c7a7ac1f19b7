@@ -51,9 +51,6 @@ div.tab-pane {
 	overflow-y: scroll;
 }
 
-div#settings {
-	overflow-y: scroll;
-}
 /*******************
 LOGIN FORM
 *******************/
