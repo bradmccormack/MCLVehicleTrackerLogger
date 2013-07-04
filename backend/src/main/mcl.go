@@ -200,7 +200,7 @@ var views = map[string]interface{}{
 
 
 		fmt.Fprint(w, Response {"HTML" : s, "Availability" : availability, "KMPerDay" : kmPerDay})
-		t.Execute(w, session.Values)
+		//t.Execute(w, session.Values)
 	},
 
 	"ViewMap" : func(w http.ResponseWriter, r *http.Request) {
