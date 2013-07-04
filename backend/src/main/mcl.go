@@ -578,8 +578,7 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
 		}
 
 		updateClient(&entry) //notify any HTTP observers //make this a goroutine later
-
-		conn.Write([]byte("OK"))
+		conn.Write([]byte("OK\n"))
 	}
 	return false
 }
