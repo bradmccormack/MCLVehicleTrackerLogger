@@ -166,7 +166,6 @@ var map = (function(){
 	
 	var Settings =
     {
-        Active: GoogleMaps, //needs to come from cookie settings
         Vendors: {
         	"Leaflet" : Leaflet,
         	"GoogleMaps": GoogleMaps,
@@ -184,7 +183,7 @@ var map = (function(){
 		SetAPI: function(API) {
 			matchingAPI = Settings.Vendors[API];
 			if(matchingAPI) {
-				current = new Settings.Active(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+				current = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
 			}
 		}
 	}

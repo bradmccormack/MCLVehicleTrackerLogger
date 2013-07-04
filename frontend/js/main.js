@@ -123,17 +123,9 @@ var System = (function(){
 		init: function() {
 
 			mapAPI = map; //set reference
+			$("#tabMap").click();
 			mapAPI.SetAPI("GoogleMaps");
 			
-			tinymce.init({
-			    selector: "textarea",
-			    plugins: [
-			        "advlist autolink lists link image charmap print preview anchor",
-			        "searchreplace visualblocks code fullscreen",
-			        "insertdatetime media table contextmenu paste moxiemanager"
-			    ],
-			    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
-			});
             //add a couple of vehicles in hard coded for now
             //system.updateLegend({Vehicles: ["Mitsubishi Bus", "Izusu Bus"]});
 
@@ -252,9 +244,18 @@ function bindHandlers() {
                   $.ajax({
                     type: "GET",
                     url: "/system/support",
-                    dataType: "HTML",
+                    dataType: "html",
                     success: function(HTML) {
                     	Main.html(HTML);
+                    	tinymce.init({
+					    selector: "textarea",
+					    plugins: [
+					        "advlist autolink lists link image charmap print preview anchor",
+					        "searchreplace visualblocks code fullscreen",
+					        "insertdatetime media table contextmenu paste moxiemanager"
+					    ],
+					    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+			});
                     },
                     error: function(a,b,c) {
                       System.showLostConnection();
@@ -265,9 +266,31 @@ function bindHandlers() {
                 $.ajax({
                     type: "GET",
                     url: "/system/report",
-                    dataType: "HTML",
-                    success: function(HTML) {
-                    	Main.html(HTML);
+                    dataType: "json",
+                    success: function(JSON) {	
+                    	Main.html(JSON.HTML);
+                    	//add the data to the charts
+                    	
+                    	var barreport = $("#barreport")[0];
+        
+        				//TODO think about moving more of the presentation to the server (eg the axis labels and colours)
+						var barChartData = { labels : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+						barChartData.datasets = [];
+						barChartData.datasets.push({
+							fillColor : "rgba(151,187,205,0.5)",
+							strokeColor : "rgba(151,187,205,1)",
+							data : []
+						});
+						
+                    	JSON.KMPerDay.forEach(function(value){
+                    		barChartData.datasets[0].data.push(value);
+                    	});
+                    	
+                    	
+                    	var kmChart = new Chart(barreport.getContext("2d")).Bar(barChartData);
+                    	var availabilityChart = new Chart(document.getElementByID("piereport").getContext("2d")).Pie(JSON.Availability);
+                    	
+                    	
                     },
                     error: function(a,b,c) {
                       System.showLostConnection();
@@ -278,7 +301,7 @@ function bindHandlers() {
                 $.ajax({
                     type: "GET",
                     url: "/system/settings",
-                    dataType: "HTML",
+                    dataType: "html",
                     success: function(HTML) {
                     	Main.html(HTML);
                     },
@@ -291,7 +314,7 @@ function bindHandlers() {
             	$.ajax({
             		type: "GET",
             		url: "/system/license",
-            		dataType: "HTML",
+            		dataType: "html",
             		success: function(HTML) {
             			Main.html(HTML);
             		}
@@ -304,8 +327,6 @@ function bindHandlers() {
 $(document).ready(function() {
 
     //Startup the main system
-
-
     bindHandlers();
     //attempt to login
     var Loginmodal = $("#myModal");
@@ -323,7 +344,6 @@ $(document).ready(function() {
     		retry: function() {
     			modalbody.append("<span class='text-error'> Incorrect details </span>");
     		}
-    		
 	});
     	
     
