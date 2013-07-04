@@ -254,7 +254,6 @@ function bindHandlers() {
 					        "searchreplace visualblocks code fullscreen",
 					        "insertdatetime media table contextmenu paste moxiemanager"
 					    ],
-					    height: 300,
 					    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
 			});
                     },
@@ -292,11 +291,11 @@ function bindHandlers() {
                     	var pieChartData = [
                     		{
                     			value : JSON.Availability[0],
-                    			color: "#009933"
+                    			color: "#FFAAFF12"
                     		},
                     		{
                     			value : JSON.Availability[1],
-                    			color: "#FF0000"
+                    			color: "#123456"
                     		}
                     	];                 	
                     	

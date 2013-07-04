@@ -254,7 +254,7 @@ function bindHandlers() {
 					        "searchreplace visualblocks code fullscreen",
 					        "insertdatetime media table contextmenu paste moxiemanager"
 					    ],
-					    height: 300,
+					    height: 300
 					    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
 			});
                     },

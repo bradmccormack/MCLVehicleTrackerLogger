@@ -254,7 +254,6 @@ function bindHandlers() {
 					        "searchreplace visualblocks code fullscreen",
 					        "insertdatetime media table contextmenu paste moxiemanager"
 					    ],
-					    height: 300,
 					    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
 			});
                     },
@@ -288,22 +287,8 @@ function bindHandlers() {
                     	});
                     	
                     	
-                    	var piereport = $("#piereport")[0];
-                    	var pieChartData = [
-                    		{
-                    			value : JSON.Availability[0],
-                    			color: "#009933"
-                    		},
-                    		{
-                    			value : JSON.Availability[1],
-                    			color: "#FF0000"
-                    		}
-                    	];                 	
-                    	
-              
-                    	
                     	var kmChart = new Chart(barreport.getContext("2d")).Bar(barChartData);
-                    	var availabilityChart = new Chart(piereport.getContext("2d")).Pie(pieChartData);
+                    	var availabilityChart = new Chart(document.getElementByID("piereport").getContext("2d")).Pie(JSON.Availability);
                     	
                     	
                     },

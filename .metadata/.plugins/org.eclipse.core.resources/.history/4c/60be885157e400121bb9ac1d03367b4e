@@ -41,11 +41,6 @@ div#Maintab {
 	overflow-y: scroll;
 }
 
-div.charts {
-	width: 1000px;
-	margin-left: auto;
-	margin-right: auto;	
-}
 
 /*******************
 LOGIN FORM

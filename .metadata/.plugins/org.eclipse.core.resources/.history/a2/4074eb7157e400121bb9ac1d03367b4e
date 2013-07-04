@@ -41,8 +41,8 @@ div#Maintab {
 	overflow-y: scroll;
 }
 
-div.charts {
-	width: 1000px;
+div.report {
+	width: 700px;
 	margin-left: auto;
 	margin-right: auto;	
 }
