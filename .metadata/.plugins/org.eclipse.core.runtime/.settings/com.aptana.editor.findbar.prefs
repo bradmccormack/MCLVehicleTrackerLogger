@@ -1,2 +1,2 @@
-FIND_BAR_DECORATOR_FIND_ENTRIES=\#\n\#Thu Jul 04 10\:42\:15 EST 2013\n9\=ws\n8\=setMapAPI\n7\=Self\n6\=this.MapAPI\n5\=init\n4\=onMessage\n3\=current\n2\=GoogleMaps\n1\=_leaflet\n0\=Support\n
+FIND_BAR_DECORATOR_FIND_ENTRIES=\#\n\#Thu Jul 04 17\:03\:22 EST 2013\n9\=Support\n8\=tiny\n7\=getMapAPI\n15\=Self\n6\=init\n14\=this.MapAPI\n5\=updateLegend\n13\=onMessage\n4\=setMarker\n12\=current\n3\=init\\\:\n11\=GoogleMaps\n2\=tab2\n10\=_leaflet\n1\=tab-content\n0\=Tab3\n
 eclipse.preferences.version=1

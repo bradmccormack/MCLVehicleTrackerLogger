@@ -2,19 +2,19 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="casesensitive"/>
 		<item value="false" key="isRegEx"/>
+		<item value="false" key="casesensitive"/>
 		<item value="false" key="wholeword"/>
-		<item value="Support" key="selection"/>
+		<item value="Tab3" key="selection"/>
 		<list key="findhistory">
-			<item value="Support"/>
-			<item value="_leaflet"/>
-			<item value="GoogleMaps"/>
-			<item value="current"/>
-			<item value="onMessage"/>
+			<item value="Tab3"/>
+			<item value="tab-content"/>
+			<item value="tab2"/>
+			<item value="init:"/>
+			<item value="setMarker"/>
+			<item value="updateLegend"/>
 			<item value="init"/>
-			<item value="this.MapAPI"/>
-			<item value="Self"/>
+			<item value="getMapAPI"/>
 		</list>
 	</section>
 </section>

@@ -60,11 +60,13 @@ var System = (function(){
           return mapAPI;
         },
         login: function(cbobj) {
+        	//TODO Add the spinner to the Login button
+        	
         	var cookies = $.cookie();
        		if("session" in $.cookie())
        		{
        			if("success" in cbobj && typeof cbobj.success == "function") {
-       				cbobj.success();
+       				cbobj.success("Craig Smith"); //TODO pull the name from the session cookie
        			}
        			return;
        		}
@@ -98,12 +100,11 @@ var System = (function(){
 	       					error: function(jqXHR, textStatus, errorThrown) {showLostConnection();},
        						success: function(JSON) 
        						{
-       							var logSuccess = ("success" in JSON) && JSON.success;
-       							//&& "Session" in $.cookie()
+       							var logSuccess = ("success" in JSON) && JSON.success && "session" in $.cookie()
 	       						if(logSuccess) 
 	       						{
        								if("success" in cbobj && typeof cbobj.success == "function")
-        									cbobj.success();
+        									cbobj.success(JSON.user); //callback with logged in user name
         							return;
 	       						}
 	       						else if("retries" in JSON) 
@@ -112,13 +113,13 @@ var System = (function(){
 	       							if(retries == 0) 
 	       							{
 	       								if("fail" in cbobj && typeof cbobj.fail == "function")
-	       									cbobj.fail();
+	       									cbobj.fail(JSON.message);
 	       							}
 	       							else
 	       							{
 	       								
-	       								if("retry" in cbojb && typeof cbojb.retry == "function")
-	       									cbobj.retry();
+	       								if("retry" in cbobj && typeof cbobj.retry == "function")
+	       									cbobj.retry(JSON.message);
 	       							}
 	       						}
 	       						
@@ -376,20 +377,27 @@ $(document).ready(function() {
     //Startup the main system
     bindHandlers();
     //attempt to login
-    var Loginmodal = $("#myModal");
+
     System.login(
     	{ 
-    		success: function() {
+    		success: function(user) {
     			  $("#myModal").modal("toggle");
+    			  //update the user drop down
+    			  $("span#username").text(user);
     			  System.init();
 
     			  //display success message or something
     		},
-    		fail: function() {
-    			modal.find("div.modal-body").html("<p>Sorry you do not have access to the system</p>");
+    		fail: function(msg) {
+    			var Loginmodal = $("#myModal div.modal-footer");
+    			$(Loginmodal).find("label.text-error").remove();
+    			var text = $(Loginmodal).find("strong");
+    		$("<strong class='text-error pull-left'> <i class='icon-warning-sign icon-white'></i> " + msg + "</strong>").insertBefore($(Loginmodal).find("strong"));
     		},
-    		retry: function() {
-    			modalbody.append("<span class='text-error'> Incorrect details </span>");
+    		retry: function(msg) {
+    			var Loginmodal = $("#myModal div.modal-footer");
+    			$(Loginmodal).find("label.text-error").remove();
+    		$("<strong class='text-warning pull-left'> <i class='icon-warning-sign icon-white'></i> " + msg + "</strong>").insertBefore($(Loginmodal).find("strong"));
     		}
 	});
     	

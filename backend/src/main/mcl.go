@@ -105,11 +105,14 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "message": "IncorrectLogin", "retries": 0})
+			fmt.Fprint(w, Response{"success": false, "message": "Incorrect Username or Password", "retries": 10})
 			return
 		case result != nil:
 			log.Fatal(result)
 		default:
+
+			//TODO check expiry of license
+
 			session, _ := store.Get(r, "session")
 			
 			session.Values["User"] =  user
@@ -123,7 +126,7 @@ var actions = map[string]interface{}{
 				fmt.Printf("Can't save session data (%s)\n", err.Error())
 			
 			}
-			fmt.Fprint(w, Response{"success": true, "message": "All good"})
+			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user.Firstname + " " + user.Lastname})
 		}
 
 	},
@@ -353,7 +356,13 @@ func createDb() {
 	"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
 	"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
 	"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
+	
+	"INSERT INTO Company (Name, MaxUsers) VALUES ('Sussex Inlet RSL Group', 5);",
+	"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel) VALUES ('Craig', 'Smith', 2, 'craig', 10);",
+	"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
 	"COMMIT TRANSACTION;",
+
+
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 
