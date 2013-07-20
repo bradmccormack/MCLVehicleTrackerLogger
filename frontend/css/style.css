@@ -38,7 +38,7 @@ div#Maintab {
 	padding-right: 20px;
 	height: 100%;
 	padding-bottom: 30px;
-	overflow-y: scroll;
+	/*overflow-y: scroll; */
 }
 
 div.charts {
@@ -48,7 +48,7 @@ div.charts {
 }
 
 div.tab-pane {
-	overflow-y: scroll;
+	/*overflow-y: scroll;*/
 }
 
 div#settings {
