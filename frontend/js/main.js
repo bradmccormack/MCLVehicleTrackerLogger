@@ -80,7 +80,7 @@ var System = (function(){
        			success: function(HTML) 
        			{
        				$('body').append(HTML);
-       				bindHandlers();
+       				//bindHandlers();
        				
        				$('#myModal form.login-form').submit(function(e) 
        				{
@@ -224,7 +224,6 @@ function bindHandlers() {
    }) 
     
     
-    
    //systemError
    $("#systemError").submit(function(){
    	//redirect back to the home page for now
@@ -232,7 +231,13 @@ function bindHandlers() {
   	window.location = "dev.myclublink.com.au";
    	
    })
-    
+   
+   var datepicker = $('#dateFrom, #dateTo');
+   datepicker.datetimepicker({
+   	language: 'pt-BR'
+   });
+   
+  
     //Login
     $('#myModal').on("shown", function()
     {
@@ -266,6 +271,8 @@ function bindHandlers() {
                     	Main.html(HTML);
                     	var MapAPI = System.getMapAPI(); //probably need a refresh method on the MapAPI
                     	MapAPI.SetAPI("GoogleMaps");
+                    	bindHandlers();
+                    
                     
                     },
                     error: function(a,b,c) {
@@ -369,15 +376,16 @@ function bindHandlers() {
             	});
             }
         }[Self.attr("id")]();
+       
 	});
 }
 
 $(document).ready(function() {
 
     //Startup the main system
-    bindHandlers();
+    //
     //attempt to login
-
+	bindHandlers();
     System.login(
     	{ 
     		success: function(user) {

@@ -60,7 +60,7 @@
 			</ul>
 
 			<div class="tab-content">
-				
+
 				<div class="tab-pane active" id="displayLive">
 					<p>
 						myClubLink is currently showing realtime vehicle positions.
@@ -72,48 +72,48 @@
 						Last position received 2 seconds ago
 					</p>
 				</div>
-				
+
 				<div class="tab-pane" id="displayHistorical">
 					<p>
 						Select settings below to show historical routes
-						
+
 						<div class="container-fluid">
-							
+
 							<div class="control-group">
-							  <label class="control-label" for="inputIcon">From</label>
-							  <div class="controls">
-							    <div class="input-prepend">
-							      <span class="add-on"><i class="icon-calendar"></i></span>
-							      <input placeholder=" hh:mm:ss ..." class="span12" id="inputIcon" type="text">
-							    </div>
-							  </div>
+								<label class="control-label" for="inputIcon">From</label>
+								<div class="controls">
+									<div id="dateFrom" class="input-append date">
+										<span class="add-on"> <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> </span>
+										<input data-format="dd/MM/yyyy hh:mm:ss" type="text"></input>
+									</div>
+								</div>
 							</div>
-							
+
 							<div class="control-group">
-							  <label class="control-label" for="inputIcon">To</label>
-							  <div class="controls">
-							    <div class="input-prepend">
-							      <span class="add-on"><i class="icon-calendar"></i></span>
-							      <input placeholder="dd/mm/yy hh:mm:ss ..." class="span12" id="inputIcon" type="text">
-							    </div>
-							  </div>
+								<label class="control-label" for="inputIcon">To</label>
+								<div class="controls">
+
+									<div id="dateTo" class="input-append date">
+										<span class="add-on"> <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> </span>
+										<input data-format="dd/MM/yyyy hh:mm:ss" type="text"></input>
+									</div>
+								</div>
 							</div>
-							
+
 							<div class="control-group">
-							  <label class="control-label" for="inputIcon">Delay</label>
-							  <div class="controls">
-							    <div class="input-prepend">
-							      <span class="add-on"><i class="icon-fast-forward"></i></span>
-							      <input placeholder="Seconds between points" class="span12" id="inputIcon" type="text">
-							    </div>
-							  </div>
+								<label class="control-label" for="inputIcon">Delay</label>
+								<div class="controls">
+									<div class="input-prepend">
+										<span class="add-on"><i class="icon-fast-forward"></i></span>
+										<input placeholder="Seconds between points" class="span12" id="inputIcon" type="text" value="0">
+								</div>
 							</div>
 						</div>
-						
-						<button class="btn btn-block">Show Route</button>
-						
-						
-						
+
+						<button class="btn btn-block">
+							Show Route
+						</button>
+
 					</p>
 				</div>
 			</div>
