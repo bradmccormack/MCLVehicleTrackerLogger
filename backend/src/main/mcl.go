@@ -308,7 +308,7 @@ func createDb() {
          Longitude text not null,
          Speed integer not null,
          Heading float not null,
-         Fix boolean not null,
+         Fix integer not null,
          DateTime date not null default current_timestamp,
         BusID text not null);`,
 
