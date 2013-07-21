@@ -1,11 +1,10 @@
 package main
 
 import (
-	"database/sql"
-	"strings"
 	"bytes"
-	"encoding/json"
+	"database/sql"
 	"encoding/gob"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
@@ -13,13 +12,14 @@ import (
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
 	"html/template"
-	"math/rand"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -46,12 +46,7 @@ type User struct {
 	Lastname    string
 	Password    string
 	Accesslevel int
-	MapAPI	    string
-}
-
-type Session struct {
-	User    *User
-	Company *Company
+	MapAPI      string
 }
 
 type Response map[string]interface{}
@@ -61,12 +56,11 @@ var domain string = "dev.myclublink.com.au"
 
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s)) service address")
-var connections []*websocket.Conn //slice of Websocket connections
+var connections []*websocket.Conn                                       //slice of Websocket connections
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
 var store = sessions.NewCookieStore([]byte("emtec789"))
 var Db *sql.DB
-
 
 func (r Response) String() (s string) {
 	b, err := json.Marshal(r)
@@ -102,7 +96,6 @@ var actions = map[string]interface{}{
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
 
-
 		switch {
 		case result == sql.ErrNoRows:
 			fmt.Fprint(w, Response{"success": false, "message": "Incorrect Username or Password", "retries": 10})
@@ -114,17 +107,17 @@ var actions = map[string]interface{}{
 			//TODO check expiry of license
 
 			session, _ := store.Get(r, "session")
-			
-			session.Values["User"] =  user
-			session.Values["Company"] = company 			
+
+			session.Values["User"] = user
+			session.Values["Company"] = company
 			session.Options = &sessions.Options{
-				Path: "/",
+				Path:   "/",
 				MaxAge: 86400, //1 day
 			}
 
 			if err := session.Save(r, w); err != nil {
 				fmt.Printf("Can't save session data (%s)\n", err.Error())
-			
+
 			}
 			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user.Firstname + " " + user.Lastname})
 		}
@@ -134,6 +127,37 @@ var actions = map[string]interface{}{
 	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		fmt.Printf("In Action Settings")
+	},
+	"ActionHistorialRoute": func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Add("Content-Type", "application/json")
+		//map with string key and slice of string slices
+		var Route = make(map[string][][]string)
+
+		dateFrom := r.FormValue("dateFrom")
+		dateTo := r.FormValue("dateTo")
+
+		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var ID, Lat, Long, Speed, Fix, Heading, Date string
+
+		//build up the map here
+		for rows.Next() {
+			if err := rows.Scan(&ID, &Lat, &Long, &Speed, &Heading, &Fix, &Date); err != nil {
+				log.Fatal(err)
+			}
+			Route[ID] = append(Route[ID], []string{Lat, Long, Speed, Fix, Heading, Date})
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Fprint(w, Response{"success": true, "data": Route})
+
 	},
 }
 
@@ -160,13 +184,13 @@ var views = map[string]interface{}{
 	},
 	"ViewSupport": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		session,err := store.Get(r, "session")
-		if(session == nil) {
+		session, err := store.Get(r, "session")
+		if session == nil {
 			fmt.Printf("Session is nil \n")
 		}
-		
-		if(err != nil) {
-			fmt.Printf("Error loading session information %s", err.Error()) 
+
+		if err != nil {
+			fmt.Printf("Error loading session information %s", err.Error())
 		}
 		t, err := template.ParseFiles("templates/support.html")
 		if err != nil {
@@ -174,60 +198,59 @@ var views = map[string]interface{}{
 		}
 		t.Execute(w, session.Values)
 	},
-	"ViewReport" : func(w http.ResponseWriter, r *http.Request) {
+	"ViewReport": func(w http.ResponseWriter, r *http.Request) {
 		//TODO redirect to root if not logged in
-		
+
 		w.Header().Add("Content-Type", "application/json")
-		
-		session , _ := store.Get(r, "session")
-		
+
+		session, _ := store.Get(r, "session")
+
 		var err error
 		t := template.New("Reports")
 		t, err = template.ParseFiles("templates/report.html")
 		if err != nil {
 			log.Fatal("Failed to read the template file for Reports. Fix it")
 		}
- 		
+
 		//execute to string and send back JSON with the view and the data view the charts
-		var viewsettings bytes.Buffer 
-        	t.Execute(&viewsettings, session.Values) 
-        	s := viewsettings.String() 
-		
+		var viewsettings bytes.Buffer
+		t.Execute(&viewsettings, session.Values)
+		s := viewsettings.String()
+
 		var percentAvailable int = random.Intn(75)
-		availability := [...]int { percentAvailable, 100 - percentAvailable}
-		
+		availability := [...]int{percentAvailable, 100 - percentAvailable}
+
 		var kmPerDay [7]int
 		for i := 0; i < 7; i++ {
 			kmPerDay[i] = random.Intn(60)
 		}
 
-
-		fmt.Fprint(w, Response {"HTML" : s, "Availability" : availability, "KMPerDay" : kmPerDay})
+		fmt.Fprint(w, Response{"HTML": s, "Availability": availability, "KMPerDay": kmPerDay})
 		//t.Execute(w, session.Values)
 	},
 
-	"ViewMap" : func(w http.ResponseWriter, r *http.Request) {
+	"ViewMap": func(w http.ResponseWriter, r *http.Request) {
 		//TODO redirect to root if not logged in
 		w.Header().Add("Content-Type", "text/html")
-		
-		session , _ := store.Get(r, "session")
-		fmt.Printf("Session is %s", Response {"session": session})
-		
-		var err error	
+
+		session, _ := store.Get(r, "session")
+		fmt.Printf("Session is %s", Response{"session": session})
+
+		var err error
 		t := template.New("Map")
 		t, err = template.ParseFiles("templates/map.html")
 		if err != nil {
 			log.Fatal("Failed to read the template file for map. Fix it")
 		}
-		t.Execute(w, session.Values)		
+		t.Execute(w, session.Values)
 	},
 
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
 		//TODO redirect to root if not logged in
 		w.Header().Add("Content-Type", "text/html")
 
-		session , _ := store.Get(r, "session")
-		
+		session, _ := store.Get(r, "session")
+
 		var err error
 		t := template.New("License")
 		t, err = template.ParseFiles("templates/license.html")
@@ -246,24 +269,24 @@ var views = map[string]interface{}{
 		var mapAPI string
 		var interpolate, snaptoroad bool
 		var user User = session.Values["User"].(User)
-		
+
 		result := Db.QueryRow(`
                         SELECT S.MapAPI, S.Interpolate, S.SnaptoRoad
                         FROM Settings S, User U
 			WHERE S.UserID = U.ID 
 			AND U.ID = ?`, user.ID).Scan(&mapAPI, &interpolate, &snaptoroad)
 
-                switch {
-                case result != nil:
-                        log.Fatal(result)
-                default:
-                        session, _ := store.Get(r, "session")
+		switch {
+		case result != nil:
+			log.Fatal(result)
+		default:
+			session, _ := store.Get(r, "session")
 
-			//TODO add the receive data settings here and get from the DB						
-                        session.Values["Settings"] =  map[string]interface{}{
-				"MapAPI": mapAPI,
-				"Interpolate" : interpolate,
-				"SnaptoRoad" : snaptoroad,
+			//TODO add the receive data settings here and get from the DB
+			session.Values["Settings"] = map[string]interface{}{
+				"MapAPI":      mapAPI,
+				"Interpolate": interpolate,
+				"SnaptoRoad":  snaptoroad,
 			}
 			session.Save(r, w)
 		}
@@ -274,7 +297,7 @@ var views = map[string]interface{}{
 			log.Fatal("Failed to parse the template file for settings. Fix it")
 		}
 
-		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */		
+		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */
 		t.Execute(w, session.Values)
 	},
 }
@@ -323,7 +346,7 @@ func createDb() {
 		`CREATE TABLE Network (
         id integer primary key autoincrement,
         GPSRecordID integer not null,
-        Acknowledge boolean not null default 0,
+        Acknowledge integer not null default 0,
         FOREIGN KEY (GPSRecordID) REFERENCES GPSRecords(id)
 	);`,
 
@@ -348,21 +371,19 @@ func createDb() {
         ID integer primary key autoincrement,
         UserID integer not null,
         MapAPI text not null default 'GoogleMaps',
-	Interpolate boolean not null default 1,
-	SnaptoRoad boolean not null default 1, 
+		Interpolate integer not null default 1,
+		SnaptoRoad integer not null default 1, 
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
 
-	"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
-	"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
-	"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
-	
-	"INSERT INTO Company (Name, MaxUsers, Expiry) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00');",
-	"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel) VALUES ('Craig', 'Smith', 2, 'craig', 10);",
-	"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
-	"COMMIT TRANSACTION;",
+		"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
+		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
 
-
+		"INSERT INTO Company (Name, MaxUsers, Expiry) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00');",
+		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel) VALUES ('Craig', 'Smith', 2, 'craig', 10);",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
+		"COMMIT TRANSACTION;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 
@@ -406,7 +427,6 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	connections = append(connections, connection)
-	fmt.Printf("New client OK\n")
 	fmt.Printf("Amount of clients listening is %d\n", len(connections))
 }
 
@@ -434,6 +454,7 @@ func handleHTTP() {
 	//Action Routes
 	actionRouter.HandleFunc("/system/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/system/historicalroute", actions["ActionHistorialRoute"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/", actions["ActionInvalid"].(func(http.ResponseWriter, *http.Request)))
 
 	//Use the router
@@ -453,9 +474,7 @@ func init() {
 	gob.Register(Company{})
 }
 
-
 func main() {
-
 
 	flag.Parse()
 
@@ -470,7 +489,6 @@ func main() {
 	}
 	defer Db.Close()
 
-
 	//handle web requests in a seperate go-routine
 	go handleHTTP()
 
@@ -479,7 +497,7 @@ func main() {
 
 	//wait around for tcp requests and handle them when they come in
 	for {
-		if(recreateConnection) {
+		if recreateConnection {
 			lnk, err := net.Listen("tcp", *service)
 			if err != nil {
 				fmt.Printf("Failed to get tcp listener - %s", err.Error())
@@ -493,7 +511,7 @@ func main() {
 				os.Exit(1)
 			}
 			recreateConnection = handleClient(Db, tcpcon.(*net.TCPConn))
-			if(recreateConnection) {
+			if recreateConnection {
 				lnk.Close()
 			}
 
@@ -514,12 +532,12 @@ func updateClient(entry *GPSRecord) {
 		wswriter, _ := client.NextWriter(websocket.OpText)
 
 		if wswriter != nil {
-			io.WriteString(wswriter, Response { "Entry": entry}.String())
+			io.WriteString(wswriter, Response{"Entry": entry}.String())
 		} else {
 			//fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
 			client.Close()
 			//remove from slice
-			connections = append(connections[: index], connections[index + 1:]...)	
+			connections = append(connections[:index], connections[index+1:]...)
 		}
 
 	}
@@ -545,7 +563,7 @@ func logEntry(entry *GPSRecord) {
 }
 
 //palm off reading and writing to a go routine
-func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
+func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	var buff = make([]byte, 512)
 	var entry GPSRecord
 
@@ -555,14 +573,13 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
 	var err error
 	var data bool = true
 
-	for(data) {
+	for data {
 
 		n, err = conn.Read(buff)
 		if err != nil {
-			fmt.Printf("Error reading from TCP - Will recreate the connection \n")	
+			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}
-	
 
 		fmt.Printf("Sentence was %s", string(buff))
 		gpsfields := strings.Split(string(buff[:n]), ",")
@@ -583,19 +600,19 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) (bool) {
 		entry.ID = gpsfields[7]
 
 		fmt.Printf("Message %s Lat %s Long %s speed %d heading %f fix %t date %s time %s id %s\n",
-		entry.Message,
-		entry.Latitude,
-		entry.Longitude,
-		entry.Speed,
-		entry.Heading,
-		entry.Fix,
-		entry.Date,
-		entry.ID)
-		
+			entry.Message,
+			entry.Latitude,
+			entry.Longitude,
+			entry.Speed,
+			entry.Heading,
+			entry.Fix,
+			entry.Date,
+			entry.ID)
+
 		//don't log to DB
 		//TODO - Remove this out for more performance
-		if(string(buff[0:1]) != "T") {
-			go logEntry(&entry)  //save to database
+		if string(buff[0:1]) != "T" {
+			go logEntry(&entry) //save to database
 		} else {
 			fmt.Printf("Replayed packets. Not saving to DB\n")
 		}

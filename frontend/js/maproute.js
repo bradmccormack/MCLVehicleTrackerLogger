@@ -16,12 +16,16 @@
 	   });
   
   	datepickerFrom.on('changeDate', function(e) {
+  			//TODO the UTC date in the date picker appears to be wrong
   		dateFrom = e.date.toString(); //use UTC as the logger records everything 
   		//localDate can also be used
 	});
 	
 	datepickerTo.on('changeDate', function(e) {
+			//TODO the UTC date in the date picker appears to be wrong
 		dateTo = e.date.toString();
+	
+
 	});
 	
 	var showRoute = $("#showRoute");
