@@ -57,29 +57,37 @@
 				if (JSON.success) {
 					var vehicles = JSON.data;
 					var vl = Object.keys(vehicles).length;
-
-					while(true) {
-						
+					if(vl == 0) {
+						alert("no vehicle data for that time period");
+						return;
 					}
-					
+						
 					/*
-					 * until all done
-					 * for each vehicle pop off the next co-ordinate and add it to the polygon
-					 * 		
+					 *   addtoRoute: function(Route, Point, Color) {
+	        	["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
 					 */
 
-					/*
-					var flightPlanCoordinates = [new google.maps.LatLng(37.772323, -122.214897), new google.maps.LatLng(21.291982, -157.821856), new google.maps.LatLng(-18.142599, 178.431), new google.maps.LatLng(-27.46758, 153.027892)];
-					var flightPath = new google.maps.Polyline({
-						path : flightPlanCoordinates,
-						strokeColor : '#FF0000',
-						strokeOpacity : 1.0,
-						strokeWeight : 2
-					});
-					*/
-
-					flightPath.setMap(map);
-
+					debugger;
+					while(true) {
+						for(i = 0; i < vl; i++) {
+							var current = Object.keys(vehicles)[i];
+							
+							if(current.length > 0) {
+								var point = vehicles[current].shift();
+								//Lat, Long, Speed, Fix, Heading, Date
+								System.getMapAPI().Current().addtoRoute(current, 
+									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]});
+							} else {
+								//done for this vehicle remove it from the list
+								break;//hack job as I know there is only one vehicle in the system now
+							}
+							
+						}
+						
+					}
+					//Note will need to update the Legend too
+					
+				
 					//mapAPI.Current().setMarker(data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
 				}
 

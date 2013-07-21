@@ -55,6 +55,15 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 				setview(Latitude, Longitude, Zoom);
 			},
+			addtoRoute: function(Route, Point) {
+	        	["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
+	        		if(!(this in Point)){
+	        			throw "missing params for addtoRoute"
+	        		}
+	        			
+	        		
+	        	})
+	        },
 			setMarker: function(Latitude, Longitude, Text, Color) {
 	            latlng = new L.LatLng(Latitude, Longitude);
 	            if(!marker) {
@@ -86,7 +95,7 @@ var map = (function(){
 	    var latlng;
 	    var marker;
 	    var zoom;
-	
+		var routes = {}; //used to keep track of all polyline routes
 	    function init()
 	    {
 	        var mapProp = {
@@ -136,7 +145,29 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 	            setview(Latitude, Longitude, Zoom);
 	        },
-	        
+	        addtoRoute: function(Route, Point, Color) {
+        		/*
+        		["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
+        		if(!(this in Point)){
+        			throw "missing params for addtoRoute";
+        		}
+        		*/
+	        		
+        		if(!(Route in routes)) {
+        			var polyOptions = {
+					    strokeColor: Color || '#000000',
+					    strokeOpacity: 1.0,
+					    strokeWeight: 3
+					}
+				  routes[Route] = new google.maps.Polyline(polyOptions);
+				  routes[Route].setMap(map);
+        		}
+        		
+        		var path = routes[Route].getPath();
+        		path.push(new google.maps.LatLng(Point.Latitude,Point.Longitude));
+	        		
+	        	
+	        },
 	        //ID is the vehicle ID
 	        setMarker: function(Latitude, Longitude, Text, Color) {
 	         	
@@ -190,7 +221,8 @@ var map = (function(){
     };
 	
 	//setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
-		
+	//This all probably needs to be cleaned up to be a facade. Instead of returning the Current Map implementation and working with it directly all the methods
+	//should be below and interect with the current map vendor selected
 	return {
 		Current: function() {
 			return current;
@@ -250,4 +282,7 @@ var actions = {
     }
 }[Self.attr("id")]();
 });
+
+
+
 
