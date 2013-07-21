@@ -232,10 +232,7 @@ function bindHandlers() {
    	
    })
    
-   var datepicker = $('#dateFrom, #dateTo');
-   datepicker.datetimepicker({
-   	language: 'pt-BR'
-   });
+   //TODO set the datepicker from to localtime - 1 day and to to localtime current date
    
   
     //Login
@@ -255,6 +252,9 @@ function bindHandlers() {
             $(".pass-icon").css("left","0px");
         });
     });
+
+
+	
 
 
 	//Menu Nav

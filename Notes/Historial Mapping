@@ -1,0 +1,13 @@
+Historial maps
+
+* Input date and time range from and to
+* Input delay between points (0) means draw the whole route with no intermediary plotting
+
+
+* Plotting should show the distinction between
+ - Radio transmission  - don't worry about this for now
+ - 3G transmission - don't worry about this for now
+ - Historical Transmission (The logger sent co-ordinates when the internet resumed)
+* Plotting should be per vehicle. The vehicles unique colour should be used and use different HSV shading or strokes to identify the different types of transmission
+
+
