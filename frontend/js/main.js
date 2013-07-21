@@ -30,6 +30,10 @@ var System = (function(){
 		$('#systemError').modal('toggle');  
 	}
 
+	function systemMessage(Message) {
+		$("div#SystemMessages > ul#Messages").append("<li class='text-info'>" + new Date().toTimeString() + Message + "</li>");
+	}
+
     function updateLegend(VehicleID) {
   
         //We need to know if the GPS signal is correct or not (Fix status is true)
@@ -140,18 +144,15 @@ var System = (function(){
 			//mapAPI.SetAPI("GoogleMaps");
 			
             if (window["WebSocket"]) {
-                    //alert("Browser supports Web Sockets. Yay");
                     //Con = new WebSocket("ws://dev.myclublink.com.au/ws");
                     Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
                  
                     Con.onopen = function() {
-                    	//log("Web Socket connection opened");
-                        //Con.send("test message");
+                    	systemMessage("Connected to server");
                     };
 
                     Con.onclose = function(evt) {
-                        //alert("Closing web socket");
-                        //appendLog($("<div><b>Connection closed.</b></div>"))
+                        systemMessage("Server connection closed");
                     }
                     Con.onmessage = function(evt) {
                     	var data = JSON.parse(evt.data).Entry;

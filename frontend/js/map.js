@@ -104,6 +104,8 @@ var map = (function(){
 	        this.zoom = Zoom;
 	        this.Latitude = Latitude;
 	        this.Longitude = Longitude;
+	        
+	        //TODO restrict the zoom level and lat long boundary
 	    }
 	
 	    if(!("google" in window)) {
@@ -134,6 +136,7 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 	            setview(Latitude, Longitude, Zoom);
 	        },
+	        
 	        //ID is the vehicle ID
 	        setMarker: function(Latitude, Longitude, Text, Color) {
 	         	
