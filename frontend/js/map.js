@@ -105,7 +105,7 @@ var map = (function(){
 	    var latlng;
 	    var marker;
 	    var zoom;
-		var routes = {}; //used to keep track of all polyline routes
+		var routes = {}; //used to keep track of all polyline and route information at those points
 	    function init()
 	    {
 	        var mapProp = {
@@ -173,12 +173,30 @@ var map = (function(){
 					    strokeOpacity: 1.0,
 					    strokeWeight: 3
 					}
-				  routes[Route] = new google.maps.Polyline(polyOptions);
-				  routes[Route].setMap(map);
+				
+				  routes[Route]= {polyline : new google.maps.Polyline(polyOptions)};
+	
+				  routes[Route].polyline.setMap(map);
+				  routes[Route].metadata = {}; //used for looking up date at this time.
+				  
+		         google.maps.event.addListener(routes[Route].polyline, 'mouseover', function (event) {
+		         	/* TODO this is tricky. I'm not sure if the co-ordinates that Google is returning are guaranteed to exist in the polyline ..
+		         	 * I might have to find the nearest co-ordinate to get the metadata
+		         	 
+		         	var key = event.latLng.jb.toString().substring(0,9) + "," + event.latLng.kb.toString().substring(0,9); //Google gives back more detailed co-ords than they were originally stored with.
+		         	var DateTime = routes[Route].metadata[key];
+		         	*/
+		            
+		         });
+
         		}
-        		
-        		var path = routes[Route].getPath();
+        		/*
+        		 * ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
+        		 */
+        		var path = routes[Route].polyline.getPath();
         		path.push(new google.maps.LatLng(Point.Latitude,Point.Longitude));
+        		//use the lat, long as the key for looking up meta data
+        		routes[Route].metadata[Point.Latitude + "," + Point.Longitude] = { Lat: Point.Latitude, Long: Point.Longitude, Speed: Point.Speed, Heading: Point.Heading, DateTime: Point.DateTime};
 	        		
 	        	
 	        },
