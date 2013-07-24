@@ -53,42 +53,39 @@
 				dateFrom : from,
 				dateTo : to
 			},
-			success : function(JSON) {
-				if (JSON.success) {
-					var vehicles = JSON.data;
+			success : function(result) {
+				if (result.success) {
+					var vehicles = result.data; //remove the zero index. I'm hacking on a single vehicle now'
 					var vl = Object.keys(vehicles).length;
 					if(vl == 0) {
 						alert("no vehicle data for that time period");
 						return;
 					}
 						
-					/*
-					 *   addtoRoute: function(Route, Point, Color) {
-	        	["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
-					 */
-
+	
 					debugger;
 					while(true) {
 						for(i = 0; i < vl; i++) {
-							var current = Object.keys(vehicles)[i];
+							var currentvehicle = Object.keys(vehicles)[i];
+							var currentpositions = vehicles[currentvehicle];
 							
-							if(current.length > 0) {
-								var point = vehicles[current].shift();
+							if(currentpositions.length > 0) {
+								var point = vehicles[currentvehicle].shift();
 								//Lat, Long, Speed, Fix, Heading, Date
-								System.getMapAPI().Current().addtoRoute(current, 
+								System.getMapAPI().Current().addtoRoute(currentvehicle, 
 									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]});
 							} else {
-								//done for this vehicle remove it from the list
-								break;//hack job as I know there is only one vehicle in the system now
+								delete vehicles[currentvehicle];
+								break;
 							}
-							
+						}
+						var vl = Object.keys(vehicles).length;
+						if(vl == 0) {
+							break;
 						}
 						
 					}
 					//Note will need to update the Legend too
-					
-				
-					//mapAPI.Current().setMarker(data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
 				}
 
 			},

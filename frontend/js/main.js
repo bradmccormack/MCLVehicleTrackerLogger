@@ -309,8 +309,8 @@ function bindHandlers() {
                     type: "GET",
                     url: "/system/report",
                     dataType: "json",
-                    success: function(JSON) {	
-                    	Main.html(JSON.HTML);
+                    success: function(data) {	
+                    	Main.html(data.HTML);
                     	//add the data to the charts
                     	
                     	var barreport = $("#barreport")[0];
@@ -324,7 +324,7 @@ function bindHandlers() {
 							data : []
 						});
 						
-                    	JSON.KMPerDay.forEach(function(value){
+                    	data.KMPerDay.forEach(function(value){
                     		barChartData.datasets[0].data.push(value);
                     	});
                     	
@@ -332,11 +332,11 @@ function bindHandlers() {
                     	var piereport = $("#piereport")[0];
                     	var pieChartData = [
                     		{
-                    			value : JSON.Availability[0],
+                    			value : data.Availability[0],
                     			color: "#009933"
                     		},
                     		{
-                    			value : JSON.Availability[1],
+                    			value : data.Availability[1],
                     			color: "#FF0000"
                     		}
                     	];                 	
