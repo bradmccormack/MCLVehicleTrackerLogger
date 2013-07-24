@@ -55,13 +55,23 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 				setview(Latitude, Longitude, Zoom);
 			},
+			clearRoutes: function() {
+	        	for(var Route in Routes) {
+	        		delete Routes[Route];	
+	        	}
+	        },
+	        clearRoute: function(Route) {
+	        	if(Route in routes)
+	        		delete routes[Route];
+	        	
+	        },
 			addtoRoute: function(Route, Point) {
 	        	["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
 	        		if(!(this in Point)){
 	        			throw "missing params for addtoRoute"
 	        		}
 	        			
-	        		
+	    
 	        	})
 	        },
 			setMarker: function(Latitude, Longitude, Text, Color) {
@@ -145,17 +155,21 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 	            setview(Latitude, Longitude, Zoom);
 	        },
+	        clearRoutes: function() {
+	        	for(var Route in routes) {
+	        		delete routes[Route];	
+	        	}
+	        },
+	        clearRoute: function(Route) {
+	        	if(Route in routes)
+	        		delete routes[Route];
+	        	
+	        },
 	        addtoRoute: function(Route, Point, Color) {
-        		/*
-        		["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
-        		if(!(this in Point)){
-        			throw "missing params for addtoRoute";
-        		}
-        		*/
-	        		
+        
         		if(!(Route in routes)) {
         			var polyOptions = {
-					    strokeColor: Color || '#000000',
+					    strokeColor: Color || Utility.RandomColor(),
 					    strokeOpacity: 1.0,
 					    strokeWeight: 3
 					}

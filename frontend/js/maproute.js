@@ -44,7 +44,8 @@
 		if (dateFrom > dateTo) {
 			alert("To date must be > from date")
 		}
-
+		System.getMapAPI().Current().clearRoutes();
+		
 		$.ajax({
 			type : "POST",
 			url : "/system/historicalroute",
@@ -55,15 +56,20 @@
 			},
 			success : function(result) {
 				if (result.success) {
-					var vehicles = result.data; //remove the zero index. I'm hacking on a single vehicle now'
+					var vehicles = result.data;
 					var vl = Object.keys(vehicles).length;
 					if(vl == 0) {
 						alert("no vehicle data for that time period");
 						return;
 					}
 						
-	
-					debugger;
+					var Colors = {};
+					for(vehicle in vehicles) {
+						Colors[vehicle] = Utility.RandomColor();
+						System.updateLegend(vehicle, Colors[vehicle]);
+					}
+				
+					//debugger;
 					while(true) {
 						for(i = 0; i < vl; i++) {
 							var currentvehicle = Object.keys(vehicles)[i];
@@ -73,7 +79,7 @@
 								var point = vehicles[currentvehicle].shift();
 								//Lat, Long, Speed, Fix, Heading, Date
 								System.getMapAPI().Current().addtoRoute(currentvehicle, 
-									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]});
+									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]}, Colors[currentvehicle]);
 							} else {
 								delete vehicles[currentvehicle];
 								break;

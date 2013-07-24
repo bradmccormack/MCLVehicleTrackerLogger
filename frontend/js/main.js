@@ -34,7 +34,7 @@ var System = (function(){
 		$("div#SystemMessages > ul#Messages").append("<li class='text-info'>" + new Date().toTimeString() + Message + "</li>");
 	}
 
-    function updateLegend(VehicleID) {
+    function updateLegend(VehicleID, Color) {
   
         //We need to know if the GPS signal is correct or not (Fix status is true)
       	
@@ -43,15 +43,19 @@ var System = (function(){
       
         Vehicles[VehicleID] = {
         	DateTime: new Date(),
-        	Color: Utility.RandomColor()
+        	Color: Color
         }
-        Legend.find("ul").append('<li><a href="#" style="color: #' + Vehicles[VehicleID].Color + '"><i class="icon-truck"></i> ' + VehicleID +'</a></li>');
+        Legend.find("ul li#vehicle_" + VehicleID).remove();
+        Legend.find("ul").append('<li id=vehicle_' + VehicleID + '><a href="#" style="color: #' + Vehicles[VehicleID].Color + '"><i class="icon-truck"></i> ' + VehicleID +'</a></li>');
           //mapAPI.Current().setMarkerColor(Vehicles[VehicleID].Color);
         //remove everything from the legend if there has been no contact in over 1 hour or whatever
         
     }
 
 	return {
+		updateLegend: function(VehicleID, Color) {
+			updateLegend(VehicleID, Color);
+		},
 		showLostConnection: function() {
 			return this.showLostConnection;
 		},
@@ -159,7 +163,7 @@ var System = (function(){
                       
                       	//add vehicle to Legend if it is not there   
                         if(!(data.ID in Vehicles)) {
-                        	updateLegend(data.ID);
+                        	updateLegend(data.ID, Utility.RandomColor());
                         }
                         //TODO remove vehicle if no contact for X minutes
                         
