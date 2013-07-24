@@ -259,8 +259,6 @@ function bindHandlers() {
     });
 
 
-	
-
 
 	//Menu Nav
 	$("#tabMap,#tabProfile, #tabSupport, #tabReports, #tabSettings,#tabLicense").click(function(){

@@ -106,6 +106,7 @@ var map = (function(){
 	    var marker;
 	    var zoom;
 		var routes = {}; //used to keep track of all polyline and route information at those points
+	    
 	    function init()
 	    {
 	        var mapProp = {
@@ -114,15 +115,16 @@ var map = (function(){
 	            mapTypeId: google.maps.MapTypeId.ROADMAP
 	        };
 	
+			zoom = Zoom;
 	        map = new google.maps.Map(document.getElementById(DivID || "map")
 	            ,mapProp);
 	    }
 	
 	    function setview(Latitude, Longitude, Zoom)
 	    {
-	        this.zoom = Zoom;
-	        this.Latitude = Latitude;
-	        this.Longitude = Longitude;
+	        zoom = Zoom;
+	        Latitude = Latitude;
+	        Longitude = Longitude;
 	        
 	        //TODO restrict the zoom level and lat long boundary
 	    }
@@ -145,11 +147,11 @@ var map = (function(){
 	
 	        zoomIn : function() {
 	            zoom++;
-	            map.setZoom(this.zoom);
+	            map.setZoom(zoom);
 	        },
 	        zoomOut: function() {
 	            zoom--;
-	            map.setZoom(this.zoom);
+	            map.setZoom(zoom);
 	        },
 	
 	        setView: function(Latitude, Longitude, Zoom) {
@@ -272,49 +274,5 @@ var map = (function(){
    
 
 })();
-
-
-//Map controls
-$("div#Mainmapcontrols button").click(function(){
-var Self = $(this);
-function notAvailable() {
-
-    Self.popover({
-        title: "Not Implemented",
-        content: "Sorry, this functionality is not yet available",
-        placement: "bottom",
-        container: "body"
-    }).show();
-
-}
-
-var actions = {
-    "mapRefresh" : function() {
-      notAvailable();
-    },
-    "mapZoomIn" : function() {
-        notAvailable();
-        //System.getMapAPI().zoomIn();
-    },
-    "mapZoomOut" : function() {
-        notAvailable();
-        //System.getMapAPI().zoomOut();
-    },
-    "mapMarker" : function() {
-        notAvailable();
-    },
-    "mapFollow" : function() {
-        notAvailable();
-    },
-    "mapRoute" : function() {
-        notAvailable();
-    },
-    "mapPrint" : function() {
-        notAvailable();
-    }
-}[Self.attr("id")]();
-});
-
-
 
 
