@@ -2,6 +2,8 @@ var genericCallback;
 
 var map = (function(){
 	
+	
+	
 	var current = {};
 	
 	var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
@@ -19,6 +21,8 @@ var map = (function(){
 	    var latlng;
 	    var marker;
 	    var zoom;
+	
+		
 	
 		function setview(Latitude, Longitude, Zoom)
 		{
@@ -103,7 +107,7 @@ var map = (function(){
 	    var divid;
 	    var apiKey = "AIzaSyC5wXV9B15WaWQ08qMDD-0O-ZihSnbpi48"; //todo find a way to make this more hidden
 	    var latlng;
-	    var marker;
+	    var markers = {};
 	    var zoom;
 		var routes = {}; //used to keep track of all polyline and route information at those points
 	    
@@ -128,6 +132,8 @@ var map = (function(){
 	        
 	        //TODO restrict the zoom level and lat long boundary
 	    }
+	
+	
 	
 	    if(!("google" in window)) {
 	
@@ -157,6 +163,11 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 	            setview(Latitude, Longitude, Zoom);
 	        },
+	        
+	        centerView: function(Latitude, Longitude) {
+	        	map.setCenter(new google.maps.LatLng(Latitude,Longitude));
+	        },
+	        
 	        clearRoutes: function() {
 	        	for(var Route in routes) {
 	        		delete routes[Route];	
@@ -203,11 +214,11 @@ var map = (function(){
 	        	
 	        },
 	        //ID is the vehicle ID
-	        setMarker: function(Latitude, Longitude, Text, Color) {
+	        setMarker: function(ID, Latitude, Longitude, Text, Color) {
 	         	
 
 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
-	            if(!marker) {
+	            if(!markers[ID]) {
 	            	
     				var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
 			       		new google.maps.Size(21, 34),
@@ -215,19 +226,19 @@ var map = (function(){
 			        	new google.maps.Point(10, 34)
 			        );
 			    		
-	                marker = new google.maps.Marker({
-	              	              
-				    icon: pinImage,
-	                position: new google.maps.LatLng(Latitude, Longitude),
-	                map: map});
+	                markers[ID] = new google.maps.Marker({            
+					    icon: pinImage,
+		                position: new google.maps.LatLng(Latitude, Longitude),
+		                map: map
+	                });
+	                
 	                if(Text)
-	                    marker.Text = Text;
-	                }
-	            else {
-	                marker.setPosition(new google.maps.LatLng(Latitude, Longitude));
-	                if(Text)
-	                    marker.setTitle(Text);
-	            }
+	                    markers[ID].Text = Text;
+	                } else {
+	                	markers[ID].setPosition(new google.maps.LatLng(Latitude, Longitude));
+	                	if(Text)
+	                    	markers[ID].setTitle(Text);
+	            	}
 	
 	        },
 	        onClick: function(funct) {

@@ -1,4 +1,4 @@
-debugger;
+//debugger;
 //Map controls
 $("div#Mainmapcontrols button").click(function() {
 	var Self = $(this);
@@ -24,7 +24,9 @@ $("div#Mainmapcontrols button").click(function() {
 	        notAvailable();
 	    },
 	    "mapFollow" : function() {
+	        //setCameraSnap
 	        notAvailable();
+	        //TODO 	mapAPI.Current().centerView(data.Latitude, data.Longitude);  snap the view straight away
 	    },
 	    "mapRoute" : function() {
 	        notAvailable();

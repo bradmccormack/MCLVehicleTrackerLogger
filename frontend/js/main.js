@@ -13,6 +13,8 @@ var System = (function(){
 
 	var Self = this;
 	
+	//When SnapCount reaches SnapTrigger it will snap the view. Setting too low a value impacts performance quite a bit.
+	var Camera = { Snap: true, SnapCount: 0, SnapTrigger: 10 };
     var Con;
 	var Colours = [];
     var Vehicles = [];
@@ -63,6 +65,9 @@ var System = (function(){
 			if(mapAPI) {
 				mapAPI = mapAPI;
 			}
+		},
+		setCameraSnap: function(enabled) {
+			Camera.Snap = enabled;
 		},
         getMapAPI: function() {
           return mapAPI;
@@ -167,7 +172,16 @@ var System = (function(){
                         }
                         //TODO remove vehicle if no contact for X minutes
                         
-                        mapAPI.Current().setMarker(data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
+                        mapAPI.Current().setMarker(data.ID, data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
+                      	if(Camera.Snap) {
+                      		Camera.SnapCount++;
+                      		if(Camera.SnapCount == Camera.SnapTrigger){
+                      			mapAPI.Current().centerView(data.Latitude, data.Longitude);
+                      			Camera.SnapCount = 0;
+                      		}
+                      	
+                      	}
+                      	
                       	
 						$(tabVehicles).find("span.text-error").remove();
                       	var VehicleInfo = $(tabVehicles).find("span[data-vehicle = '" + data.ID + "']");
