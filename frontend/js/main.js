@@ -21,7 +21,7 @@ var System = (function(){
 
     //System wide settings
     var mapAPI = {};
-    var Settings = { Marker: { InterpolateCount : 10}};
+    var Settings = { Marker: { Interpolate: true, InterpolateCount : 10}};
     var Position = { Last: {}};
 
 	//Dom elements that we will write to 
@@ -172,11 +172,12 @@ var System = (function(){
                         }
                         //TODO remove vehicle if no contact for X minutes
                         
-                        mapAPI.Current().setMarker(data.ID, data.Latitude, data.Longitude,"", Vehicles[data.ID].Color);
+                        mapAPI.Current().setMarker(data.ID, data.Latitude, data.Longitude,"", Vehicles[data.ID].Color,Settings.Marker.Interpolate);
                       	if(Camera.Snap) {
                       		Camera.SnapCount++;
                       		if(Camera.SnapCount == Camera.SnapTrigger){
-                      			mapAPI.Current().centerView(data.Latitude, data.Longitude);
+                      			mapAPI.Current().panTo(data.Latitude, data.Longitude);
+                      			//mapAPI.Current().centerView(data.Latitude, data.Longitude);
                       			Camera.SnapCount = 0;
                       		}
                       	

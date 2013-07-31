@@ -91,7 +91,6 @@
 						}
 						
 					}
-					//Note will need to update the Legend too
 				}
 
 			},

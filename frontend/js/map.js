@@ -138,7 +138,7 @@ var map = (function(){
 	    if(!("google" in window)) {
 	
 	        genericCallback = init;
-	        var url = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true&callback=genericCallback";
+	        var url = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true&libraries=geometry&callback=genericCallback";
 	        $.getScript(url, function() {
 	            if("google" in window)  {
 	                google.maps.visualRefresh = true;
@@ -163,7 +163,9 @@ var map = (function(){
 	        setView: function(Latitude, Longitude, Zoom) {
 	            setview(Latitude, Longitude, Zoom);
 	        },
-	        
+	        panTo: function(Latitude, Longitude) {
+	        	map.panTo(new google.maps.LatLng(Latitude, Longitude));
+	        },
 	        centerView: function(Latitude, Longitude) {
 	        	map.setCenter(new google.maps.LatLng(Latitude,Longitude));
 	        },
@@ -214,9 +216,8 @@ var map = (function(){
 	        	
 	        },
 	        //ID is the vehicle ID
-	        setMarker: function(ID, Latitude, Longitude, Text, Color) {
-	         	
-
+	        setMarker: function(ID, Latitude, Longitude, Text, Color, isInterpolate) {
+	         
 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
 	            if(!markers[ID]) {
 	            	
@@ -229,16 +230,32 @@ var map = (function(){
 	                markers[ID] = new google.maps.Marker({            
 					    icon: pinImage,
 		                position: new google.maps.LatLng(Latitude, Longitude),
-		                map: map
+		                map: map,
+		                animation: google.maps.Animation.DROP
 	                });
+	                panTo(markers[ID].position);
 	                
-	                if(Text)
+	                if(Text) {
 	                    markers[ID].Text = Text;
-	                } else {
+	                    markers[ID].setTitle(Text);
+	                }
+	                     
+	            }
+	            else {
+	                if(isInterpolate) {
+	                	var startLatLng = markers[ID].position;
+	                	var endLatLng = new google.maps.LatLng(Latitude, Longitude);
+	                	for(var i = 0 ; i < 1 ; i+=0.1) {
+	                		var intermediaryPoint =  google.maps.geometry.spherical.interpolate(startLatLng, endLatLng, i);  
+	                		markers[ID].setPosition(intermediaryPoint);
+	                	}	
+	                }
+	                else {
 	                	markers[ID].setPosition(new google.maps.LatLng(Latitude, Longitude));
-	                	if(Text)
-	                    	markers[ID].setTitle(Text);
+ 	
 	            	}
+	            }
+	     
 	
 	        },
 	        onClick: function(funct) {
