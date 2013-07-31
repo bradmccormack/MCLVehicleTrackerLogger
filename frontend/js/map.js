@@ -275,7 +275,7 @@ var map = (function(){
 		SetAPI: function(API) {
 			matchingAPI = Settings.Vendors[API];
 			if(matchingAPI) {
-				current = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, 16, "Mainmap");
+				current = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, 16, "MapCanvas");
 			}
 		},
 		

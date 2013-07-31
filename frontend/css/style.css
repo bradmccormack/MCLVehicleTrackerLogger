@@ -108,6 +108,21 @@ HEADER
 CONTENT
 *******************/
 
+
+/*******************
+MAP
+*******************/
+#MapCanvas img { 
+  max-width: none;
+}
+
+#MapCanvas label { 
+  width: auto; display:inline; 
+} 
+
+
+
+
 .login-form .content {
 	padding: 0 30px 25px 30px;
 }
