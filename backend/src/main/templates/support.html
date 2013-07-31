@@ -6,15 +6,16 @@
 		<label><strong>Company</strong> {{.Company.Name}} </label>
 		<label><strong>User</strong> {{.User.Firstname}} {{.User.Lastname}} </label>
 	</div>
+	
 	<hr>
 
 	<div class="container-fluid">
 		<label>Please type a message below and we will get back to you as soon as possible.</label>
 		
 		<strong>We would love to read your feedback and suggestions</strong>
-		<form id="#support_textarea" method="post" >
-    			<textarea name="content" style="width:100%"></textarea>
-			<input type="button" type=submit value='Send' class='btn btn-primary'> </input>
+		<form id="support_textarea" method="post" >
+    			<textarea name="content" style="width:100%"> </textarea>
+				<input type='submit' value='Send' class='btn btn-primary'> </input>
 		</form>
 	</div>
 </div>

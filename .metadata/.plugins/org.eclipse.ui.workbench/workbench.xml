@@ -32,21 +32,46 @@
 <part id="0"/>
 <part id="1"/>
 <part id="2"/>
+<part id="3"/>
+<part id="4"/>
+<part id="5"/>
+<part id="6"/>
+<part id="7"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
 <editor id="com.aptana.editor.js" name="main.js" partName="main.js" path="/media/MCL/frontend/js/main.js" title="main.js" tooltip="frontend/js/main.js" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/frontend/js/main.js"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="5038" selectionTopPixel="2265"/>
+<editorState selectionHorizontalPixel="0" selectionLength="60" selectionOffset="5811" selectionTopPixel="2475"/>
 </editor>
-<editor activePart="true" focus="true" id="com.aptana.editor.html" name="index.html" partName="index.html" path="/media/MCL/frontend/index.html" title="index.html" tooltip="frontend/index.html" workbook="DefaultEditorWorkbook">
+<editor id="com.aptana.editor.html" name="index.html" partName="index.html" path="/media/MCL/frontend/index.html" title="index.html" tooltip="frontend/index.html" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/frontend/index.html"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="2004"/>
 </editor>
 <editor id="com.aptana.editor.css" name="style.css" partName="style.css" path="/media/MCL/frontend/css/style.css" title="style.css" tooltip="frontend/css/style.css" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/frontend/css/style.css"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
+</editor>
+<editor id="com.aptana.editor.js" name="map.js" partName="map.js" path="/media/MCL/frontend/js/map.js" title="map.js" tooltip="frontend/js/map.js" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/frontend/js/map.js"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="4450" selectionTopPixel="2310"/>
+</editor>
+<editor id="com.aptana.editor.html" name="map.html" partName="map.html" title="map.html" tooltip="/media/MCL/backend/src/main/templates/map.html" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/backend/src/main/templates/map.html"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="182" selectionTopPixel="0"/>
+</editor>
+<editor id="com.aptana.editor.js" name="menu.js" partName="menu.js" path="/media/MCL/frontend/js/menu.js" title="menu.js" tooltip="frontend/js/menu.js" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/frontend/js/menu.js"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="748" selectionTopPixel="0"/>
+</editor>
+<editor id="com.aptana.editor.html" name="report.html" partName="report.html" title="report.html" tooltip="/media/MCL/backend/src/main/templates/report.html" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/backend/src/main/templates/report.html"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="462" selectionTopPixel="0"/>
+</editor>
+<editor activePart="true" focus="true" id="com.aptana.editor.html" name="support.html" partName="support.html" title="support.html" tooltip="/media/MCL/backend/src/main/templates/support.html" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/backend/src/main/templates/support.html"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="701" selectionTopPixel="0"/>
 </editor>
 </editors>
 <views>
@@ -140,7 +165,7 @@
 <page content="org.eclipse.ui.cheatsheets.views.CheatSheetView" label="LabelNotFound"/>
 </folder>
 </info>
-<info part="org.eclipse.ui.editorss" ratio="0.19983137" ratioLeft="237" ratioRight="949" relationship="2" relative="left"/>
+<info part="org.eclipse.ui.editorss" ratio="0.18124673" ratioLeft="346" ratioRight="1563" relationship="2" relative="left"/>
 <info folder="true" part="terminalArea" ratio="0.74941176" ratioLeft="637" ratioRight="213" relationship="4" relative="org.eclipse.ui.editorss">
 <folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
 <page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
@@ -176,89 +201,120 @@
 <editors>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" path="/frontend/js/main.js"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" path="/frontend/js/map.js"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.html" path="/frontend/index.html"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.css" path="/frontend/css/style.css"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" path="/frontend/js/menu.js"/>
+<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" uri="file:/media/MCL/backend/src/main/templates/report.html"/>
+<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" uri="file:/media/MCL/backend/src/main/templates/support.html"/>
 </editors>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="879" y="0"/>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="231" y="0"/>
 </item>
 <item historyLabel="map.js" index="1">
-<position info="not_deleted" x="4063" y="0"/>
+<position info="not_deleted" x="8296" y="0"/>
 </item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="255" y="0"/>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="231" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="231" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="295" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="305" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="315" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="229" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="424" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="434" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="444" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="787" y="0"/>
 </item>
 <item historyLabel="map.js" index="1">
-<position info="not_deleted" x="2669" y="0"/>
+<position info="not_deleted" x="2330" y="0"/>
 </item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="8717" y="0"/>
-</item>
-<item historyLabel="map.js" index="1">
-<position info="not_deleted" x="2669" y="0"/>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="524" y="0"/>
 </item>
 <item historyLabel="map.js" index="1">
-<position info="not_deleted" x="2777" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="4228" y="0"/>
+<position info="not_deleted" x="2330" y="0"/>
 </item>
 <item historyLabel="map.js" index="1">
-<position info="not_deleted" x="2777" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="9291" y="0"/>
+<position info="not_deleted" x="2809" y="0"/>
 </item>
 <item historyLabel="map.js" index="1">
-<position info="not_deleted" x="3425" y="0"/>
+<position info="not_deleted" x="2809" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="2808" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="7004" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="359" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="6938" y="0"/>
+</item>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="359" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
-<position info="not_deleted" x="910" y="0"/>
+<position info="not_deleted" x="5555" y="9"/>
 </item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="3762" y="11"/>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="6938" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
-<position/>
+<position info="not_deleted" x="6631" y="0"/>
 </item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="3762" y="11"/>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="6938" y="0"/>
 </item>
-<item historyLabel="main.js" index="0">
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="50" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
 <position/>
 </item>
 <item historyLabel="map.js" index="1">
-<position info="not_deleted" x="3425" y="0"/>
+<position info="not_deleted" x="4248" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="4416" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
-<position info="not_deleted" x="520" y="0"/>
+<position info="not_deleted" x="5317" y="0"/>
 </item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="3762" y="11"/>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="359" y="0"/>
 </item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="520" y="0"/>
-</item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="3762" y="11"/>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="196" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
-<position info="not_deleted" x="520" y="0"/>
+<position info="not_deleted" x="5968" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="4200" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5174" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5220" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5266" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5611" y="0"/>
+<position info="not_deleted" x="5968" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
 <position/>
@@ -267,67 +323,37 @@
 <position/>
 </item>
 <item historyLabel="main.js" index="0">
-<position/>
+<position info="not_deleted" x="2724" y="0"/>
+</item>
+<item historyLabel="map.js" index="1">
+<position info="not_deleted" x="4450" y="0"/>
 </item>
 <item historyLabel="main.js" index="0">
-<position/>
+<position info="not_deleted" x="1974" y="13"/>
 </item>
-<item historyLabel="main.js" index="0">
-<position/>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="359" y="0"/>
 </item>
-<item historyLabel="main.js" index="0">
-<position/>
-</item>
-<item historyLabel="main.js" index="0">
-<position/>
-</item>
-<item historyLabel="main.js" index="0">
-<position/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5084" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5119" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5107" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5117" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5549" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5548" y="0"/>
-</item>
-<item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5038" y="0"/>
-</item>
-<item historyLabel="style.css" index="3">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="style.css" index="3">
+<item historyLabel="menu.js" index="2">
 <position info="not_deleted" x="748" y="0"/>
 </item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="3762" y="11"/>
-</item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="4293" y="0"/>
-</item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="3932" y="0"/>
-</item>
 <item historyLabel="main.js" index="0">
-<position info="not_deleted" x="5038" y="0"/>
+<position info="not_deleted" x="5811" y="60"/>
 </item>
-<item historyLabel="index.html" index="2">
-<position info="not_deleted" x="0" y="0"/>
+<item historyLabel="menu.js" index="2">
+<position info="not_deleted" x="748" y="0"/>
 </item>
-<item active="true" historyLabel="style.css" index="3">
-<position info="not_deleted" x="0" y="0"/>
+<item historyLabel="report.html" index="3">
+<position info="not_deleted" x="462" y="0"/>
+</item>
+<item historyLabel="support.html" index="4">
+<position info="not_deleted" x="53" y="0"/>
+</item>
+<item historyLabel="report.html" index="3">
+<position info="not_deleted" x="462" y="0"/>
+</item>
+<item active="true" historyLabel="support.html" index="4">
+<position info="not_deleted" x="53" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
@@ -346,14 +372,29 @@
 </trimLayout>
 </window>
 <mruList>
+<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="support.html" tooltip="/media/MCL/backend/src/main/templates/support.html">
+<persistable uri="file:/media/MCL/backend/src/main/templates/support.html"/>
+</file>
+<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="report.html" tooltip="/media/MCL/backend/src/main/templates/report.html">
+<persistable uri="file:/media/MCL/backend/src/main/templates/report.html"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="menu.js" tooltip="frontend/js/menu.js">
+<persistable path="/frontend/js/menu.js"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="maproute.js" tooltip="frontend/js/maproute.js">
+<persistable path="/frontend/js/maproute.js"/>
+</file>
+<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="map.html" tooltip="/media/MCL/backend/src/main/templates/map.html">
+<persistable uri="file:/media/MCL/backend/src/main/templates/map.html"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="map.js" tooltip="frontend/js/map.js">
+<persistable path="/frontend/js/map.js"/>
+</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.css" name="style.css" tooltip="frontend/css/style.css">
 <persistable path="/frontend/css/style.css"/>
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.html" name="index.html" tooltip="frontend/index.html">
 <persistable path="/frontend/index.html"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="map.js" tooltip="frontend/js/map.js">
-<persistable path="/frontend/js/map.js"/>
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="main.js" tooltip="frontend/js/main.js">
 <persistable path="/frontend/js/main.js"/>

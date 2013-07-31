@@ -21,7 +21,7 @@
         <link rel="stylesheet" href="css/dzyngiri.css">
         <link rel="stylesheet" href="css/style.css">
         <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
-        
+        <script type="text/javascript" src="js/angular.js"</script>
         <script src="js/modernizr-2.6.2.min.js"></script>
 
         
@@ -56,16 +56,16 @@
                 </div>
 		</div>
 		
-		<div id="Maincontent" class="container-fluid">
+		<div id="Maincontent" class="row-fluid">
 			<div class="row-fluid row-heightmax">
 			
-				<div id="Mainnav" class="span2 ">
-					<ul class="nav nav-list">
-                      <li class="active"><a id="tabMap" href="#tabMap"><i class="icon-globe icon-white"> </i> Tracking</a></li>
-					  <li><a id="tabSupport" href="#tabSupport"><i class="icon-envelope-alt icon-white"> </i> Request Support</a></li>
-					  <li><a id="tabReports" href="#tabReports"><i class="icon-bar-chart icon-white"> </i> Reports</a></li>
-					  <li><a id="tabSettings" href="#tabSettings"><i class="icon-cog icon-white"> </i> Settings</a></li>
-					  <li><a id="tabLicense" href="#tabLicense"><i class="icon-lock icon-white"> </i> License</a></li>
+				<div id="Mainnav" class="span2">
+					<ul class="nav nav-pills nav-stacked">
+                      <li class="active"><a id="tabMap" href="#tabMap" data-toggle="tab"><i class="icon-globe icon-white icon-2x"> </i> Tracking</a></li>
+					  <li><a id="tabSupport" href="#tabSupport" data-toggle="tab"><i class="icon-envelope-alt icon-white icon-2x"> </i> Request Support</a></li>
+					  <li><a id="tabReports" href="#tabReports" data-toggle="tab"><i class="icon-bar-chart icon-white icon-2x"> </i> Reports</a></li>
+					  <li><a id="tabSettings" href="#tabSettings" data-toggle="tab"><i class="icon-cog icon-white icon-2x"> </i> Settings</a></li>
+					  <li><a id="tabLicense" href="#tabLicense" data-toggle="tab"><i class="icon-lock icon-white icon-2x"> </i> License</a></li>
 					</ul>
 				</div> <!--Nav -->
 				
