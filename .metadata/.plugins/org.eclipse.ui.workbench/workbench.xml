@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workbench progressCount="49" version="2.0">
+<workbench progressCount="23" version="2.0">
 <workbenchAdvisor/>
-<window height="940" maximized="true" width="1200" x="0" y="0">
+<window height="940" maximized="true" width="1200" x="0" y="27">
 <fastViewData fastViewLocation="1024"/>
 <perspectiveBar>
 <itemSize x="160"/>
@@ -17,58 +17,23 @@
 <coolItem id="group.nav" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.ui.workbench.navigate" itemType="typeToolBarContribution" x="78" y="26"/>
 <coolItem id="group.editor" itemType="typeGroupMarker"/>
-<coolItem id="com.aptana.editor.css" itemType="typeToolBarContribution" x="-1" y="-1"/>
-<coolItem id="com.aptana.editor.html" itemType="typeToolBarContribution" x="-1" y="-1"/>
-<coolItem id="com.aptana.editor.js" itemType="typePlaceholder" x="-1" y="-1"/>
 <coolItem id="group.help" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.ui.workbench.help" itemType="typeToolBarContribution" x="-1" y="-1"/>
 </coolbarLayout>
-<page aggregateWorkingSetId="Aggregate for window 1372813808008" focus="true" label="Workspace - Web">
+<page aggregateWorkingSetId="Aggregate for window 1375489481925" focus="true" label="Workspace - Web">
 <editors>
 <editorArea activeWorkbook="DefaultEditorWorkbook">
 <info part="DefaultEditorWorkbook">
 <folder appearance="1" expanded="2">
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
-<part id="1"/>
-<part id="2"/>
-<part id="3"/>
-<part id="4"/>
-<part id="5"/>
-<part id="6"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
-<editor id="com.aptana.editor.html" name="index.html" partName="index.html | frontend" title="index.html | frontend" tooltip="/media/MCL/frontend/index.html" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/frontend/index.html"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1018" selectionTopPixel="0"/>
-</editor>
-<editor id="com.aptana.editor.html" name="support.html" partName="support.html" title="support.html" tooltip="/media/MCL/backend/src/main/templates/support.html" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/backend/src/main/templates/support.html"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="701" selectionTopPixel="0"/>
-</editor>
-<editor id="com.aptana.editor.html" name="map.html" partName="map.html" title="map.html" tooltip="/media/MCL/backend/src/main/templates/map.html" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/backend/src/main/templates/map.html"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1446" selectionTopPixel="346"/>
-</editor>
-<editor id="com.aptana.editor.css" name="bootstrap.min.css" partName="bootstrap.min.css" title="bootstrap.min.css" tooltip="/media/MCL/frontend/css/bootstrap.min.css" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/frontend/css/bootstrap.min.css"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="106015" selectionTopPixel="0"/>
-</editor>
-<editor id="com.aptana.editor.html" name="settings.html" partName="settings.html" title="settings.html" tooltip="/media/MCL/backend/src/main/templates/settings.html" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/backend/src/main/templates/settings.html"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="384" selectionTopPixel="0"/>
-</editor>
-<editor activePart="true" focus="true" id="com.aptana.editor.css" name="main.css" partName="main.css" title="main.css" tooltip="/media/MCL/frontend/css/main.css" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" uri="file:/media/MCL/frontend/css/main.css"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="2401" selectionTopPixel="1938"/>
-</editor>
 </editors>
 <views>
-<view id="org.eclipse.ui.navigator.ProjectExplorer" partName="Project Explorer">
-<viewState CommonNavigator.LINKING_ENABLED="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0"/>
-</view>
+<view id="org.eclipse.ui.navigator.ProjectExplorer" partName="Project Explorer"/>
 <view id="com.aptana.snippets.ui.views.SnippetsView" partName="Snippets"/>
 <view id="com.aptana.terminal.views.terminal" partName="Terminal"/>
 <view id="com.aptana.samples.ui.SamplesView" partName="Samples"/>
@@ -85,11 +50,14 @@
 <view id="org.eclipse.ui.console.ConsoleView" partName="Console">
 <viewState/>
 </view>
+<view id="com.aptana.explorer.view" partName="App Explorer">
+<viewState CommonNavigator.LINKING_ENABLED="0" GitChangedFilesFilterEnabled=""/>
+</view>
 <view id="org.eclipse.ui.views.ContentOutline" partName="Outline">
 <viewState/>
 </view>
 </views>
-<perspectives activePart="com.aptana.editor.css" activePerspective="com.aptana.ui.WebPerspective">
+<perspectives activePart="com.aptana.explorer.view" activePerspective="com.aptana.ui.WebPerspective">
 <perspective editorAreaTrimState="2" editorAreaVisible="1" fixed="0" version="0.016">
 <descriptor class="com.aptana.ui.internal.WebPerspectiveFactory" id="com.aptana.ui.WebPerspective" label="Web"/>
 <alwaysOnActionSet id="com.aptana.ruby.debug.ui.RubyDebugActionSet"/>
@@ -129,6 +97,7 @@
 <new_wizard_action id="org.radrails.rails.ui.projectWizard"/>
 <perspective_action id="org.eclipse.debug.ui.DebugPerspective"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
+<view id="com.aptana.explorer.view"/>
 <view id="org.eclipse.ui.navigator.ProjectExplorer"/>
 <view id="org.eclipse.ui.console.ConsoleView"/>
 <view id="com.aptana.terminal.views.terminal"/>
@@ -140,12 +109,13 @@
 <layout>
 <mainWindow>
 <info folder="true" part="left">
-<folder activePageID="org.eclipse.ui.navigator.ProjectExplorer" appearance="2" expanded="2">
+<folder activePageID="com.aptana.explorer.view" appearance="2" expanded="2">
+<page content="com.aptana.explorer.view" label="App Explorer"/>
 <page content="org.eclipse.ui.navigator.ProjectExplorer" label="Project Explorer"/>
-<page content="com.aptana.explorer.view" label="LabelNotFound"/>
 <page content="com.aptana.ui.io.remoteview" label="LabelNotFound"/>
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
+<part id="1"/>
 </presentation>
 </folder>
 </info>
@@ -156,7 +126,7 @@
 <page content="org.eclipse.ui.cheatsheets.views.CheatSheetView" label="LabelNotFound"/>
 </folder>
 </info>
-<info part="org.eclipse.ui.editorss" ratio="0.18124673" ratioLeft="346" ratioRight="1563" relationship="2" relative="left"/>
+<info part="org.eclipse.ui.editorss" ratio="0.19983137" ratioLeft="237" ratioRight="949" relationship="2" relative="left"/>
 <info folder="true" part="terminalArea" ratio="0.74941176" ratioLeft="637" ratioRight="213" relationship="4" relative="org.eclipse.ui.editorss">
 <folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
 <page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
@@ -171,7 +141,7 @@
 </presentation>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@13f4c52d" ratio="0.74941176" ratioLeft="637" ratioRight="213" relationship="4" relative="left">
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@667507f4" ratio="0.74941176" ratioLeft="637" ratioRight="213" relationship="4" relative="left">
 <folder activePageID="org.eclipse.ui.views.ContentOutline" appearance="2" expanded="2">
 <page content="org.eclipse.ui.views.ContentOutline" label="Outline"/>
 <page content="com.aptana.samples.ui.SamplesView" label="Samples"/>
@@ -188,173 +158,12 @@
 </perspective>
 </perspectives>
 <workingSets/>
-<navigationHistory>
-<editors>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.html" path="/frontend/index.html"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" uri="file:/media/MCL/frontend/index.html"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" uri="file:/media/MCL/frontend/js/map.js"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" uri="file:/media/MCL/frontend/js/main.js"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" uri="file:/media/MCL/frontend/css/style.css"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" uri="file:/media/MCL/frontend/css/bootstrap.min.css"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" uri="file:/media/MCL/frontend/css/font-awesome.min.css"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" uri="file:/media/MCL/frontend/js/maproute.js"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" uri="file:/media/MCL/backend/src/main/templates/settings.html"/>
-<editor factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" uri="file:/media/MCL/frontend/css/main.css"/>
-</editors>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7170" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="602" y="6"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="3982" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="602" y="6"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="602" y="6"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="6484" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="4939" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="6484" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="map.js" index="2">
-<position/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7617" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="719" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7726" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7455" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="589" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7455" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7677" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="589" y="0"/>
-</item>
-<item historyLabel="index.html" index="0"/>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="3632" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7283" y="0"/>
-</item>
-<item historyLabel="main.js" index="3">
-<position info="not_deleted" x="589" y="0"/>
-</item>
-<item historyLabel="index.html" index="0"/>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="2741" y="0"/>
-</item>
-<item historyLabel="bootstrap.min.css" index="5">
-<position info="not_deleted" x="106015" y="0"/>
-</item>
-<item historyLabel="font-awesome.min.css" index="6">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="654" y="0"/>
-</item>
-<item historyLabel="font-awesome.min.css" index="6">
-<position info="not_deleted" x="2621" y="0"/>
-</item>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="763" y="0"/>
-</item>
-<item historyLabel="style.css" index="4">
-<position info="not_deleted" x="3405" y="4"/>
-</item>
-<item historyLabel="index.html" index="0"/>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="1018" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7283" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7225" y="0"/>
-</item>
-<item historyLabel="map.js" index="2">
-<position info="not_deleted" x="7237" y="0"/>
-</item>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="1018" y="0"/>
-</item>
-<item historyLabel="maproute.js" index="7">
-<position info="not_deleted" x="2456" y="0"/>
-</item>
-<item historyLabel="index.html | frontend" index="1">
-<position info="not_deleted" x="1018" y="0"/>
-</item>
-<item historyLabel="style.css" index="4">
-<position info="not_deleted" x="808" y="0"/>
-</item>
-<item historyLabel="settings.html" index="8">
-<position info="not_deleted" x="47" y="0"/>
-</item>
-<item historyLabel="style.css" index="4">
-<position info="not_deleted" x="808" y="0"/>
-</item>
-<item historyLabel="settings.html" index="8">
-<position info="not_deleted" x="47" y="0"/>
-</item>
-<item historyLabel="style.css" index="4">
-<position info="not_deleted" x="924" y="0"/>
-</item>
-<item historyLabel="settings.html" index="8">
-<position info="not_deleted" x="384" y="0"/>
-</item>
-<item active="true" historyLabel="main.css" index="9">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-</navigationHistory>
+<navigationHistory/>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
 </page>
 <workbenchWindowAdvisor/>
 <actionBarAdvisor/>
 <trimLayout>
-<trimArea IMemento.internal.id="16384">
-<trimItem IMemento.internal.id="left"/>
-<trimItem IMemento.internal.id="org.eclipse.ui.internal.ViewStack@13f4c52d"/>
-</trimArea>
 <trimArea IMemento.internal.id="128">
 <trimItem IMemento.internal.id="org.eclipse.ui.internal.WorkbenchWindow.topBar"/>
 </trimArea>
@@ -362,55 +171,8 @@
 <trimItem IMemento.internal.id="org.eclise.ui.internal.FastViewBar"/>
 <trimItem IMemento.internal.id="org.eclipse.jface.action.StatusLineManager"/>
 <trimItem IMemento.internal.id="org.eclipse.ui.internal.progress.ProgressRegion"/>
-<trimItem IMemento.internal.id="terminalArea"/>
 </trimArea>
 </trimLayout>
 </window>
-<mruList>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" name="main.css" tooltip="/media/MCL/frontend/css/main.css">
-<persistable uri="file:/media/MCL/frontend/css/main.css"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="settings.html" tooltip="/media/MCL/backend/src/main/templates/settings.html">
-<persistable uri="file:/media/MCL/backend/src/main/templates/settings.html"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" name="font-awesome.min.css" tooltip="/media/MCL/frontend/css/font-awesome.min.css">
-<persistable uri="file:/media/MCL/frontend/css/font-awesome.min.css"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" name="bootstrap.min.css" tooltip="/media/MCL/frontend/css/bootstrap.min.css">
-<persistable uri="file:/media/MCL/frontend/css/bootstrap.min.css"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.css" name="style.css" tooltip="/media/MCL/frontend/css/style.css">
-<persistable uri="file:/media/MCL/frontend/css/style.css"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" name="menu.js" tooltip="/media/MCL/frontend/js/menu.js">
-<persistable uri="file:/media/MCL/frontend/js/menu.js"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" name="maproute.js" tooltip="/media/MCL/frontend/js/maproute.js">
-<persistable uri="file:/media/MCL/frontend/js/maproute.js"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" name="main.js" tooltip="/media/MCL/frontend/js/main.js">
-<persistable uri="file:/media/MCL/frontend/js/main.js"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.js" name="map.js" tooltip="/media/MCL/frontend/js/map.js">
-<persistable uri="file:/media/MCL/frontend/js/map.js"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="map.html" tooltip="/media/MCL/backend/src/main/templates/map.html">
-<persistable uri="file:/media/MCL/backend/src/main/templates/map.html"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="support.html" tooltip="/media/MCL/backend/src/main/templates/support.html">
-<persistable uri="file:/media/MCL/backend/src/main/templates/support.html"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="index.html" tooltip="/media/MCL/frontend/index.html">
-<persistable uri="file:/media/MCL/frontend/index.html"/>
-</file>
-<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="com.aptana.editor.html" name="report.html" tooltip="/media/MCL/backend/src/main/templates/report.html">
-<persistable uri="file:/media/MCL/backend/src/main/templates/report.html"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="menu.js" tooltip="frontend/js/menu.js">
-<persistable path="/frontend/js/menu.js"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.aptana.editor.js" name="maproute.js" tooltip="frontend/js/maproute.js">
-<persistable path="/frontend/js/maproute.js"/>
-</file>
-</mruList>
+<mruList/>
 </workbench>

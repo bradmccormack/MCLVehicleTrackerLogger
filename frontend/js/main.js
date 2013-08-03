@@ -10,11 +10,13 @@ var Utility = (function(){
 
 
 var System = (function(){
+	
 
 	var Self = this;
 	
 	//When SnapCount reaches SnapTrigger it will snap the view. Setting too low a value impacts performance quite a bit.
 	var Camera = { Snap: true, SnapCount: 0, SnapTrigger: 10 };
+	
     var Con;
 	var Colours = [];
     var Vehicles = [];
