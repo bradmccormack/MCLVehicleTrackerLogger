@@ -2,19 +2,19 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="casesensitive"/>
 		<item value="false" key="isRegEx"/>
+		<item value="false" key="casesensitive"/>
 		<item value="false" key="wholeword"/>
-		<item value="SnapTrigger" key="selection"/>
+		<item value="div-panel" key="selection"/>
 		<list key="findhistory">
-			<item value="SnapTrigger"/>
-			<item value="onmessage"/>
-			<item value="setCameraSnap"/>
-			<item value="center"/>
-			<item value="onMessage"/>
+			<item value="div-panel"/>
+			<item value="panel"/>
+			<item value="divpanel"/>
+			<item value="icon"/>
+			<item value="icon-2x"/>
+			<item value="setMarker"/>
+			<item value="Count "/>
 			<item value="setmarker"/>
-			<item value="setZoom"/>
-			<item value="mapFollow"/>
 		</list>
 	</section>
 </section>
