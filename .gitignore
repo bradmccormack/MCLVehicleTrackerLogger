@@ -78,8 +78,8 @@ _testmain.go
 
 #Eclipse junk
 *.pydevproject
-.project
-.metadata
+*.project
+*.metadata
 bin/**
 tmp/**
 tmp/**/*
