@@ -1,4 +1,4 @@
-app = angular.module('myClubLink', []);
+
 
 
 var Utility = (function(){
