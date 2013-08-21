@@ -22,7 +22,7 @@ type GPS struct {
 	Message string
 	Latitude string
 	Longitude string
-	Speed int
+	Speed float64
 	Heading float64
 	Fix bool
 	DateTime time.Time
@@ -78,7 +78,7 @@ func main() {
 		msg = "T" + cord.Message + ",L"
                 msg += cord.Latitude + ","
                 msg += cord.Longitude + ","
-                msg += "S" + string(cord.Speed) + ","
+                msg += "S" + fmt.Sprint(cord.Speed) + ","
 		msg += "H" + fmt.Sprint(cord.Heading) + ","
                 msg += "D" + cord.DateTime.Format(time.RFC3339) + ","
                 msg += "F" + Fix + ","
