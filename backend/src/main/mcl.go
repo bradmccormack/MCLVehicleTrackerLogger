@@ -290,11 +290,13 @@ var views = map[string]interface{}{
 			}
 			session.Save(r, w)
 		}
+
 		var err error
 		t := template.New("Settings")
 		t, err = template.ParseFiles("templates/settings.html")
 		if err != nil {
-			log.Fatal("Failed to parse the template file for settings. Fix it")
+			fmt.Printf(err.Error())
+			log.Fatal("\nFailed to parse the template file for settings. Fix it")
 		}
 
 		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */
