@@ -1,6 +1,7 @@
 *.db
 *.pydevproject
 .project
+.metadata/
 .metadata
 *.metadata
 bin/**
