@@ -27,7 +27,7 @@ type GPSRecord struct {
 	Latitude  string
 	Longitude string
 	Message   string
-	Speed     int
+	Speed     float64
 	Heading   float64
 	Fix       bool
 	Date      time.Time
@@ -506,6 +506,8 @@ func main() {
 			fmt.Printf("Listening on TCP Port %s\n", *service)
 
 			tcpcon, err = lnk.Accept()
+				
+			fmt.Printf("Link Accepted")
 			if err != nil {
 				fmt.Printf("Failed to create tcp connection - %s", err)
 				os.Exit(1)
@@ -566,21 +568,19 @@ func logEntry(entry *GPSRecord) {
 func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	var buff = make([]byte, 512)
 	var entry GPSRecord
-
+	
+	conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 	conn.SetReadBuffer(512)
-
 	var n int
 	var err error
 	var data bool = true
-
 	for data {
-
 		n, err = conn.Read(buff)
 		if err != nil {
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}
-
+		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 		fmt.Printf("Sentence was %s", string(buff))
 		gpsfields := strings.Split(string(buff[:n]), ",")
 		if len(gpsfields) != 8 {
@@ -593,13 +593,13 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 		entry.Message = gpsfields[0][1:]
 		entry.Latitude = gpsfields[1][1:]
 		entry.Longitude = gpsfields[2]
-		entry.Speed, _ = strconv.Atoi(gpsfields[3][1:])
+		entry.Speed, _ = strconv.ParseFloat(gpsfields[3][1:], 32)
 		entry.Heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
 		entry.Date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
 		entry.Fix = gpsfields[6][1:] == "true"
-		entry.ID = gpsfields[7]
+		entry.ID = gpsfields[7][1:]
 
-		fmt.Printf("Message %s Lat %s Long %s speed %d heading %f fix %t date %s time %s id %s\n",
+		fmt.Printf("Message %s Lat %s Long %s speed %f heading %f fix %t date %s id %s\n",
 			entry.Message,
 			entry.Latitude,
 			entry.Longitude,
@@ -609,8 +609,6 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 			entry.Date,
 			entry.ID)
 
-		//don't log to DB
-		//TODO - Remove this out for more performance
 		if string(buff[0:1]) != "T" {
 			go logEntry(&entry) //save to database
 		} else {
