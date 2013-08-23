@@ -1,16 +1,6 @@
 
 
 
-var Utility = (function(){
-	return {
-		RandomColor: function() {
-			return (function lol(m,s,c){return s[m.floor(m.random() * s.length)] +
-  			(c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4)
-		}
-	}	
-})();
-
-
 var System = (function(){
 	
 
@@ -19,26 +9,19 @@ var System = (function(){
 	//When SnapCount reaches SnapTrigger it will snap the view. Setting too low a value impacts performance quite a bit.
 	var Camera = { Snap: true, SnapCount: 0, SnapTrigger: 10 };
 	
-    var Con;
-	var Colours = [];
-    var Vehicles = [];
+	var Con;
 
-    //System wide settings
-    var mapAPI = {};
-    var Settings = { Marker: { Interpolate: true, InterpolateCount : 10}};
-    var Position = { Last: {}};
+
+	//System wide settings
+	var mapAPI = {};
+	
+	var Position = { Last: {}};
 
 	//Dom elements that we will write to 
 	var tabVehicles = $("#tab2");
 
 
-	function showLostConnection() {
-		$('#systemError').modal('toggle');  
-	}
-
-	function systemMessage(Message) {
-		$("div#SystemMessages > ul#Messages").append("<li class='text-info'>" + new Date().toTimeString() + Message + "</li>");
-	}
+	
 
     function updateLegend(VehicleID, Color) {
   
@@ -59,12 +42,8 @@ var System = (function(){
     }
 
 	return {
-		updateLegend: function(VehicleID, Color) {
-			updateLegend(VehicleID, Color);
-		},
-		showLostConnection: function() {
-			return this.showLostConnection;
-		},
+		
+		
 		setMapAPI: function(mapAPI) {
 			if(mapAPI) {
 				mapAPI = mapAPI;
@@ -150,91 +129,8 @@ var System = (function(){
        		});
         },
         
-		init: function() {
-
-			mapAPI = map; //set reference
-			$("#tabMap").click();
-			//mapAPI.SetAPI("GoogleMaps");
-			
-            if (window["WebSocket"]) {
-                    //Con = new WebSocket("ws://dev.myclublink.com.au/ws");
-                    Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
-                 
-                    Con.onopen = function() {
-                    	systemMessage("Connected to server");
-                    };
-
-                    Con.onclose = function(evt) {
-                        systemMessage("Server connection closed");
-                    }
-                    Con.onmessage = function(evt) {
-                    	var data = JSON.parse(evt.data).Entry;
-                      
-                      	//add vehicle to Legend if it is not there   
-                        if(!(data.ID in Vehicles)) {
-                        	updateLegend(data.ID, Utility.RandomColor());
-                        }
-                        //TODO remove vehicle if no contact for X minutes
-                        
-                        mapAPI.Current().setMarker(data.ID, data.Latitude, data.Longitude,"", Vehicles[data.ID].Color,Settings.Marker.Interpolate);
-                      	if(Camera.Snap) {
-                      		Camera.SnapCount++;
-                      		if(Camera.SnapCount == Camera.SnapTrigger){
-                      			mapAPI.Current().panTo(data.Latitude, data.Longitude);
-                      			//mapAPI.Current().centerView(data.Latitude, data.Longitude);
-                      			Camera.SnapCount = 0;
-                      		}
-                      	
-                      	}
-                      	
-                      	
-						$(tabVehicles).find("span.text-error").remove();
-                      	var VehicleInfo = $(tabVehicles).find("span[data-vehicle = '" + data.ID + "']");
-                      	VehicleInfo.remove();
-
-                      	var html = "<span data-vehicle='" + data.ID + "'> <i class='icon-truck'></i> " + data.ID + "  <strong>Speed(KM/Hr)</strong> " + data.Speed 
-                      	+ " <strong>Heading Degrees)</strong> " + Math.round(data.Heading) + " <strong>Time</strong> " + data.Date + "</span>"
-                      	$(tabVehicles).append(html);
-                                     
-                        /*
-                       
-
-
-                        mapAPI.Current().setMarker(cords[0],cords[1]);
-                        */
-                        /*
-                        //TODO interpolate between cords
-                        var X = cords[0];
-                        var y = cords[1];
-                        if(Position.Last.Latitude) {
-
-                            var m = (Y - Position.Last.Longitude) / ( X - Position.Last.Latitude); //gradient
-                            var b = 0; //figure out y intercept
-                            var increment = X - Position.Last.Latitude / Settings.Marker.InerpolateCount;
-
-                            for(var i = 0; i < Settings.Marker.InterpolateCount; i++) {
-                                //y = mx+b
-                                X += increment;
-                                Y = m * X + b;
-                                mapAPI.setMarker(X, Y);
-                            }
-
-                        }
-                        else {
-                            mapAPI.setMarker(cords[0],cords[1]); // remove this ?
-                        }
-
-                        Position.Last.Latitude = X;
-                        Position.Last.Longitude = Y;
-                        */
-
-                        //alert("Message received " + evt.data);
-                        //appendLog($("<div/>").text(evt.data))
-                    }
-            } else {
-                alert("Your browser does not support WebSockets. You cannot use myClubLink until you upgrade to a modern browser");
-            }
-        }
+	
+        
 	}
 })();
 

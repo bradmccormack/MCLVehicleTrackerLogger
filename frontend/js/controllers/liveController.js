@@ -1,4 +1,5 @@
-app.controller("liveController", function($scope){
+app.controller("liveController", ['$scope', function($scope){
+   
    $scope.systemMessages = [];
    $scope.Live = {
         LastPosition : {
@@ -11,4 +12,4 @@ app.controller("liveController", function($scope){
         return $scope.Live.Vehicles.length;
    }
    
-})
+}]);

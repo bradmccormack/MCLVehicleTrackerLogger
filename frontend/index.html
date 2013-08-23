@@ -11,11 +11,8 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title>myClubLink</title>
+		
 		<meta name="description" content="">
-
-		<!--TODO investigate using CDNS later -->
-		<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="css/leaflet.css">
 
@@ -24,13 +21,25 @@
 		<link rel="stylesheet" href="css/bootstrap.min_simplex.css">
 		<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
 		<link rel="stylesheet" href="css/font-awesome.css">
-		<script type="text/javascript" src="init.js"></script>
+			
+		
+		<script type="text/javascript" src="js/jquery-1.10.0.min.js"></script>
+		
+		<!-- AngularJS Related - Look at moving them into the templates so they are only included as a result of Ajax calls-->
 		<script type="text/javascript" src="js/angular.js"></script>
+		<script type="text/javascript" src="js/init.js"></script>
 		<script type="text/javascript" src="js/controllers/headerController.js"></script>
-		<script src="js/modernizr-2.6.2.min.js"></script>
+		<script type="text/javascript" src="js/controllers/menuController.js"></script>
+		<script type="text/javascript" src="js/controllers/liveController.js"></script>
+		<script type="text/javascript" src="js/controllers/mainController.js"></script>
+		<script type="text/javascript" src="js/controllers/mapController.js"></script>
+		<script type="text/javascript" src="js/controllers/settingsController.js"></script>
+		
+	
+	
 
 	</head>
-	<body ng-app>
+	<body ng-app="myClubLink">
 		<!--[if lt IE 7]>
 		<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
 		<![endif]-->
@@ -168,14 +177,19 @@
 					<strong>myClubLink (ALPHA) &copy 2013</strong>
 				</div>
 			</div>
-
-			<script type="text/javascript" src="js/jquery-1.10.0.min.js"></script>
+			<script src="js/modernizr-2.6.2.min.js"></script>
+			
 			<script type="text/javascript" src="js/bootstrap.min.js"></script>
 			<script type="text/javascript" src="js/leaflet/leaflet.js"></script>
 			<script type="text/javascript" src="js/plugins.js"></script>
 			<script type="text/javascript" src="js/jquery.cookie.js"></script>
+			
+			<!-- The following two disgusting files are all getting cleaned up and moved into various controllers
 			<script type="text/javascript" src="js/map.js"></script>
 			<script type="text/javascript" src="js/main.js"></script>
+			-->
+			
+			
 			<script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>
 			<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>
 

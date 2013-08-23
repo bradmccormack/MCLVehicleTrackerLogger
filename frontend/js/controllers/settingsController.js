@@ -1,6 +1,9 @@
-app.controller("settingsController", function($scope){
-    console.log("got here");
-   $scope.person = {
-        name  : "Brad"
-   };
-});
+app.controller("settingsController", ['$scope', function($scope){
+   $scope.Marker =
+   {
+    Interpolate: true,
+    InterpolateCount : 10
+    };
+    
+    
+}]);

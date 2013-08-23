@@ -1,4 +1,4 @@
-function headerController($scope) {
+app.controller("headerController", ['$scope', function($scope) {
     
     $scope.clock = {
         interval: 1000,
@@ -26,4 +26,5 @@ function headerController($scope) {
    /*
     *Put login and logout stuff in here
     */
-}
+}]);
+

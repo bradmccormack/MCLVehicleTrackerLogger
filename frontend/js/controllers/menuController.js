@@ -1,6 +1,6 @@
-app.controller("menuController", function($scope){
+app.controller("menuController", ['$scope', function($scope){
    $scope.person = {
         name  : "Brad"
    };
    
-})
+}]);
