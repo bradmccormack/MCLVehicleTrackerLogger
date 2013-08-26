@@ -1,7 +1,12 @@
-function headerController($scope)
-{ 
+app.controller("mainController", ['$scope', function($scope) {
+{
+    $scope.Con = {};
     $scope.Colours = [];
     $scope.Vehicles = {};
+    $scope.Camera = {};
+    $scope.Map = {};
+    $scope.Messages = [];
+    
     var Utility = (function(){
          return {
                  RandomColor: function() {
@@ -26,18 +31,18 @@ function headerController($scope)
 	if (window["WebSocket"])
 	{
 		//Con = new WebSocket("ws://dev.myclublink.com.au/ws");
-		Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
+		$scope.Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
 	     
-		Con.onopen = function()
+		$scope.Con.onopen = function()
 		{
-		    systemMessage("Connected to server");
+		    $scope.systemMessage("Connected to server");
 		};
 
-		Con.onclose = function(evt)
+		$scope.Con.onclose = function(evt)
 		{
-		    systemMessage("Server connection closed");
+		    $scope.systemMessage("Server connection closed");
 		}
-		Con.onmessage = function(evt)
+		$scope.Con.onmessage = function(evt)
 		{
 		    var data = JSON.parse(evt.data).Entry;
 		  
@@ -48,17 +53,8 @@ function headerController($scope)
                     }
                     //TODO remove vehicle if no contact for X minutes
                     
-                    mapAPI.Current().setMarker(data.ID, data.Latitude, data.Longitude,"", Vehicles[data.ID].Color,Settings.Marker.Interpolate);
-                    if(Camera.Snap)
-                    {
-                            Camera.SnapCount++;
-                            if(Camera.SnapCount == Camera.SnapTrigger)
-                            {
-                                    mapAPI.Current().panTo(data.Latitude, data.Longitude);
-                                    Camera.SnapCount = 0;
-                            }
-                    
-                    }
+                    $scope.Map.setMarker(data.ID, data.Latitude, data.Longitude,"", Vehicles[data.ID].Color,Settings.Marker.Interpolate);
+		    
                     
                     
                     $(tabVehicles).find("span.text-error").remove();
@@ -77,3 +73,5 @@ function headerController($scope)
 	}
     };
     }
+}]);
+

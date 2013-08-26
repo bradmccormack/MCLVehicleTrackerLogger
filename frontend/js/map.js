@@ -100,7 +100,8 @@ var map = (function(){
 	});
 	
 	
-	var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
+	var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID)
+	{
 	
 	    //var mapTypes = { MapTypeId.ROADMAP, MapTypeId.SATELLITE, MapTypeId.HYBRID, MapTypeId.TERRAIN }
 	    var map;
@@ -129,7 +130,6 @@ var map = (function(){
 	        zoom = Zoom;
 	        Latitude = Latitude;
 	        Longitude = Longitude;
-	        
 	        //TODO restrict the zoom level and lat long boundary
 	    }
 	
@@ -205,9 +205,6 @@ var map = (function(){
 		         });
 
         		}
-        		/*
-        		 * ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
-        		 */
         		var path = routes[Route].polyline.getPath();
         		path.push(new google.maps.LatLng(Point.Latitude,Point.Longitude));
         		//use the lat, long as the key for looking up meta data
@@ -216,9 +213,10 @@ var map = (function(){
 	        	
 	        },
 	        //ID is the vehicle ID
-	        setMarker: function(ID, Latitude, Longitude, Text, Color, isInterpolate) {
+	        setMarker: function(ID, Latitude, Longitude, Text, Color, isInterpolate)
+		{
 	         
-//http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
+		//http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
 	            if(!markers[ID]) {
 	            	
     				var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
@@ -241,7 +239,8 @@ var map = (function(){
 	                }
 	                     
 	            }
-	            else {
+	            else
+		    {
 	                if(isInterpolate) {
 	                	var startLatLng = markers[ID].position;
 	                	var endLatLng = new google.maps.LatLng(Latitude, Longitude);
@@ -256,7 +255,6 @@ var map = (function(){
 	            	}
 	            }
 	     
-	
 	        },
 	        onClick: function(funct) {
 	            map.on("click", function(e) {

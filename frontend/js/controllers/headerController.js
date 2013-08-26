@@ -23,8 +23,5 @@ app.controller("headerController", ['$scope', function($scope) {
    }, $scope.clock.interval);
    updateClock();
   
-   /*
-    *Put login and logout stuff in here
-    */
 }]);
 
