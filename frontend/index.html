@@ -54,11 +54,13 @@
 	    
 		<div id="Mainheader" class="container-fluid" ng-controller="headerController">
 			
-				<div id="Mainlogo" class="span8">
-					<h5><img id="logo" src="img/logoheader.png"></img> &copy; 2013 {{clock.time}}</h5>
+				<div id="Mainlogo" class="span4">
+					<img id="logo" src="img/logoheader.png"></img>	
 				</div>
+		
 				<div id="Mainuser" class="span4 pull-right">
-					<div class="btn-group pull-right">
+					<div class="row">
+						<div class="btn-group pull-right">
 						<a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username">Brad McCormack </span></a>
 						<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> <span class="caret"> </span> </a>
 						<ul class="dropdown-menu">
@@ -70,6 +72,11 @@
 							</li>
 						</ul>
 					</div>
+					</div>
+					<div class="row">
+						<h4 class="pull-right"> &copy; 2013 {{clock.time}}</h4>
+					</div>
+					
 				</div>
 			
 		</div>

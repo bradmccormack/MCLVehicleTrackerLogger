@@ -14,7 +14,7 @@ myApp.controller("headerController", ['$scope', function($scope){
     }
    
     var updateClock = function() {
-        $scope.clock.time = new Date().toTimeString();
+        $scope.clock.time = new Date().toLocaleString();
     }
     
  
