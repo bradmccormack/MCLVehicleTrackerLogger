@@ -2,7 +2,7 @@
 <html lang="en" ng-app="myApp">
 <head>
   <meta charset="utf-8">
-  <title>My AngularJS App</title>
+  <title>myClubLink</title>
   <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/leaflet.css">
@@ -62,19 +62,19 @@
                   <div id="Mainnav" class="span2">
                           <ul class="nav nav-pills nav-stacked">
                                   <li class="active">
-                                          <a id="tabtracking" href="tracking" data-toggle="tab"><i class="icon-globe icon-white icon-3x"> </i> Tracking</a>
+                                          <a id="tabtracking" href="#/tracking" data-toggle="tab"><i class="icon-globe icon-white icon-3x"> </i> Tracking</a>
                                   </li>
                                   <li>
-                                          <a id="tabsupport" href="/support" data-toggle="tab"><i class="icon-envelope-alt icon-white icon-3x"> </i> Request Support</a>
+                                          <a id="tabsupport" href="#/support" data-toggle="tab"><i class="icon-envelope-alt icon-white icon-3x"> </i> Request Support</a>
                                   </li >
                                   <li>
-                                          <a id="tabreports" href="/reports" data-toggle="tab"><i class="icon-bar-chart icon-white icon-3x"> </i> Reports</a>
+                                          <a id="tabreports" href="#/reports" data-toggle="tab"><i class="icon-bar-chart icon-white icon-3x"> </i> Reports</a>
                                   </li>
                                   <li>
                                           <a id="tabsettings" href="#/settings" data-toggle="tab"><i class="icon-cog icon-white icon-3x"> </i> Settings</a>
                                   </li>
                                   <li>
-                                          <a id="tablicense" href="/license" data-toggle="tab"><i class="icon-lock icon-white icon-3x"> </i> License</a>
+                                          <a id="tablicense" href="#/license" data-toggle="tab"><i class="icon-lock icon-white icon-3x"> </i> License</a>
                                   </li>
                           </ul>
                   </div>
@@ -156,5 +156,6 @@
   <script src="js/directives.js"></script>
   <script src="js/Controllers/headerController.js"></script>
   <script src="js/Controllers/settingsController.js"></script>
+  <script src="js/Controllers/supportController.js"></script>
 </body>
 </html>
