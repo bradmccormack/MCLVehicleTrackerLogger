@@ -11,5 +11,6 @@ angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 
     $routeProvider.when('/support', {templateUrl: 'partials/support.html', controller: 'supportController'})
     $routeProvider.when('/license', {templateUrl: 'partials/license.html', controller: 'licenseController'})
     $routeProvider.when('/reports', {templateUrl: 'partials/report.html', controller: 'reportController'})
+    $routeProvider.when('/tracking', {templateUrl: 'partials/tracking.html', controller: 'trackingController'})
     $routeProvider.otherwise({redirectTo: '/'});
   }]);
