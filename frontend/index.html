@@ -14,7 +14,6 @@
 		<meta name="description" content="">
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="css/leaflet.css">
-
 		<link rel="stylesheet" href="css/dzyngiri.css">
 		<link rel="stylesheet" href="css/style.css">
 		<link rel="stylesheet" href="css/bootstrap.min.css">
@@ -25,9 +24,11 @@
 		<!-- https://github.com/daneden/animate.css -->
 		
 		<script type="text/javascript" src="js/jquery-1.10.0.min.js"></script>
+		
 		<!-- AngularJS Related - Look at moving them into the templates so they are only included as a result of Ajax calls-->
 		<script type="text/javascript" src="js/angular.js"></script>
-			<script type="text/javascript" src="js/init.js"></script>
+		<script type="text/javascript" src="js/init.js"></script>
+		<script type="text/javascript" src="js/controllers/headerController.js"></script>	
 		<script type="text/javascript" src="js/controllers/menuController.js"></script>
 		<script type="text/javascript" src="js/controllers/liveController.js"></script>
 		<script type="text/javascript" src="js/controllers/mainController.js"></script>
@@ -37,6 +38,9 @@
 		<script type="text/javascript" src="js/services.js"></script>
 		<script type="text/javascript" src="js/filters.js"></script>
 		<script type="text/javascript" src="js/directives.js"></script>
+		
+		
+		
 		
 	
 
@@ -48,12 +52,11 @@
 		
 		
 	    
-		<div id="Mainheader" class="container-fluid">
+		<div id="Mainheader" class="container-fluid" ng-controller="headerController">
 			
 				<div id="Mainlogo" class="span8">
 					<h5><img id="logo" src="img/logoheader.png"></img> &copy; 2013 {{clock.time}}</h5>
 				</div>
-				<!--Logo -->
 				<div id="Mainuser" class="span4 pull-right">
 					<div class="btn-group pull-right">
 						<a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username">Brad McCormack </span></a>

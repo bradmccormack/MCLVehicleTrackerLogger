@@ -1,4 +1,4 @@
-angular.module('myClubLink.controllers', []).controller("loginControler", ['$scope', function($scope){
+myApp.controller("loginControler", ['$scope', function($scope){
    
    $scope.login =  function(cbobj)
 	{

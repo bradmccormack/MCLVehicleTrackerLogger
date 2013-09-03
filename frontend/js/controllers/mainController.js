@@ -1,4 +1,4 @@
-angular.module('myClubLink.controllers', []).controller("mainController", [function($scope) {
+myApp.controller("mainController", [function($scope) {
 {
     $scope.Con = {};
     $scope.Colours = [];
@@ -73,30 +73,5 @@ angular.module('myClubLink.controllers', []).controller("mainController", [funct
 	}
     };
     }
-}]).controller("headerController", [ function($scope) {
-    
-    $scope.clock = {
-        interval: 1000,
-        time: ""
-   }
-   
-    var logout = function() {
-        
-    }
-    
-    var edit = function() {
-        
-    }
-   
-    var updateClock = function() {
-        $scope.clock.time = new Date().toTimeString();
-    }
-    
- 
-   var timer = setInterval(function() {
-        $scope.$apply(updateClock);
-   }, $scope.clock.interval);
-   updateClock();
-  
-}]);;
+}]);
 

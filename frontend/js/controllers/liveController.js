@@ -1,4 +1,4 @@
-angular.module('myClubLink.controllers', []).controller("liveController", ['$scope', function($scope){
+myApp.controller("liveController", ['$scope', function($scope){
    
    $scope.systemMessages = [];
    $scope.Live = {
