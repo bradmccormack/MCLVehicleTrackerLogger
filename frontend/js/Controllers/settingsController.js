@@ -13,6 +13,8 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
               $scope.Password.Old = $scope.Password.New = $scope.Password.NewConfirm = "";
               return;
             }
+            else
+                $scope.Password.Error = false;
             //TODO Check the Current password against the one stored in the cookie
             $scope.Password.Old = $scope.Password.New = $scope.Password.NewConfirm = "";
             $scope.Password.Hidden = !$scope.Password.Hidden;

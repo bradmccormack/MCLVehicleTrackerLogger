@@ -97,7 +97,7 @@ textarea {
 html, body
 {
 	height: 100%;
-	width 100%;
+	width: 100%;
 }
 
 div#Mainheader
@@ -115,6 +115,7 @@ img#logo
 {
     height: 75px;
     position: absolute;
+    left: 0px;
     top: 0px;
 }
 
