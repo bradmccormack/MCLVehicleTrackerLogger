@@ -12,9 +12,11 @@
 		<label>Please type a message below and we will get back to you as soon as possible.</label>
 		
 		<strong>We would love to read your feedback and suggestions</strong>
-		<form id="support_textarea" method="post" >
-    			<textarea name="content" style="width:100%"> </textarea>
-				<input type='submit' value='Send' class='btn btn-primary'> </input>
-		</form>
+		<div class="btn-toolbar" data-role="editor-toolbar" data-target="#editor">
+			
+			<div id="editor" style="height:250px"></div>
+			<button class='btn btn-primary'>Send</button>
+		</div>
+		
 	</div>
 </div>
