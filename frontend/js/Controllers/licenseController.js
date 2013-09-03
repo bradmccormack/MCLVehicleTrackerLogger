@@ -1,4 +1,4 @@
-angular.module('myApp.controllers').controller("licenseController", ['$scope', function($scope){
+angular.module('myApp.controllers').controller("licenseController", ['$scope', 'shellService', function($scope, shellService){
    
    function Init() {
        
@@ -10,10 +10,7 @@ angular.module('myApp.controllers').controller("licenseController", ['$scope', f
         Expiry: new Date()
    }
    
-   $scope.User = {
-        First : "Brad",
-        Last : "Mccormack"
-   }
+   $scope.User = shellService.User;
   
    Init();
    

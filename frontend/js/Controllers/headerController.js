@@ -1,8 +1,15 @@
-angular.module('myApp.controllers',[]).controller("headerController", ['$scope', function($scope){
+/*Pass in the shellService via Dependency injection rather than rely on prototypical inheritence between controllers to access User information */
+
+angular.module('myApp.controllers',[]).controller("headerController", ['$scope', 'shellService', function($scope, shellService){
    
     $scope.clock = {
         interval: 1000,
         time: ""
+   }
+   
+   $scope.User = {
+    First: shellService.User.First,
+    Last: shellService.User.Last
    }
    
     var logout = function() {

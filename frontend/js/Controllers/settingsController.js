@@ -1,4 +1,18 @@
-angular.module('myApp.controllers').controller("settingsController", ['$scope', function($scope){
+angular.module('myApp.controllers').controller("settingsController", ['$scope', 'shellService', function($scope, shellService){
+
+    var Helper = (function(){
+        return {
+            AccessLeveltoWord: function(Level) {
+                Levels = {1: "Guest", 5: "User", 8: "Senior", 10: "Admin"};
+                if(Level in Levels)
+                    return Levels[Level];
+                else
+                    return "Unknown Access Level";
+            }
+        }
+        
+    })();
+
    
     $scope.Password = 
     {
@@ -26,41 +40,11 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
         Error: false
     };
    
-   
-    $scope.User =
-    {
-        First: "Brad",
-        Last: "Mccormack",
-        Access: "10"
-    };
-    
-    $scope.Map =
-    {
-        Marker :
-        {
-            Smooth: true,
-            SmoothCount: 10
-        },
-        Active: "Google Maps",
+    $scope.User = shellService.User;
+    $scope.User.Access = Helper.AccessLeveltoWord($scope.User.Access);
 
-    }
-    
-    $scope.Network =
-    {
-        EnableRF: true,
-        Enable3G: true
-    }
-    
-    $scope.Security =
-    {
-        RemoteSupport: true,
-        SystemConsoleAccess: true,
-        AdminPasswordResetOnly: true
-    }
-    
-    $scope.Mobile =
-    {
-        AllowSmartPhone: true,
-        ShowSmartPhoneLocation: true
-    }
+    $scope.Map = shellService.Map;
+    $scope.Network = shellService.Network;
+    $scope.Security = shellService.Security;
+    $scope.Mobile = shellService.Mobile;
 }]);

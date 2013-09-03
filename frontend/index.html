@@ -41,7 +41,7 @@
       <div id="Mainuser" class="span4 pull-right">
               <div class="row">
                       <div class="btn-group pull-right">
-                      <a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username">Brad McCormack </span></a>
+                      <a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username"> {{ User.First }} {{User.Last}}</span></a>
                       <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> <span class="caret"> </span> </a>
                       <ul class="dropdown-menu">
                               <li>
@@ -57,8 +57,7 @@
                       <h4 class="pull-right"> &copy; 2013 {{clock.time}}</h4>
               </div>
               
-      </div>
-			
+      </div>		
   </div>
   
   
@@ -157,14 +156,13 @@
   <script src="js/services.js"></script>
   <script src="js/filters.js"></script>
   <script src="js/directives.js"></script>
+  <script src="js/Controllers/mainController.js"></script>
   <script src="js/Controllers/headerController.js"></script>
   <script src="js/Controllers/settingsController.js"></script>
   <script src="js/Controllers/supportController.js"></script>
   <script src="js/Controllers/licenseController.js"></script>
   <script src="js/Controllers/reportController.js"></script>
   <script src="js/Controllers/trackingController.js"></script>
-  </script>
-  </script>
-  </script>
+
 </body>
 </html>
