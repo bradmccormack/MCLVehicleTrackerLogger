@@ -1,4 +1,4 @@
-myApp.controller("headerController", ['$scope', function($scope){
+angular.module('myApp.controllers').controller("headerController", ['$scope', function($scope){
    
     $scope.clock = {
         interval: 1000,
