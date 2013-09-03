@@ -23,6 +23,11 @@ angular.module('myApp.services', [])
                 Last: "McCormack",
                 Access: 10
             },
+            Company: {
+               Name: "Test Company",
+               MaxUsers: 1,
+               Expiry: new Date()  
+            },
             Security: {
                 RemoteSupport: false,
                 SystemConsoleAccess: false,
@@ -43,7 +48,12 @@ angular.module('myApp.services', [])
                         (c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4)
         }
               
-        
     }
+    
+}])
+    .factory("mapService", [function() {
+        return {
+            Map : {}
+        }
     
 }]);

@@ -4,12 +4,7 @@ angular.module('myApp.controllers').controller("licenseController", ['$scope', '
        
    }
    
-   $scope.Company = {
-        Name: "Test Company",
-        MaxUsers: 1,
-        Expiry: new Date()
-   }
-   
+   $scope.Company = shellService.Company;
    $scope.User = shellService.User;
   
    Init();
