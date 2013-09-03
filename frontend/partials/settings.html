@@ -1,0 +1,100 @@
+<!-- TODO replace the chunky wysywig with http://mindmup.github.io/bootstrap-wysiwyg/ -->
+
+<div id="settings" class="container div-panel">
+	<h4> Settings <i class="icon-cog"> </i></h4>
+	
+	<h5><i class="icon-user"> </i> User Settings </h5>
+	<div class="well">
+		<label><strong>Current User</strong> {{User.First}} {{User.Last}}</label>
+		<label><strong>Access Level</strong> {{User.Access}}</label>
+		
+		<div class="control-group" >
+			<div class="controls">
+				<div class="input-prepend">
+				
+					<button id="settingsReset" ng-click="Password.ToggleResetWidget()" class="btn"> Reset Password</button>
+                                        
+                                        <div ng-hide = "Password.Hidden">
+                                            
+                                           <input type ="text" placeholder="Old Password ..." ng-model="Password.Old">
+                                            <input type ="text" placeholder="New Password ..." ng-model="Password.New">
+                                            <input type ="text" placeholder="Confirm New Password ..." ng-model="Password.NewConfirm">
+                                            <button class="btn btn-primary" ng-click="Password.Update()"><i class="icon-pencil"> </i> Update</button>
+                                        </div>
+				</div>
+                                   
+			</div>
+                        <span class="text-error" ng-show="Password.Error"><i class="icon-exclamation"></i> {{Password.Error}}</span> 
+		</div>
+	</div>
+	
+	<hr>
+	
+	<h5><i class="icon-globe"> </i> Map API </h5>
+	<div class="well">
+		<div class="btn-group">
+              <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{Map.Active}}</a>
+              <a class="btn dropdown-toggle" data-toggle="dropdown"
+		 href="#">
+                 <span class="caret"> </span>
+                </a>
+              <ul class="dropdown-menu">
+              	<li><a href=""><i class="icon-globe"> </i>  Google Maps</a></li>
+              	<li><a href=""><i class="icon-globe"> </i>  Leaflet </a></li>
+                <li><a href=""><i class="icon-globe"> </i>  Bing Maps</a></li>
+                <li><a href=""><i class="icon-globe"> </i>  Map Quest</a></li>
+              </ul>
+        </div>
+        
+	</div>
+	
+  	<h5> <i class="icon-check-sign"> </i> Map Options</h5>  	
+  	<div class="well">
+	  	<form id="mapOptionsNew">
+	  		<div class="control-group">
+	  			<div class="controls">
+	  				<label class="text"> <input type="checkbox" ng-model="Map.Marker.Smooth">  Smooth movement </label>
+	  			</div>	
+	  		</div>
+	  		
+			<div class="control-group">
+				<div class="controls">
+					<label class="text"> <input type="checkbox" ng-model="Network.EnableRF"> Allow communication from Radio Frequencies </label>
+					<label class="text"> <input type="checkbox" ng-model="Network.Enable3G" > Allow communication from 3G </label>
+				</div>
+			</div>
+	  	</form>
+	</div>
+
+	<h5> <i class="icon-lock icon-white"> </i> Security </h5>
+	<div class="well">
+		<form id="securityOptions">
+			<div class="control-group">
+				<div class="controls">
+					<label class="text"> <input type="checkbox" ng-model="Security.RemoteSupport" > Allow support to remotely administer my system </label>
+					<label class="text"> <input type="checkbox" ng-model="Security.SystemConsoleAccess"> Allow system console access </label>
+					<label class="text"> <input type="checkbox" ng-model="Security.AdminPasswordResetOnly"> Only allow admins to change user passwords </label>
+				</div>
+			</div>
+		</form>
+	</div>
+	
+	<h5> <i class="icon-mobile-phone icon-white"> </i> Mobile  </h5>	
+  	<div class="well">
+		<form id="mobileOptions">
+			<div class="control-group">
+				<div class="controls">
+					<label class="text"> <input type="checkbox" ng-model="Mobile.AllowSmartPhone" > Allow myClubLink smartphone application system access</label>
+					<label class="text"> <input type="checkbox" ng-model="Mobile.ShowSmartPhoneLocation" > Show exact bus location to smartphone users (not recommended) </label>
+						
+				</div>
+			</div>
+		</form>
+	</div> 
+    
+
+</div>
+
+
+
+
