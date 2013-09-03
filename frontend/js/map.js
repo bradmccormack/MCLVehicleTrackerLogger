@@ -262,7 +262,6 @@ var map = (function(){
 	            })
 	
 	        }
-	
 	    }
 	});
 

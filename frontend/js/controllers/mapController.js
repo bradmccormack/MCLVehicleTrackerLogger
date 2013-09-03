@@ -1,4 +1,4 @@
-app.controller("mapControler", ['$scope', function($scope){
+angular.module('myClubLink.controllers', []).controller("mapControler", ['$scope', function($scope){
    
     $scope.MapAPI = {};
     $scope.Camera = { Snap: true, SnapCount: 0, SnapTrigger: 10 };

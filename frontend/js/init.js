@@ -1,5 +1,14 @@
-//This will replace the old ugly main.js and all seperated logic will go into various controllers
-var app = angular.module('myClubLink', []);
+'use strict';
+
+
+// Declare app level module which depends on filters, and services
+angular.module('myClubLink', ['myClubLink.filters', 'myClubLink.services', 'myClubLink.directives', 'myClubLink.controllers']).
+  config(['$routeProvider', function($routeProvider) {
+    $routeProvider.when('/', {templateUrl: 'index.html', controller: 'headerController'})
+    $routeProvider.when('/#tabMap', {templateUrl: '/system/map', controller: 'mapController'});
+    $routeProvider.when('/#tabSupport', {templateUrl: '/system/support', controller: 'supportController'});
+    $routeProvider.otherwise({redirectTo: '/'});
+  }]);
 
 /*
 $(document).ready(function(){

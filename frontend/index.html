@@ -11,14 +11,13 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title>myClubLink</title>
-		
 		<meta name="description" content="">
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="css/leaflet.css">
 
 		<link rel="stylesheet" href="css/dzyngiri.css">
 		<link rel="stylesheet" href="css/style.css">
-		<link rel="stylesheet" href="css/bootstrap.min_simplex.css">
+		<link rel="stylesheet" href="css/bootstrap.min.css">
 		<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
 		<link rel="stylesheet" href="css/font-awesome.css">
 		<link rel="stylesheet" href="css/animate.css">
@@ -26,18 +25,19 @@
 		<!-- https://github.com/daneden/animate.css -->
 		
 		<script type="text/javascript" src="js/jquery-1.10.0.min.js"></script>
-		
 		<!-- AngularJS Related - Look at moving them into the templates so they are only included as a result of Ajax calls-->
 		<script type="text/javascript" src="js/angular.js"></script>
-		<script type="text/javascript" src="js/init.js"></script>
-		<script type="text/javascript" src="js/controllers/headerController.js"></script>
+			<script type="text/javascript" src="js/init.js"></script>
 		<script type="text/javascript" src="js/controllers/menuController.js"></script>
 		<script type="text/javascript" src="js/controllers/liveController.js"></script>
 		<script type="text/javascript" src="js/controllers/mainController.js"></script>
 		<script type="text/javascript" src="js/controllers/mapController.js"></script>
 		<script type="text/javascript" src="js/controllers/settingsController.js"></script>
-		
 	
+		<script type="text/javascript" src="js/services.js"></script>
+		<script type="text/javascript" src="js/filters.js"></script>
+		<script type="text/javascript" src="js/directives.js"></script>
+		
 	
 
 	</head>
@@ -48,16 +48,15 @@
 		
 		
 	    
-		<div id="Mainheader" class="container-fluid" ng-controller="headerController">
-			<div class="row">
+		<div id="Mainheader" class="container-fluid">
+			
 				<div id="Mainlogo" class="span8">
-					<h5><i class="icon-truck"> </i> myClubLink (ALPHA) Logo - &copy; 2013 {{clock.time}}</h5>
+					<h5><img id="logo" src="img/logoheader.png"></img> &copy; 2013 {{clock.time}}</h5>
 				</div>
 				<!--Logo -->
 				<div id="Mainuser" class="span4 pull-right">
-
 					<div class="btn-group pull-right">
-						<a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username"> </span></a>
+						<a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username">Brad McCormack </span></a>
 						<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> <span class="caret"> </span> </a>
 						<ul class="dropdown-menu">
 							<li>
@@ -69,9 +68,7 @@
 						</ul>
 					</div>
 				</div>
-				<!--Logout etc -->
-			</div>
-
+			
 		</div>
 
 		<div id="Maincontent" class="row-fluid" >
@@ -79,19 +76,19 @@
 
 				<div id="Mainnav" class="span2">
 					<ul class="nav nav-pills nav-stacked">
-						<li class="active animated bounceInLeft">
+						<li class="active">
 							<a id="tabMap" href="#tabMap" data-toggle="tab"><i class="icon-globe icon-white icon-3x"> </i> Tracking</a>
 						</li>
-						<li class="animated bounceInLeft">
+						<li>
 							<a id="tabSupport" href="#tabSupport" data-toggle="tab"><i class="icon-envelope-alt icon-white icon-3x"> </i> Request Support</a>
 						</li >
-						<li class="animated bounceInLeft">
+						<li>
 							<a id="tabReports" href="#tabReports" data-toggle="tab"><i class="icon-bar-chart icon-white icon-3x"> </i> Reports</a>
 						</li>
-						<li class="animated bounceInLeft">
+						<li>
 							<a id="tabSettings" href="#tabSettings" data-toggle="tab"><i class="icon-cog icon-white icon-3x"> </i> Settings</a>
 						</li>
-						<li class="animated bounceInLeft">
+						<li>
 							<a id="tabLicense" href="#tabLicense" data-toggle="tab"><i class="icon-lock icon-white icon-3x"> </i> License</a>
 						</li>
 					</ul>
@@ -204,4 +201,6 @@
 			</script>
 			-->
 	</body>
+		
+		
 </html>
