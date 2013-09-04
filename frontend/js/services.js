@@ -5,7 +5,8 @@
 //http://www.ng-newsletter.com/posts/beginner2expert-services.html
 angular.module('myApp.services', [])
     .factory("shellService", [function(){
-    
+
+        //TODO pull all the data out from the cookie that is returned via Login process
         var serviceInstance = {
             User: {
                 First: "Brad",
@@ -15,7 +16,8 @@ angular.module('myApp.services', [])
             Company: {
                Name: "Test Company",
                MaxUsers: 1,
-               Expiry: new Date()  
+               Expiry: new Date(),
+               Logo: "img/sussex_logo.PNG"
             },
             Settings: {
                 Network: {
@@ -55,8 +57,22 @@ angular.module('myApp.services', [])
     
 }])
     .factory("mapService", [function() {
+        var LastPosition = {
+            Time: new Date(),
+            Position: ""
+        };
+
         return {
-            Map : {}
+            Map : {},
+            Vehicles: [],
+
+            GetLastPosition: function() {
+                return LastPosition;
+            },
+            UpdateLastPosition: function(Position) {
+                LastPosition.Time = new Date();
+                LastPosition.Position = Position;
+            }
         }
     
 }]);
