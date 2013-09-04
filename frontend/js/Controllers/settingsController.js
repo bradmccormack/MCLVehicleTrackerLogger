@@ -42,9 +42,7 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
    
     $scope.User = shellService.User;
     $scope.User.Access = Helper.AccessLeveltoWord($scope.User.Access);
-
     $scope.Map = shellService.Map;
-    $scope.Network = shellService.Network;
-    $scope.Security = shellService.Security;
-    $scope.Mobile = shellService.Mobile;
+    $scope.Settings = shellService.Settings;
+
 }]);

@@ -7,17 +7,6 @@ angular.module('myApp.services', [])
     .factory("shellService", [function(){
     
         var serviceInstance = {
-            Map: {
-                API: "Google Maps", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
-                Marker: {
-                    Smooth: false,
-                    FollowCarTrigger: 10 //Every 10 updates the Map system will pan to the selected car
-                }
-            },
-            Network: {
-                EnableRF: true,
-                Enable3G: true  
-            },
             User: {
                 First: "Brad",
                 Last: "McCormack",
@@ -28,15 +17,29 @@ angular.module('myApp.services', [])
                MaxUsers: 1,
                Expiry: new Date()  
             },
-            Security: {
-                RemoteSupport: false,
-                SystemConsoleAccess: false,
-                AdminPasswordResetOnly: false
-            },
-            Mobile: {
-                 AllowSmartPhone: true,
-                 ShowSmartPhoneLocation: false
+            Settings: {
+                Network: {
+                    EnableRF: true,
+                    Enable3G: true
+                },
+                Security: {
+                    RemoteSupport: false,
+                    SystemConsoleAccess: false,
+                    AdminPasswordResetOnly: false
+                },
+                Mobile: {
+                    AllowSmartPhone: true,
+                    ShowSmartPhoneLocation: false
+                },
+                Map: {
+                    API: "Google Maps", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
+                    Marker: {
+                        Smooth: false,
+                        FollowCarTrigger: 10 //Every 10 updates the Map system will pan to the selected car
+                    }
+                }
             }
+          
         };
         
         return serviceInstance;

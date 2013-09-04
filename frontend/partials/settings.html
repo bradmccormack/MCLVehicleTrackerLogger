@@ -31,7 +31,7 @@
 	<h5><i class="icon-globe"> </i> Map API </h5>
 	<div class="well">
 		<div class="btn-group">
-              <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{Map.API}}</a>
+              <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{Settings.Map.API}}</a>
               <a class="btn dropdown-toggle" data-toggle="dropdown"
 		 href="#">
                  <span class="caret"> </span>
@@ -51,14 +51,14 @@
 	  	<form id="mapOptionsNew">
 	  		<div class="control-group">
 	  			<div class="controls">
-	  				<label class="text"> <input type="checkbox" ng-model="Map.Marker.Smooth">  Smooth movement </label>
+	  				<label class="text"> <input type="checkbox" ng-model="Settings.Map.Marker.Smooth">  Smooth movement </label>
 	  			</div>	
 	  		</div>
 	  		
 			<div class="control-group">
 				<div class="controls">
-					<label class="text"> <input type="checkbox" ng-model="Network.EnableRF"> Allow communication from Radio Frequencies </label>
-					<label class="text"> <input type="checkbox" ng-model="Network.Enable3G" > Allow communication from 3G </label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Network.EnableRF"> Allow communication from Radio Frequencies </label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Network.Enable3G" > Allow communication from 3G </label>
 				</div>
 			</div>
 	  	</form>
@@ -69,9 +69,9 @@
 		<form id="securityOptions">
 			<div class="control-group">
 				<div class="controls">
-					<label class="text"> <input type="checkbox" ng-model="Security.RemoteSupport" > Allow support to remotely administer my system </label>
-					<label class="text"> <input type="checkbox" ng-model="Security.SystemConsoleAccess"> Allow system console access </label>
-					<label class="text"> <input type="checkbox" ng-model="Security.AdminPasswordResetOnly"> Only allow admins to change user passwords </label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Security.RemoteSupport" > Allow support to remotely administer my system </label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Security.SystemConsoleAccess"> Allow system console access </label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Security.AdminPasswordResetOnly"> Only allow admins to change user passwords </label>
 				</div>
 			</div>
 		</form>
@@ -82,8 +82,8 @@
 		<form id="mobileOptions">
 			<div class="control-group">
 				<div class="controls">
-					<label class="text"> <input type="checkbox" ng-model="Mobile.AllowSmartPhone" > Allow myClubLink smartphone application system access</label>
-					<label class="text"> <input type="checkbox" ng-model="Mobile.ShowSmartPhoneLocation" > Show exact bus location to smartphone users (not recommended) </label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Mobile.AllowSmartPhone" > Allow myClubLink smartphone application system access</label>
+					<label class="text"> <input type="checkbox" ng-model="Settings.Mobile.ShowSmartPhoneLocation" > Show exact bus location to smartphone users (not recommended) </label>
 						
 				</div>
 			</div>
