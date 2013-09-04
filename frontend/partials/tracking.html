@@ -70,7 +70,7 @@
 						myClubLink is currently showing real-time vehicle positions.
 					</p>
 					<p>
-						<span id="trackVehicleCount" class="badge badge-success">{{VehiclesCount}}</span> Vehicles currently being tracked
+						<span id="trackVehicleCount" ng-class="{ badge: true, 'badge-success': VehiclesCount}">{{VehiclesCount}}</span> Vehicles currently being tracked
 					</p>
 					<p class="text-info">
 						Last position received {{LastUpdate}} ago
