@@ -1,5 +1,5 @@
 'use strict';
-
+var genericCallback;
 
 /* Services */
 //http://www.ng-newsletter.com/posts/beginner2expert-services.html
@@ -56,7 +56,7 @@ angular.module('myApp.services', [])
     }
     
 }])
-    .factory("mapService", [function() {
+    .factory("mapService", ['shellService', function(shellService) {
 
         var LastPosition = {
             Time: new Date(),
@@ -150,7 +150,7 @@ angular.module('myApp.services', [])
     });
 
 
-        var genericCallback;
+
         var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
 
         //var mapTypes = { MapTypeId.ROADMAP, MapTypeId.SATELLITE, MapTypeId.HYBRID, MapTypeId.TERRAIN }
@@ -172,7 +172,7 @@ angular.module('myApp.services', [])
 
             zoom = Zoom;
             map = new google.maps.Map(document.getElementById(DivID || "map")
-                ,mapProp);
+                , mapProp);
         }
 
         function setview(Latitude, Longitude, Zoom)
@@ -194,8 +194,6 @@ angular.module('myApp.services', [])
                 }
             });
         }
-        else
-            init();
 
 
         return {
@@ -267,7 +265,7 @@ angular.module('myApp.services', [])
             //ID is the vehicle ID
             setMarker: function(ID, Latitude, Longitude, Text, Color, isInterpolate) {
 
-//http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
+                //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
                 if(!markers[ID]) {
 
                     var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
@@ -304,14 +302,17 @@ angular.module('myApp.services', [])
 
                     }
                 }
-
-
             },
             onClick: function(funct) {
                 map.on("click", function(e) {
                     funct({Location: e.latlng});
                 })
 
+            },
+            refresh: function() {
+                init();
+                //google.maps.event.trigger(map, 'resize');
+                //map.setCenter(new google.maps.LatLng(Latitude,Longitude));
             }
 
         }
@@ -319,7 +320,7 @@ angular.module('myApp.services', [])
 
 
 
-        var CurrentMapAPI = {};
+        var CurrentMapAPI;
         var Vendors =  {
             "Leaflet" : Leaflet,
             "GoogleMaps": GoogleMaps,
@@ -333,14 +334,21 @@ angular.module('myApp.services', [])
             Zoom: 16};
         return {
 
+            //Facade
             Map : {
                 SetAPI: function(API) {
                     var matchingAPI = Vendors[API];
                     if(matchingAPI) {
                         if(CurrentMapAPI)
                             CurrentMapAPI = undefined;
-                        CurrentMapAPI = new matchingAPI(defaultLocation.Latitude, defaultLocation.longitude, defaultLocation.zoom, "MapCanvas");
+                        CurrentMapAPI = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
                     }
+                },
+                Refresh: function() {
+                    if(!CurrentMapAPI)
+                        CurrentMapAPI = new Vendors[shellService.Settings.Map.API.replace(" ","")](defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
+                    else
+                        CurrentMapAPI.refresh();
                 },
                 ZoomIn: function(){
                     CurrentMapAPI.zoomIn();
@@ -349,8 +357,8 @@ angular.module('myApp.services', [])
                     CurrentMapAPI.zoomOut();
                 }
             },
-            Vehicles: [],
-
+            Vehicles: [
+            ],
             GetLastPosition: function() {
                 return LastPosition;
             },
@@ -360,5 +368,5 @@ angular.module('myApp.services', [])
             }
 
         }
-    
+
 }]);

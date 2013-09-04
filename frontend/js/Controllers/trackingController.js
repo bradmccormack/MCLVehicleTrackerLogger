@@ -15,7 +15,13 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
     var timer = setInterval(function() {
         $scope.$apply(updateLiveInformation);
     }, 1000);
-   
+
+
+    $scope.MapRefresh = function() {
+        mapService.Map.Refresh();
+    };
+
+
    Init();
    
    
