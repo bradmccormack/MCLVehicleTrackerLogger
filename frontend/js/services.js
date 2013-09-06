@@ -371,7 +371,7 @@ angular.module('myApp.services', [])
 
     }
 
-}]).factory("networkService", ['mapService', 'utilityService', function (mapService, utilityService) {
+}]).factory("networkService", ['mapService', 'utilityService', function (mapService, utilityService, $rootScope) {
 
     return {
         Init: function () {
@@ -389,7 +389,8 @@ angular.module('myApp.services', [])
                 }
                 Con.onmessage = function (evt) {
                     var data = JSON.parse(evt.data).Entry;
-
+                    $rootScope.$broadcast("positionChange", data); //send the data out to any listeners
+                    /*
                     //add vehicle to Legend if it is not there
                     if (!(data.ID in mapService.Vehicles)) {
                         mapService.updateLegend(data.ID, utilityService.RandomColor());
@@ -406,6 +407,7 @@ angular.module('myApp.services', [])
                         }
 
                     }
+                    */
 
                     /*
                      $(tabVehicles).find("span.text-error").remove();

@@ -19,14 +19,14 @@
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
    <script type="text/javascript" src="js/bootstrap-wysiwyg.js"></script>
 </head>
-<body ng-app="myApp">
+<body ng-app="myApp" ng-init="SystemInit()">
   
 
   <!--[if lt IE 7]>
 		<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
   <![endif]-->
 
-  <div id="Mainheader" class="container-fluid" ng-controller="headerController">
+  <div id="Mainheader"  class="container-fluid" ng-controller="headerController">
 			
       <div id="Mainlogo" class="span4">
               <img id="logo" src="img/logoheader.png">
@@ -148,7 +148,7 @@
   <script src="js/Controllers/licenseController.js"></script>
   <script src="js/Controllers/reportController.js"></script>
   <script src="js/Controllers/trackingController.js"></script>
-
+  <script src="js/Controllers/mainController.js"></script>
     <!-- Make a note in my blog about trying to access an angularJS module where you are including a controller that is attempting
     to get a reference to the module before it is created eg.
 

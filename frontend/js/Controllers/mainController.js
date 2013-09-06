@@ -1,4 +1,4 @@
-angular.module('myApp.controllers',[]).controller("mainController", ['$scope', function($scope){
+angular.module('myApp.controllers').controller("mainController", ['$scope', 'networkService', function($scope, networkService){
    
    function Login() {
      
@@ -12,10 +12,7 @@ angular.module('myApp.controllers',[]).controller("mainController", ['$scope', f
         }
    }
    
-   function Init() {
-       Login();
-   }
-   
+
    
    $scope.Camera = {
     
@@ -27,8 +24,11 @@ angular.module('myApp.controllers',[]).controller("mainController", ['$scope', f
 
 
 
-   Init();
-   
+   $scope.SystemInit = function() {
+       Login();
+       alert("lol");
+
+   }
    
    
    

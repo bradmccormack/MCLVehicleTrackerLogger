@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+//	"bytes"
 	"database/sql"
 	"encoding/gob"
 	"encoding/json"
@@ -203,19 +203,7 @@ var views = map[string]interface{}{
 
 		w.Header().Add("Content-Type", "application/json")
 
-		session, _ := store.Get(r, "session")
-
-		var err error
-		t := template.New("Reports")
-		t, err = template.ParseFiles("templates/report.html")
-		if err != nil {
-			log.Fatal("Failed to read the template file for Reports. Fix it")
-		}
-
-		//execute to string and send back JSON with the view and the data view the charts
-		var viewsettings bytes.Buffer
-		t.Execute(&viewsettings, session.Values)
-		s := viewsettings.String()
+		//session, _ := store.Get(r, "session")
 
 		var percentAvailable int = random.Intn(75)
 		availability := [...]int{percentAvailable, 100 - percentAvailable}
@@ -225,7 +213,7 @@ var views = map[string]interface{}{
 			kmPerDay[i] = random.Intn(60)
 		}
 
-		fmt.Fprint(w, Response{"HTML": s, "Availability": availability, "KMPerDay": kmPerDay})
+		fmt.Fprint(w, Response{"Availability": availability, "KMPerDay": kmPerDay})
 		//t.Execute(w, session.Values)
 	},
 
