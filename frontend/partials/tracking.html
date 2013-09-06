@@ -2,13 +2,13 @@
 <div class="row-fluid">
 	<div id="Mainmapcontrols" class="btn-toolbar" >
 		<div class="btn-group">
-			<button id="mapRefresh" data-toggle="tooltip" title="Refresh Map" class="btn" >
+			<button id="mapRefresh" ng-click="MapRefresh()" data-toggle="tooltip" title="Refresh Map" class="btn" >
 				<i class="icon-refresh" data-original-title="Tooltip on top"> </i>
 			</button>
-			<button id="mapZoomIn" data-toggle="tooltip" title="Zoom in" class="btn">
+			<button id="mapZoomIn" ng-click="MapZoomIn()" data-toggle="tooltip" title="Zoom in" class="btn">
 				<i class="icon-zoom-in"> </i>
 			</button>
-			<button id="mapZoomOut" data-toggle="tooltip" title="Zoom Out" class="btn">
+			<button id="mapZoomOut" ng-click="MapZoomOut()" data-toggle="tooltip" title="Zoom Out" class="btn">
 				<i class="icon-zoom-out"> </i>
 			</button>
 		</div>
@@ -38,7 +38,7 @@
 
 
 <div class="container-fluid div-panel">
-	<div id="MapCanvas" class="span9 div-panel" ng-init="MapRefresh()" ></div>
+	<div id="MapCanvas" class="span9 div-panel" ng-init="MapReload()" ></div>
 
 	<div class="span3 well">
 		<div id="SystemMessages" class="container">
@@ -87,7 +87,7 @@
 								<div class="controls">
 									<div id="routeDateFrom" class="input-append date">
 										<span class="add-on"> <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> </span>
-										<input data-format="dd/MM/yyyy hh:mm:ss" type="text" value="14/07/2013 13:56:27"></input>
+										<input data-format="dd/MM/yyyy hh:mm:ss" type="text" value="14/07/2013 13:56:27">
 									</div>
 								</div>
 							</div>
@@ -98,7 +98,7 @@
 
 									<div id="routeDateTo" class="input-append date">
 										<span class="add-on"> <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> </span>
-										<input data-format="dd/MM/yyyy hh:mm:ss" type="text" value="21/07/2013 13:56:27"></input>
+										<input data-format="dd/MM/yyyy hh:mm:ss" type="text" value="21/07/2013 13:56:27">
 									</div>
 								</div>
 							</div>

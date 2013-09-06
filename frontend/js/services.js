@@ -4,75 +4,77 @@ var genericCallback;
 /* Services */
 //http://www.ng-newsletter.com/posts/beginner2expert-services.html
 angular.module('myApp.services', [])
-    .factory("shellService", [function(){
+    .factory("shellService", [function () {
 
-        //TODO pull all the data out from the cookie that is returned via Login process
-        var serviceInstance = {
-            User: {
-                First: "Brad",
-                Last: "McCormack",
-                Access: 10
+    //TODO pull all the data out from the cookie that is returned via Login process
+    var serviceInstance = {
+        User:{
+            First:"Brad",
+            Last:"McCormack",
+            Access:10
+        },
+        Company:{
+            Name:"Test Company",
+            MaxUsers:1,
+            Expiry:new Date(),
+            Logo:"img/sussex_logo.PNG"
+        },
+        Settings:{
+            Network:{
+                EnableRF:true,
+                Enable3G:true
             },
-            Company: {
-               Name: "Test Company",
-               MaxUsers: 1,
-               Expiry: new Date(),
-               Logo: "img/sussex_logo.PNG"
+            Security:{
+                RemoteSupport:false,
+                SystemConsoleAccess:false,
+                AdminPasswordResetOnly:false
             },
-            Settings: {
-                Network: {
-                    EnableRF: true,
-                    Enable3G: true
-                },
-                Security: {
-                    RemoteSupport: false,
-                    SystemConsoleAccess: false,
-                    AdminPasswordResetOnly: false
-                },
-                Mobile: {
-                    AllowSmartPhone: true,
-                    ShowSmartPhoneLocation: false
-                },
-                Map: {
-                    API: "Google Maps", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
-                    Marker: {
-                        Smooth: false,
-                        FollowCarTrigger: 10 //Every 10 updates the Map system will pan to the selected car
-                    }
+            Mobile:{
+                AllowSmartPhone:true,
+                ShowSmartPhoneLocation:false
+            },
+            Map:{
+                API:"Google Maps", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
+                Marker:{
+                    Smooth:false,
+                    FollowCarTrigger:10 //Every 10 updates the Map system will pan to the selected car
                 }
             }
-          
-        };
-        
-        return serviceInstance;
-  }])
-    .factory("utilityService", [function(){
-        return {
-                RandomColor: function() {
-                        return (function lol(m,s,c){return s[m.floor(m.random() * s.length)] +
-                        (c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4)
         }
-              
-    }
-    
+
+    };
+
+    return serviceInstance;
 }])
-    .factory("mapService", ['shellService', function(shellService) {
+    .factory("utilityService", [function () {
+    return {
+        RandomColor:function () {
+            return (function lol(m, s, c) {
+                return s[m.floor(m.random() * s.length)] +
+                    (c && lol(m, s, c - 1));
+            })(Math, '0123456789ABCDEF', 4)
+        }
 
-        var LastPosition = {
-            Time: new Date(),
-            Position: ""
-        };
+    }
 
-        var MapQuest = (function(Latitude, Longitude, Zoom, DivID) {
-            throw "Not Implemented";
-        });
+}])
+    .factory("mapService", ['shellService', function (shellService) {
 
-        var BingMaps = (function(Latitude, Longitude, Zoom, DivID) {
-            throw "Not Implemented";
-        });
+    var LastPosition = {
+        Time:new Date(),
+        Position:""
+    };
+
+    var MapQuest = (function (Latitude, Longitude, Zoom, DivID) {
+        throw "Not Implemented";
+    });
+
+    var BingMaps = (function (Latitude, Longitude, Zoom, DivID) {
+        throw "Not Implemented";
+    });
 
 
-        var Leaflet = (function(Latitude,Longitude, Zoom, DivID) {
+    var Leaflet = (function (Latitude, Longitude, Zoom, DivID) {
 
         var map;
         var divid;
@@ -80,8 +82,7 @@ angular.module('myApp.services', [])
         var marker;
         var zoom;
 
-        function setview(Latitude, Longitude, Zoom)
-        {
+        function setview(Latitude, Longitude, Zoom) {
             this.zoom = Zoom;
             this.Latitude = Latitude;
             this.Longitude = Longitude;
@@ -103,55 +104,53 @@ angular.module('myApp.services', [])
         setview(Latitude || 51.505, Longitude || -0.09, Zoom || 18);
 
         return {
-            zoomIn: function() {
+            zoomIn:function () {
 
             },
-            zoomOut: function() {
+            zoomOut:function () {
 
             },
-            setView: function(Latitude, Longitude, Zoom) {
+            setView:function (Latitude, Longitude, Zoom) {
                 setview(Latitude, Longitude, Zoom);
             },
-            clearRoutes: function() {
-                for(var Route in Routes) {
+            clearRoutes:function () {
+                for (var Route in Routes) {
                     delete Routes[Route];
                 }
             },
-            clearRoute: function(Route) {
-                if(Route in routes)
+            clearRoute:function (Route) {
+                if (Route in routes)
                     delete routes[Route];
 
             },
-            addtoRoute: function(Route, Point) {
-                ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
-                    if(!(this in Point)){
+            addtoRoute:function (Route, Point) {
+                ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function () {
+                    if (!(this in Point)) {
                         throw "missing params for addtoRoute"
                     }
                 })
             },
-            setMarker: function(Latitude, Longitude, Text, Color) {
+            setMarker:function (Latitude, Longitude, Text, Color) {
                 latlng = new L.LatLng(Latitude, Longitude);
-                if(!marker) {
+                if (!marker) {
                     marker = L.marker(latlng).addTo(map);
                 }
                 else {
                     marker.setLatLng(latlng);
                 }
-                if(Text)
+                if (Text)
                     marker.bindPopup(Text).openPopup();
             },
-            onClick: function(funct) {
-                map.on("click", function(e) {
-                    funct({Location: e.latlng});
+            onClick:function (funct) {
+                map.on("click", function (e) {
+                    funct({Location:e.latlng});
                 })
 
             }
         }
     });
 
-
-
-        var GoogleMaps = (function(Latitude, Longitude, Zoom, DivID) {
+    var GoogleMaps = (function (Latitude, Longitude, Zoom, DivID) {
 
         //var mapTypes = { MapTypeId.ROADMAP, MapTypeId.SATELLITE, MapTypeId.HYBRID, MapTypeId.TERRAIN }
         var map;
@@ -162,12 +161,11 @@ angular.module('myApp.services', [])
         var zoom;
         var routes = {}; //used to keep track of all polyline and route information at those points
 
-        function init()
-        {
+        function init() {
             var mapProp = {
-                center: new google.maps.LatLng(Latitude, Longitude),
-                zoom: Zoom || 15,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                center:new google.maps.LatLng(Latitude, Longitude),
+                zoom:Zoom || 15,
+                mapTypeId:google.maps.MapTypeId.ROADMAP
             };
 
             zoom = Zoom;
@@ -175,8 +173,7 @@ angular.module('myApp.services', [])
                 , mapProp);
         }
 
-        function setview(Latitude, Longitude, Zoom)
-        {
+        function setview(Latitude, Longitude, Zoom) {
             zoom = Zoom;
             Latitude = Latitude;
             Longitude = Longitude;
@@ -184,12 +181,12 @@ angular.module('myApp.services', [])
             //TODO restrict the zoom level and lat long boundary
         }
 
-        if(!("google" in window)) {
+        if (!("google" in window)) {
 
             genericCallback = init;
             var url = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true&libraries=geometry&callback=genericCallback";
-            $.getScript(url, function() {
-                if("google" in window)  {
+            $.getScript(url, function () {
+                if ("google" in window) {
                     google.maps.visualRefresh = true;
                 }
             });
@@ -198,45 +195,45 @@ angular.module('myApp.services', [])
 
         return {
 
-            zoomIn : function() {
+            zoomIn:function () {
                 zoom++;
                 map.setZoom(zoom);
             },
-            zoomOut: function() {
+            zoomOut:function () {
                 zoom--;
                 map.setZoom(zoom);
             },
 
-            setView: function(Latitude, Longitude, Zoom) {
+            setView:function (Latitude, Longitude, Zoom) {
                 setview(Latitude, Longitude, Zoom);
             },
-            panTo: function(Latitude, Longitude) {
+            panTo:function (Latitude, Longitude) {
                 map.panTo(new google.maps.LatLng(Latitude, Longitude));
             },
-            centerView: function(Latitude, Longitude) {
-                map.setCenter(new google.maps.LatLng(Latitude,Longitude));
+            centerView:function (Latitude, Longitude) {
+                map.setCenter(new google.maps.LatLng(Latitude, Longitude));
             },
 
-            clearRoutes: function() {
-                for(var Route in routes) {
+            clearRoutes:function () {
+                for (var Route in routes) {
                     delete routes[Route];
                 }
             },
-            clearRoute: function(Route) {
-                if(Route in routes)
+            clearRoute:function (Route) {
+                if (Route in routes)
                     delete routes[Route];
 
             },
-            addtoRoute: function(Route, Point, Color) {
+            addtoRoute:function (Route, Point, Color) {
 
-                if(!(Route in routes)) {
+                if (!(Route in routes)) {
                     var polyOptions = {
-                        strokeColor: Color || Utility.RandomColor(),
-                        strokeOpacity: 1.0,
-                        strokeWeight: 3
+                        strokeColor:Color || Utility.RandomColor(),
+                        strokeOpacity:1.0,
+                        strokeWeight:3
                     }
 
-                    routes[Route]= {polyline : new google.maps.Polyline(polyOptions)};
+                    routes[Route] = {polyline:new google.maps.Polyline(polyOptions)};
 
                     routes[Route].polyline.setMap(map);
                     routes[Route].metadata = {}; //used for looking up date at this time.
@@ -256,117 +253,176 @@ angular.module('myApp.services', [])
                  * ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
                  */
                 var path = routes[Route].polyline.getPath();
-                path.push(new google.maps.LatLng(Point.Latitude,Point.Longitude));
+                path.push(new google.maps.LatLng(Point.Latitude, Point.Longitude));
                 //use the lat, long as the key for looking up meta data
-                routes[Route].metadata[Point.Latitude + "," + Point.Longitude] = { Lat: Point.Latitude, Long: Point.Longitude, Speed: Point.Speed, Heading: Point.Heading, DateTime: Point.DateTime};
+                routes[Route].metadata[Point.Latitude + "," + Point.Longitude] = { Lat:Point.Latitude, Long:Point.Longitude, Speed:Point.Speed, Heading:Point.Heading, DateTime:Point.DateTime};
 
 
             },
             //ID is the vehicle ID
-            setMarker: function(ID, Latitude, Longitude, Text, Color, isInterpolate) {
+            setMarker:function (ID, Latitude, Longitude, Text, Color, isInterpolate) {
 
                 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
-                if(!markers[ID]) {
+                if (!markers[ID]) {
 
                     var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
                         new google.maps.Size(21, 34),
-                        new google.maps.Point(0,0),
+                        new google.maps.Point(0, 0),
                         new google.maps.Point(10, 34)
                     );
 
                     markers[ID] = new google.maps.Marker({
-                        icon: pinImage,
-                        position: new google.maps.LatLng(Latitude, Longitude),
-                        map: map,
-                        animation: google.maps.Animation.DROP
+                        icon:pinImage,
+                        position:new google.maps.LatLng(Latitude, Longitude),
+                        map:map,
+                        animation:google.maps.Animation.DROP
                     });
                     panTo(markers[ID].position);
 
-                    if(Text) {
+                    if (Text) {
                         markers[ID].Text = Text;
                         markers[ID].setTitle(Text);
                     }
 
                 }
                 else {
-                    if(isInterpolate) {
+                    if (isInterpolate) {
                         var startLatLng = markers[ID].position;
                         var endLatLng = new google.maps.LatLng(Latitude, Longitude);
-                        for(var i = 0 ; i < 1 ; i+=0.1) {
-                            var intermediaryPoint =  google.maps.geometry.spherical.interpolate(startLatLng, endLatLng, i);
+                        for (var i = 0; i < 1; i += 0.1) {
+                            var intermediaryPoint = google.maps.geometry.spherical.interpolate(startLatLng, endLatLng, i);
                             markers[ID].setPosition(intermediaryPoint);
                         }
                     }
                     else {
                         markers[ID].setPosition(new google.maps.LatLng(Latitude, Longitude));
-
                     }
                 }
             },
-            onClick: function(funct) {
-                map.on("click", function(e) {
-                    funct({Location: e.latlng});
+            onClick:function (funct) {
+                map.on("click", function (e) {
+                    funct({Location:e.latlng});
                 })
 
             },
-            refresh: function() {
+            refresh:function () {
+                google.maps.event.trigger(map, 'resize');
+                map.setCenter(new google.maps.LatLng(Latitude, Longitude));
+            },
+            reload:function () {
                 init();
-                //google.maps.event.trigger(map, 'resize');
-                //map.setCenter(new google.maps.LatLng(Latitude,Longitude));
             }
 
         }
     });
 
+    var CurrentMapAPI;
+    var Vendors = {
+        "Leaflet":Leaflet,
+        "GoogleMaps":GoogleMaps,
+        "BingMaps":BingMaps,
+        "MapQuest":MapQuest
+    };
 
+    var defaultLocation = {
+        Latitude:-34.50118,
+        Longitude:150.81071,
+        Zoom:16};
+    return {
 
-        var CurrentMapAPI;
-        var Vendors =  {
-            "Leaflet" : Leaflet,
-            "GoogleMaps": GoogleMaps,
-            "BingMaps": BingMaps,
-            "MapQuest": MapQuest
-        };
-
-        var defaultLocation = {
-            Latitude: -34.50118,
-            Longitude: 150.81071,
-            Zoom: 16};
-        return {
-
-            //Facade
-            Map : {
-                SetAPI: function(API) {
-                    var matchingAPI = Vendors[API];
-                    if(matchingAPI) {
-                        if(CurrentMapAPI)
-                            CurrentMapAPI = undefined;
-                        CurrentMapAPI = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
-                    }
-                },
-                Refresh: function() {
-                    if(!CurrentMapAPI)
-                        CurrentMapAPI = new Vendors[shellService.Settings.Map.API.replace(" ","")](defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
-                    else
-                        CurrentMapAPI.refresh();
-                },
-                ZoomIn: function(){
-                    CurrentMapAPI.zoomIn();
-                },
-                ZoomOut: function(){
-                    CurrentMapAPI.zoomOut();
+        //Facade
+        Map:{
+            SetAPI:function (API) {
+                var matchingAPI = Vendors[API];
+                if (matchingAPI) {
+                    if (CurrentMapAPI)
+                        CurrentMapAPI = undefined;
+                    CurrentMapAPI = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
                 }
             },
-            Vehicles: [
-            ],
-            GetLastPosition: function() {
-                return LastPosition;
+            Refresh:function () {
+                CurrentMapAPI.refresh();
             },
-            UpdateLastPosition: function(Position) {
-                LastPosition.Time = new Date();
-                LastPosition.Position = Position;
-            }
+            ReLoad:function () {
+                if (!CurrentMapAPI)
+                    CurrentMapAPI = new Vendors[shellService.Settings.Map.API.replace(" ", "")](defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
+                else
+                    CurrentMapAPI.reload();
+            },
+            ZoomIn:function () {
+                CurrentMapAPI.zoomIn();
+            },
+            ZoomOut:function () {
+                CurrentMapAPI.zoomOut();
+            },
+            UpdateLegend: function() {
 
+            }
+        },
+        Vehicles:[
+        ],
+        GetLastPosition:function () {
+            return LastPosition;
+        },
+        UpdateLastPosition:function (Position) {
+            LastPosition.Time = new Date();
+            LastPosition.Position = Position;
         }
+
+    }
+
+}]).factory("networkService", ['mapService', 'utilityService', function (mapService, utilityService) {
+
+    return {
+        Init: function () {
+            var Con;
+
+            if (window["WebSocket"]) {
+                Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
+
+                Con.onopen = function () {
+                    //systemMessage("Connected to server");
+                };
+
+                Con.onclose = function (evt) {
+                    //systemMessage("Server connection closed");
+                }
+                Con.onmessage = function (evt) {
+                    var data = JSON.parse(evt.data).Entry;
+
+                    //add vehicle to Legend if it is not there
+                    if (!(data.ID in mapService.Vehicles)) {
+                        mapService.updateLegend(data.ID, utilityService.RandomColor());
+                    }
+
+
+                    mapService.setMarker(data.ID, data.Latitude, data.Longitude, "", Vehicles[data.ID].Color, Settings.Marker.Interpolate);
+                    if (Camera.Snap) {
+                        Camera.SnapCount++;
+                        if (Camera.SnapCount == Camera.SnapTrigger) {
+                            mapAPI.Current().panTo(data.Latitude, data.Longitude);
+                            //mapAPI.Current().centerView(data.Latitude, data.Longitude);
+                            Camera.SnapCount = 0;
+                        }
+
+                    }
+
+                    /*
+                     $(tabVehicles).find("span.text-error").remove();
+                     var VehicleInfo = $(tabVehicles).find("span[data-vehicle = '" + data.ID + "']");
+                     VehicleInfo.remove();
+
+                     var html = "<span data-vehicle='" + data.ID + "'> <i class='icon-truck'></i> " + data.ID + "  <strong>Speed(KM/Hr)</strong> " + data.Speed
+                     + " <strong>Heading Degrees)</strong> " + Math.round(data.Heading) + " <strong>Time</strong> " + data.Date + "</span>"
+                     $(tabVehicles).append(html);
+                     */
+
+                }
+            } else {
+                alert("Your browser does not support WebSockets. You cannot use myClubLink until you upgrade to a modern browser");
+            }
+        }
+    }
+
 
 }]);

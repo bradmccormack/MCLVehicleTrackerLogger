@@ -16,10 +16,26 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
         $scope.$apply(updateLiveInformation);
     }, 1000);
 
-
     $scope.MapRefresh = function() {
         mapService.Map.Refresh();
+    }
+
+    $scope.MapZoomIn = function() {
+        mapService.Map.ZoomIn();
+    }
+
+    $scope.MapZoomOut = function() {
+        mapService.Map.ZoomOut();
+    }
+
+    $scope.MapReload = function() {
+        mapService.Map.ReLoad();
     };
+
+    //We want to watch for changes on the model that the service will initiate via $broadcast
+    $scope.$on('positionChange', function(event, vehicle){
+        alert(vehicle);
+    });
 
 
    Init();
