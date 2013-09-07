@@ -1,7 +1,7 @@
 angular.module('myApp.controllers').controller("supportController", ['$scope', function($scope){
    
-   function Init() {
-        $("div#editor").wysiwyg();
+   $scope.Init = function(){
+        $("div#editor").wysihtml5();
    }
    
    $scope.User =
@@ -15,8 +15,7 @@ angular.module('myApp.controllers').controller("supportController", ['$scope', f
  
    }
    
-   Init();
-   
-   
+
+
    
 }]);
