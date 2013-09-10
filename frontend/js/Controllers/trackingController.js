@@ -58,6 +58,15 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
         printWin.close();
     }
 
+
+	$scope.SystemMessages = function(){
+		return shellService.Messages;
+	}
+
+	$scope.$on('systemMessage', function(Event, Data){
+		shellService.Messages.push({Message: Data, Read: false})
+	});
+
     //We want to watch for changes on the model that the service will initiate via $broadcast
     $scope.$on('positionChange', function(Event, Data){
 

@@ -44,8 +44,8 @@ angular.module('myApp.services', [])
 		            //Keeps track of settings per vehicle in the system
 	            }
             }
-        }
-
+        },
+	    Messages: []
     };
 
     return serviceInstance;
@@ -358,6 +358,7 @@ angular.module('myApp.services', [])
 	var Vehicles = {
 	};
 	var VehiclesCount = 0;
+	var Messages = [];
 
 
 		return {
@@ -443,6 +444,7 @@ angular.module('myApp.services', [])
                     $rootScope.$broadcast("positionChange", data); //send the data out to any listeners
                     /*
                     //add vehicle to Legend if it is not there
+
                     if (!(data.ID in mapService.Vehicles)) {
                         mapService.updateLegend(data.ID, utilityService.RandomColor());
                     }

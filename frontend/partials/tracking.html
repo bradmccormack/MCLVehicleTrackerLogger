@@ -42,9 +42,11 @@
 
 	<div class="span3 well">
 		<div id="SystemMessages" class="container">
-			
 			<h4><i class="icon-envelope icon-white"> </i>   System Messages </h4>
 			<ul id="Messages">
+				<li ng-repeat="SystemMessage in SystemMessages()">
+					{{SystemMessage.Message}}
+				</li>
 			</ul>
 			
 		</div>
