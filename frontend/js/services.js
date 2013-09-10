@@ -1,5 +1,6 @@
 'use strict';
 var genericCallback;
+var directionsService;
 
 /* Services */
 //http://www.ng-newsletter.com/posts/beginner2expert-services.html
@@ -182,6 +183,8 @@ angular.module('myApp.services', [])
             zoom = Zoom;
             map = new google.maps.Map(document.getElementById(DivID || "map")
                 , mapProp);
+	        directionsService =  new google.maps.DirectionsService();
+
         }
 
         function setview(Latitude, Longitude, Zoom) {
@@ -199,6 +202,7 @@ angular.module('myApp.services', [])
             $.getScript(url, function () {
                 if ("google" in window) {
                     google.maps.visualRefresh = true;
+
                 }
             });
         }
@@ -361,6 +365,7 @@ angular.module('myApp.services', [])
 	var Messages = [];
 
 
+
 		return {
 
         //Facade
@@ -404,7 +409,25 @@ angular.module('myApp.services', [])
 			        }
 			        //updateLegend(ID); //The view can probably just bind to the Vechiles object with a ng-repeat
 		        }
-		        CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
+		        var Src = new google.maps.LatLng(Latitude, Longitude);
+
+		        //Note - SnaptoRoad chokes if you pound the system with updates (eg 20 per second versus 1 because of call stack - TODO block on vehicle updates if waiting for snap
+		        //to road for this vehicle
+		        if(shellService.Settings.Map.Marker.SnaptoRoad){
+					directionsService.route(
+						{   origin: Src,
+							destination: Src,
+							travelMode: google.maps.DirectionsTravelMode.DRIVING
+					}, function(response,status){
+							if(status == google.maps.DirectionsStatus.OK){
+								var pos = response.routes[0].legs[0].start_location;
+								CurrentMapAPI.setMarker(ID, pos.pb, pos.qb, Text, Vehicles[ID].Color);
+							}
+						});
+		        }
+				else {
+		            CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
+		        }
 	        }
         },
 	    GetVehicles: function() {
