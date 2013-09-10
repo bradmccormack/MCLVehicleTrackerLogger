@@ -63,7 +63,7 @@ angular.module('myApp.services', [])
     }
 
 }])
-    .factory("mapService", ['shellService', 'utilityService', function (shellService, utilityService) {
+    .factory("mapService", ['shellService', 'utilityService','$rootScope', function (shellService, utilityService, $rootScope) {
 
     var LastPosition = {
         Time: new Date(),
@@ -72,10 +72,6 @@ angular.module('myApp.services', [])
             Longitude: undefined
         }
     };
-
-	function updateLegend(ID){
-		//Grab the Vehicle information from the vehicle hash map and update the legend accordingly
-	}
 
     var MapQuest = (function (Latitude, Longitude, Zoom, DivID) {
         throw "Not Implemented";
@@ -280,7 +276,6 @@ angular.module('myApp.services', [])
                 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
                 if (!markers[ID]) {
 
-
                     var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
                         new google.maps.Size(21, 34),
                         new google.maps.Point(0, 0),
@@ -396,9 +391,11 @@ angular.module('myApp.services', [])
 	        SetMarker: function(ID, Latitude, Longitude, Text) {
 		        if(!(ID in Vehicles)) {
 			        Vehicles[ID] = {
+				        Ref: ID,
 				        Latitude: Latitude,
 				        Longitude: Longitude,
-				        Color: utilityService.RandomColor()
+				        Color: utilityService.RandomColor(),
+				        Selected: false
 			        };
 			        VehiclesCount++;
 
@@ -407,7 +404,8 @@ angular.module('myApp.services', [])
 				        SnapCount: 0,
 				        Snap: true
 			        }
-			        //updateLegend(ID); //The view can probably just bind to the Vechiles object with a ng-repeat
+			        $rootScope.$broadcast("LegendChange", {Count: VehiclesCount, Vehicles: Vehicles});
+
 		        }
 		        var Src = new google.maps.LatLng(Latitude, Longitude);
 

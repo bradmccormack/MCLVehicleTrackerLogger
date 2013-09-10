@@ -12,18 +12,6 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
         }
 	    networkService.Init();
    }
-   
-
-   
-   $scope.Camera = {
-    
-   };
-   
-   $scope.Vehicles = [];
-
-
-
-
 
    $scope.SystemInit = function() {
        Login();
