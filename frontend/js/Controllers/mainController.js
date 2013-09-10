@@ -10,6 +10,7 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
                 }
                 return;
         }
+	    networkService.Init();
    }
    
 
@@ -26,8 +27,6 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
 
    $scope.SystemInit = function() {
        Login();
-       alert("lol");
-
    }
    
    

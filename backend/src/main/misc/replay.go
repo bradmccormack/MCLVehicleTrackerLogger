@@ -12,7 +12,7 @@ import (
 )
 
 
-var ip = flag.String("ip", "localhost:6969", "ip address to send gps co-ordinates to")
+var ip = flag.String("ip", "127.0.0.1:6969", "ip address to send gps co-ordinates to")
 var dbname = flag.String("database", "backend.db", "database to open gps records from")
 var query = flag.String("query", "select id, Latitude, Longitude, Speed, Heading, Fix, BusID from GPSRecords", "query to obtain gps records -eg select * from GPSRecords")
 var db *sql.DB
@@ -62,7 +62,10 @@ func main() {
 	conn, err := net.Dial("tcp", *ip)
 	if err != nil {
 		log.Fatal("Cannot do tcp connection - %s", err.Error()) 
+	} else {
+		fmt.Printf("Connection made successfully \n")
 	}
+
 
 
 	var msg string
@@ -86,11 +89,11 @@ func main() {
 
 		//convert string to bytes.. send to server then wait a second and loop
 		//bytes := []byte(msg)
-
+		fmt.Printf("sentence is %s\n", msg)       
 		fmt.Fprintf(conn, msg)
 		time.Sleep(1000 * time.Millisecond)
 
-		fmt.Printf("sentence is %s\n", msg)       
+	
 		
 	}
 

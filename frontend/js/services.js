@@ -61,8 +61,11 @@ angular.module('myApp.services', [])
     .factory("mapService", ['shellService', function (shellService) {
 
     var LastPosition = {
-        Time:new Date(),
-        Position:""
+        Time: new Date(),
+        Position: {
+            Latitude: undefined,
+            Longitude: undefined
+        }
     };
 
     var MapQuest = (function (Latitude, Longitude, Zoom, DivID) {
@@ -371,7 +374,7 @@ angular.module('myApp.services', [])
 
     }
 
-}]).factory("networkService", ['mapService', 'utilityService', function (mapService, utilityService, $rootScope) {
+}]).factory("networkService", ['mapService', 'utilityService', '$rootScope', function (mapService, utilityService, $rootScope) {
 
     return {
         Init: function () {
@@ -381,11 +384,11 @@ angular.module('myApp.services', [])
                 Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
 
                 Con.onopen = function () {
-                    //systemMessage("Connected to server");
+	                $rootScope.$broadcast("systemMessage", "Connected to server");
                 };
 
                 Con.onclose = function (evt) {
-                    //systemMessage("Server connection closed");
+	                $rootScope.$broadcast("systemMessage", "Server connection closed");
                 }
                 Con.onmessage = function (evt) {
                     var data = JSON.parse(evt.data).Entry;

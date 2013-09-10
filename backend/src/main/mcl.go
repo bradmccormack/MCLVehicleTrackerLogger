@@ -567,6 +567,7 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	for data {
 		n, err = conn.Read(buff)
 		if err != nil {
+			fmt.Printf("Error occured - %s", err.Error())
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}

@@ -6,7 +6,8 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
     var updateLiveInformation = function() {
         $scope.VehiclesCount = mapService.Vehicles.length;
-        var Delta = Math.round(Math.abs((new Date() - mapService.GetLastPosition().Time)) / 1000);
+	    var LastTime = mapService.GetLastPosition().Time;
+        var Delta = Math.round(Math.abs((new Date() - LastTime)) / 1000);
         var Minutes = Math.floor(Delta/ 60);
         var Seconds = Delta - Minutes * 60;
         $scope.LastUpdate = Minutes + " (Min) " + Seconds + " (Sec)";
@@ -59,19 +60,18 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
     //We want to watch for changes on the model that the service will initiate via $broadcast
     $scope.$on('positionChange', function(Event, Data){
-        alert("Received " + Data);
 
-         /*
-         1)Update LastPosition received information
-         2) Update Legend if necessary
+
+        //1)Update LastPosition received information
+		mapService.UpdateLastPosition({Latitude: Data.Latitude, Longitude: Data.Longitude});
+
+
+	    /*
+          2) Update Legend if necessary
          3) Update Marker
          4) Snap to the vehicle if it is selceted and the trigger count has been set
          5) Draw line if Draw line functionality is set
           */
-        mapService.LastPosition = {
-            Time: new Date(),
-            Position: Data.position
-        }
 
 
     });
