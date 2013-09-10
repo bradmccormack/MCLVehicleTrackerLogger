@@ -51,7 +51,9 @@
 	  	<form id="mapOptionsNew">
 	  		<div class="control-group">
 	  			<div class="controls">
-	  				<label class="text"> <input type="checkbox" ng-model="Settings.Map.Marker.Smooth">  Smooth movement </label>
+	  				<label class="text"> <input type="checkbox" ng-model="Settings.Map.Marker.Smooth">  Smooth Movement </label>
+				    <label class="text"> <input type="checkbox" ng-model="Settings.Map.Marker.SnaptoRoad"> Snap to Road</label>
+				    <span>Pan camera every </span><label class="text"> <input type="number" ng-model="Settings.Map.Marker.FollowVehicleTrigger"> updates</label>
 	  			</div>	
 	  		</div>
 	  		

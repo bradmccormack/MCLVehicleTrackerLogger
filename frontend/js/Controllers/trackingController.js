@@ -5,7 +5,7 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
    }
 
     var updateLiveInformation = function() {
-        $scope.VehiclesCount = mapService.Vehicles.length;
+        $scope.VehiclesCount = mapService.GetVehicleCount();
 	    var LastTime = mapService.GetLastPosition().Time;
         var Delta = Math.round(Math.abs((new Date() - LastTime)) / 1000);
         var Minutes = Math.floor(Delta/ 60);
@@ -38,7 +38,7 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
         var elm = document.getElementById('MapCanvas');
         var width = elm.Width;
         var height = elm.Height;
-        var dataUrl = "TODO.. figure out how to get the canvas ID of the embedded map. This will be tricky as it depends on what map API vendor is being used"
+        var dataUrl = "TODO.. figure out how to get the canvas ID of the embedded map. This will be tricky as it depends on what map API vendor is being used" // OR JUST grab the pixels by geting the pixel cords of the map div
 
         //var dataUrl = document.getElementById('MapCanvas').toDataURL(); //attempt to save base64 string to server using this var
         var windowContent = '<!DOCTYPE html>';
@@ -64,11 +64,11 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
         //1)Update LastPosition received information
 		mapService.UpdateLastPosition({Latitude: Data.Latitude, Longitude: Data.Longitude});
+	    // 2) Update Marker and if there is no marker already set then add to the legend , generate colour etc
+	    mapService.Map.SetMarker(Data.ID, Data.Latitude, Data.Longitude);
 
+		/*
 
-	    /*
-          2) Update Legend if necessary
-         3) Update Marker
          4) Snap to the vehicle if it is selceted and the trigger count has been set
          5) Draw line if Draw line functionality is set
           */

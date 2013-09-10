@@ -37,8 +37,12 @@ angular.module('myApp.services', [])
                 API:"Google Maps", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
                 Marker:{
                     Smooth:false,
-                    FollowCarTrigger:10 //Every 10 updates the Map system will pan to the selected car
-                }
+	                SnaptoRoad: true,
+                    FollowVehicleTrigger:10 //Default Vehicle camera trigger. 10 would represent a camera pan after every 10 movement updates
+                },
+	            Camera : {
+		            //Keeps track of settings per vehicle in the system
+	            }
             }
         }
 
@@ -58,7 +62,7 @@ angular.module('myApp.services', [])
     }
 
 }])
-    .factory("mapService", ['shellService', function (shellService) {
+    .factory("mapService", ['shellService', 'utilityService', function (shellService, utilityService) {
 
     var LastPosition = {
         Time: new Date(),
@@ -67,6 +71,10 @@ angular.module('myApp.services', [])
             Longitude: undefined
         }
     };
+
+	function updateLegend(ID){
+		//Grab the Vehicle information from the vehicle hash map and update the legend accordingly
+	}
 
     var MapQuest = (function (Latitude, Longitude, Zoom, DivID) {
         throw "Not Implemented";
@@ -263,7 +271,7 @@ angular.module('myApp.services', [])
 
             },
             //ID is the vehicle ID
-            setMarker:function (ID, Latitude, Longitude, Text, Color, isInterpolate) {
+            setMarker:function (ID, Latitude, Longitude, Text, Color) {
 
                 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
                 if (!markers[ID]) {
@@ -274,25 +282,33 @@ angular.module('myApp.services', [])
                         new google.maps.Point(10, 34)
                     );
 
+	                //Create new marker for this vehicle
                     markers[ID] = new google.maps.Marker({
                         icon:pinImage,
                         position:new google.maps.LatLng(Latitude, Longitude),
                         map:map,
                         animation:google.maps.Animation.DROP
                     });
-                    panTo(markers[ID].position);
 
-                    if (Text) {
-                        markers[ID].Text = Text;
-                        markers[ID].setTitle(Text);
-                    }
-
+	                //Create a camera object for this vehicle
+	                shellService.Settings.Map.Camera[ID] = {
+		                SnapCount: 0,
+		                Snap: false
+	                }
                 }
+
+                if (Text) {
+                    markers[ID].Text = Text;
+                    markers[ID].setTitle(Text);
+                }
+
+
                 else {
-                    if (isInterpolate) {
+	                //attempt to interpolate movement
+                    if (shellService.Settings.Map.Marker.Smooth) {
                         var startLatLng = markers[ID].position;
                         var endLatLng = new google.maps.LatLng(Latitude, Longitude);
-                        for (var i = 0; i < 1; i += 0.1) {
+                        for (var i = 0; i < 1; i += 0.1) { //10 intermediary points
                             var intermediaryPoint = google.maps.geometry.spherical.interpolate(startLatLng, endLatLng, i);
                             markers[ID].setPosition(intermediaryPoint);
                         }
@@ -300,6 +316,18 @@ angular.module('myApp.services', [])
                     else {
                         markers[ID].setPosition(new google.maps.LatLng(Latitude, Longitude));
                     }
+
+				    //Get camera settings for current vehicle
+				    var Camera = shellService.Settings.Map.Camera[ID];
+
+				    if (Camera.Snap) {
+					    Camera.SnapCount++;
+					    if (Camera.SnapCount == shellService.Settings.Map.FollowVehicleTrigger) {
+						    map.panTo(new google.maps.LatLng(Latitude, Longitude));
+						    Camera.SnapCount = 0;
+					    }
+
+				    }
                 }
             },
             onClick:function (funct) {
@@ -331,7 +359,22 @@ angular.module('myApp.services', [])
         Latitude:-34.50118,
         Longitude:150.81071,
         Zoom:16};
-    return {
+
+	var Vehicles = {
+		/*
+		 Example Data
+		 Sus01: {
+		 Latitude: 12312,
+		 Longitude: 1231,
+		 Color: 123
+
+		 }
+		 */
+	};
+	var VehiclesCount = 0;
+
+
+		return {
 
         //Facade
         Map:{
@@ -358,12 +401,24 @@ angular.module('myApp.services', [])
             ZoomOut:function () {
                 CurrentMapAPI.zoomOut();
             },
-            UpdateLegend: function() {
-
-            }
+	        SetMarker: function(ID, Latitude, Longitude, Text) {
+		        if(!(ID in Vehicles)) {
+			        Vehicles[ID] = {
+				        Latitude: Latitude,
+				        Longitude: Longitude,
+				        Color: utilityService.RandomColor()
+			        };
+			        //updateLegend(ID); //The view can probably just bind to the Vechiles object with a ng-repeat
+		        }
+		        CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
+	        }
         },
-        Vehicles:[
-        ],
+	    GetVehicles: function() {
+		    return Vehicles;
+	    },
+		GetVehicleCount: function() {
+			return VehiclesCount;
+		},
         GetLastPosition:function () {
             return LastPosition;
         },

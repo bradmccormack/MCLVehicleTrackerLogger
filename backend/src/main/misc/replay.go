@@ -91,7 +91,7 @@ func main() {
 		//bytes := []byte(msg)
 		fmt.Printf("sentence is %s\n", msg)       
 		fmt.Fprintf(conn, msg)
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 
 	
 		
