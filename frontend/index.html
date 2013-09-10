@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" ng-app="myApp">
+<html lang="en" ng-app="myApp" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset="utf-8">
   <title>myClubLink</title>
@@ -84,7 +84,7 @@
 		  </div>
 	  </div>
 
-	  <div id="Mainfooter" class="container-fluid">
+	  <div id="Mainfooter" class="container-fluid"  ng-controller="footerController">
 		  <div class="row-fluid row-heightmax">
 			  <div id="Mainsummary" class="span6">
 
@@ -95,9 +95,6 @@
 					  <li>
 						  <a href="#tab2"  data-toggle="tab">Vehicles</a>
 					  </li>
-					  <li>
-						  <a href="#tab3"  data-toggle="tab">Employees</a>
-					  </li>
 				  </ul>
 
 				  <div class="tab-content">
@@ -106,7 +103,29 @@
 					  </div>
 
 					  <div id="tab2" class="tab-pane">
-						  <span class="text-error"> No vehicle data yet </span>
+						  <span ng-hide="VehicleCount" class="text-error"> No vehicle data yet </span>
+						  <table id="VehicleStatistics" ng-show="VehicleCount" class="table table-striped table-hover table-bordered table-condensed">
+							  <thead>
+							    <tr>
+								    <th>ID</th>
+								    <th>Fix</th>
+								    <th>Heading</th>
+								    <th>Lat</th>
+								    <th>Long</th>
+								    <th>Speed</th>
+							    </tr>
+							  </thead>
+							  <tbody>
+							  <tr ng-repeat="VD in VehicleData">
+								  <td>{{VD.Data.ID}}</td>
+								  <td>{{VD.Data.Fix}}</td>
+								  <td>{{VD.Data.Heading.toFixed(2)}}</td>
+								  <td>{{VD.Data.Latitude}}</td>
+								  <td>{{VD.Data.Longitude}}</td>
+								  <td>{{Math.round(VD.Data.Speed)}}</td>
+							  </tr>
+							  </tbody>
+							</table>
 					  </div>
 
 					  <div id="tab3" class="tab-pane">
@@ -118,7 +137,7 @@
 			  </div>
 			  <!--summary -->
 
-			  <div id="Mainlegend" class="span6 pull-right" ng-controller="footerController">
+			  <div id="Mainlegend" class="span6 pull-right">
 				  <h5>Legend</h5>
 				  <div id="Vehiclelegend">
 					  <span ng-hide="VehicleCount" class="text-error"><i class="icon-signal"> </i> No vehicles currently connected to the system</span>

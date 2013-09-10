@@ -69,20 +69,13 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
     //We want to watch for changes on the model that the service will initiate via $broadcast
     $scope.$on('positionChange', function(Event, Data){
-
-
         //1)Update LastPosition received information
 		mapService.UpdateLastPosition({Latitude: Data.Latitude, Longitude: Data.Longitude});
 	    // 2) Update Marker and if there is no marker already set then add to the legend , generate colour etc
 	    mapService.Map.SetMarker(Data.ID, Data.Latitude, Data.Longitude);
 
-		/*
 
-         4) Snap to the vehicle if it is selceted and the trigger count has been set
-         5) Draw line if Draw line functionality is set
-          */
-
-
+         //5) Draw line if Draw line functionality is set
     });
 
 

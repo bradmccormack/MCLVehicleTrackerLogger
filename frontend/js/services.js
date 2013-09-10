@@ -405,7 +405,6 @@ angular.module('myApp.services', [])
 				        Snap: true
 			        }
 			        $rootScope.$broadcast("LegendChange", {Count: VehiclesCount, Vehicles: Vehicles});
-
 		        }
 		        var Src = new google.maps.LatLng(Latitude, Longitude);
 
@@ -426,6 +425,7 @@ angular.module('myApp.services', [])
 				else {
 		            CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
 		        }
+
 	        }
         },
 	    GetVehicles: function() {
@@ -463,36 +463,6 @@ angular.module('myApp.services', [])
                 Con.onmessage = function (evt) {
                     var data = JSON.parse(evt.data).Entry;
                     $rootScope.$broadcast("positionChange", data); //send the data out to any listeners
-                    /*
-                    //add vehicle to Legend if it is not there
-
-                    if (!(data.ID in mapService.Vehicles)) {
-                        mapService.updateLegend(data.ID, utilityService.RandomColor());
-                    }
-
-
-                    mapService.setMarker(data.ID, data.Latitude, data.Longitude, "", Vehicles[data.ID].Color, Settings.Marker.Interpolate);
-                    if (Camera.Snap) {
-                        Camera.SnapCount++;
-                        if (Camera.SnapCount == Camera.SnapTrigger) {
-                            mapAPI.Current().panTo(data.Latitude, data.Longitude);
-                            //mapAPI.Current().centerView(data.Latitude, data.Longitude);
-                            Camera.SnapCount = 0;
-                        }
-
-                    }
-                    */
-
-                    /*
-                     $(tabVehicles).find("span.text-error").remove();
-                     var VehicleInfo = $(tabVehicles).find("span[data-vehicle = '" + data.ID + "']");
-                     VehicleInfo.remove();
-
-                     var html = "<span data-vehicle='" + data.ID + "'> <i class='icon-truck'></i> " + data.ID + "  <strong>Speed(KM/Hr)</strong> " + data.Speed
-                     + " <strong>Heading Degrees)</strong> " + Math.round(data.Heading) + " <strong>Time</strong> " + data.Date + "</span>"
-                     $(tabVehicles).append(html);
-                     */
-
                 }
             } else {
                 alert("Your browser does not support WebSockets. You cannot use myClubLink until you upgrade to a modern browser");

@@ -36,6 +36,15 @@ BODY STYLING
     outline: none;
 }
 
+#VehicleStatistics{
+    font-size: smaller;
+    width: 650px;
+    table-layout:fixed;
+}
+
+#VehicleStatistics tbody tr td{
+    width:16.5%;
+}
 
 #wrapper {
 
