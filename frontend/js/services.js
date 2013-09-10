@@ -276,6 +276,7 @@ angular.module('myApp.services', [])
                 //http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|A37870
                 if (!markers[ID]) {
 
+
                     var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|" + Color,
                         new google.maps.Size(21, 34),
                         new google.maps.Point(0, 0),
@@ -289,12 +290,6 @@ angular.module('myApp.services', [])
                         map:map,
                         animation:google.maps.Animation.DROP
                     });
-
-	                //Create a camera object for this vehicle
-	                shellService.Settings.Map.Camera[ID] = {
-		                SnapCount: 0,
-		                Snap: false
-	                }
                 }
 
                 if (Text) {
@@ -322,7 +317,7 @@ angular.module('myApp.services', [])
 
 				    if (Camera.Snap) {
 					    Camera.SnapCount++;
-					    if (Camera.SnapCount == shellService.Settings.Map.FollowVehicleTrigger) {
+					    if (Camera.SnapCount == shellService.Settings.Map.Marker.FollowVehicleTrigger) {
 						    map.panTo(new google.maps.LatLng(Latitude, Longitude));
 						    Camera.SnapCount = 0;
 					    }
@@ -361,15 +356,6 @@ angular.module('myApp.services', [])
         Zoom:16};
 
 	var Vehicles = {
-		/*
-		 Example Data
-		 Sus01: {
-		 Latitude: 12312,
-		 Longitude: 1231,
-		 Color: 123
-
-		 }
-		 */
 	};
 	var VehiclesCount = 0;
 
@@ -408,6 +394,13 @@ angular.module('myApp.services', [])
 				        Longitude: Longitude,
 				        Color: utilityService.RandomColor()
 			        };
+			        VehiclesCount++;
+
+			        //Create a camera object for this vehicle
+			        shellService.Settings.Map.Camera[ID] = {
+				        SnapCount: 0,
+				        Snap: true
+			        }
 			        //updateLegend(ID); //The view can probably just bind to the Vechiles object with a ng-repeat
 		        }
 		        CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
