@@ -330,9 +330,9 @@ func createDb() {
 	UserID integer not null,
 	Subject text not null,
 	Body text not null,
-	DateTime date not null default current_timestamp
+	DateTime date not null default current_timestamp,
+	FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
-
 
 
 		`CREATE TABLE Errors (
@@ -364,6 +364,7 @@ func createDb() {
         CompanyID integer not null,
         Password text not null,
         AccessLevel integer not null default 0,
+	Email text not null,	
         FOREIGN KEY (CompanyID) REFERENCES Company(ID)
 	);`,
 
@@ -377,11 +378,11 @@ func createDb() {
 	);`,
 
 		"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
+		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
 		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
 
 		"INSERT INTO Company (Name, MaxUsers, Expiry) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00');",
-		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel) VALUES ('Craig', 'Smith', 2, 'craig', 10);",
+		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
 		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
 		"COMMIT TRANSACTION;",
 	}

@@ -24,7 +24,7 @@ angular.module('myApp.controllers').controller("supportController", ['$scope', '
 
 
    $scope.Send = function() {
- 
+        
    }
 
    
