@@ -324,6 +324,16 @@ func createDb() {
          Fix integer not null,
          DateTime date not null default current_timestamp,
         BusID text not null);`,
+		
+	`CREATE TABLE Support (
+	SupportID integer primary key autoincrement,
+	UserID integer not null,
+	Subject text not null,
+	Body text not null,
+	DateTime date not null default current_timestamp
+	);`,
+
+
 
 		`CREATE TABLE Errors (
         id integer primary key autoincrement,
