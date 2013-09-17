@@ -24,6 +24,15 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
 
 	function Login() {
 
+		//send over post to login
+		$http({method: 'POST', url : '/system/login', data: {name: "brad", password: "fred"}}).
+			success(function(data, status, headers, config){
+
+			}).
+			error(function(data, status, headers, config){
+
+			});
+		/*
 		var cookies = $.cookie();
 		if ("session" in $.cookie()) {
 
@@ -34,6 +43,7 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
 		{
 			//$http({method: "POST"})
 		}
+		*/
 		networkService.Init();
 		/*
 		var myModal = $("#myModal");

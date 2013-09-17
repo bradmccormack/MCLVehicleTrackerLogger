@@ -46,8 +46,23 @@ type User struct {
 	Lastname    string
 	Password    string
 	Accesslevel int
-	MapAPI      string
+	Email	    string
 }
+
+type Settings struct {
+	MapAPI 	    string
+	Interpolate	int
+	SnaptoRoad	int
+	CameraPanTrigger int
+	RadioCommunication int
+	DataCommunication int
+	SecurityRemoteAdmin int
+	SecurityConsoleAccess int
+	SecurityAdminPasswordReset int
+	MobileSmartPhoneAccess int
+	MobileShowBusLocation int
+}
+
 
 type Response map[string]interface{}
 
@@ -82,6 +97,7 @@ var actions = map[string]interface{}{
 
 		var user User
 		var company Company
+		var settings Settings
 
 		name := r.FormValue("name")
 		password := r.FormValue("password")
@@ -91,10 +107,13 @@ var actions = map[string]interface{}{
 		}
 
 		result := Db.QueryRow(`
-			SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry 
-			FROM User U, Company C
-			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID`,
-			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
+			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
+			S.RadioCommunication, S.3GCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation 
+			FROM User U, Company C, Settings S
+			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID AND S.UserID = U.ID`,
+			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
+			&settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
+			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation)
 
 		switch {
 		case result == sql.ErrNoRows:
@@ -105,6 +124,9 @@ var actions = map[string]interface{}{
 		default:
 
 			//TODO check expiry of license
+			//TODO check amount of loggined in users
+
+
 
 			session, _ := store.Get(r, "session")
 
@@ -372,8 +394,16 @@ func createDb() {
         ID integer primary key autoincrement,
         UserID integer not null,
         MapAPI text not null default 'GoogleMaps',
-		Interpolate integer not null default 1,
-		SnaptoRoad integer not null default 1, 
+	Interpolate integer not null default 1,
+	SnaptoRoad integer not null default 1,
+	CameraPanTrigger integer not null default 10,
+        RadioCommunication integer not null default 1,
+        DataCommunication integer not null default 1,
+        SecurityRemoteAdmin integer not null default 0,
+        SecurityConsoleAccess integer not null default 0,
+        SecurityAdminPasswordReset integer not null default 0,
+        MobileSmartPhoneAccess integer not null default 0,
+        MobileShowBusLocation integer not null default 0,
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
 
