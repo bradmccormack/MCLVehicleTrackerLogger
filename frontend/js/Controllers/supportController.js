@@ -12,15 +12,17 @@ angular.module('myApp.controllers').controller("supportController", ['$scope', '
 	   });
 	   $scope.Subject="";
 	   $scope.Body = "";
+
+	   $scope.User = {
+		   First: shellService.User.First,
+		   Last: shellService.User.Last
+	   }
+
+	   $scope.Company = shellService.Company.Name;
    }
-   
-   $scope.User =
-   {
-        First : "Brad",
-        Last: "Mccormack"
-   }
-   
-   $scope.Company = "Test Company";
+
+
+
    $scope.Send = function() {
  
    }
