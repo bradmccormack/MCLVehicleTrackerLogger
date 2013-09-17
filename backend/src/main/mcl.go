@@ -106,10 +106,12 @@ var actions = map[string]interface{}{
 			log.Fatal(Db)
 		}
 
-		result := Db.QueryRow(`
+		result := Db.QueryRow(`	
 			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
-			S.RadioCommunication, S.DataCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation 
-			FROM User U, Company C, Settings S
+			S.RadioCommunication, S.DataCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation
+			FROM User U
+			JOIN COMPANY AS C on C.ID = U.ID
+			JOIN Settings AS S on S.UserID = U.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID AND S.UserID = U.ID`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
 			&settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,

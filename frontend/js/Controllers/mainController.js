@@ -1,4 +1,6 @@
-angular.module('myApp.controllers').controller("mainController", ['$scope', 'networkService', 'shellService', '$http', 'authService', function ($scope, networkService, shellService, $http, authService) {
+/*TODO add the http-auth-interceptor as a dependency and inject in the authService so we can confirm login if we need to */
+
+angular.module('myApp.controllers').controller("mainController", ['$scope', 'networkService', 'shellService', '$http', function ($scope, networkService, shellService, $http) {
 
 
 	function BindAnim()
@@ -24,11 +26,11 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
 
 	function Login() {
 
-		/*
+
 		//send over post to login
 		$http({method: 'POST', url : '/system/login', data: {name: "guest", password: "guest"}}).
 			success(function(data, status, headers, config){
-				authService.loginConfirmed();
+				authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
 		        networkService.Init();
 				//check that the session cookie is set
 
@@ -36,7 +38,7 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
 			error(function(data, status, headers, config){
 
 			});
-		*/
+
 		/*
 		var cookies = $.cookie();
 		if ("session" in $.cookie()) {
