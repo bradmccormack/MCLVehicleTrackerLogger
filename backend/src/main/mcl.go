@@ -508,6 +508,7 @@ func handleHTTP() {
 func init() {
 	gob.Register(User{})
 	gob.Register(Company{})
+	gob.Register(Settings{})
 }
 
 func main() {
