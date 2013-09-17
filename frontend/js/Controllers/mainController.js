@@ -27,8 +27,8 @@ angular.module('myApp.controllers').controller("mainController", ['$scope', 'net
 	function Login() {
 
 
-		//send over post to login
-		$http({method: 'POST', url : '/system/login', data: {name: "guest", password: "guest"}}).
+		//send over post to login as a urlencoded form
+		$http({method: 'POST', url : '/system/login', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, withCredentials: true, data: $.param({name: "guest", password: "guest"})}).
 			success(function(data, status, headers, config){
 				authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
 		        networkService.Init();

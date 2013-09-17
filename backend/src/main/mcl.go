@@ -102,6 +102,7 @@ var actions = map[string]interface{}{
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
+		fmt.Printf("name is %s and password is %s\n", name, password);
 		if Db == nil {
 			log.Fatal(Db)
 		}
@@ -112,8 +113,8 @@ var actions = map[string]interface{}{
 			FROM User U
 			JOIN COMPANY AS C on C.ID = U.ID
 			JOIN Settings AS S on S.UserID = U.ID
-			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID AND S.UserID = U.ID`,
-			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
+			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
+			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
 			&settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
 			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation)
 
