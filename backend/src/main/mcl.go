@@ -108,7 +108,7 @@ var actions = map[string]interface{}{
 
 		result := Db.QueryRow(`
 			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
-			S.RadioCommunication, S.3GCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation 
+			S.RadioCommunication, S.DataCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation 
 			FROM User U, Company C, Settings S
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID AND S.UserID = U.ID`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
@@ -117,14 +117,15 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "message": "Incorrect Username or Password", "retries": 10})
+			//fmt.Fprint(w, Response{"success": false, "message": "Incorrect Username or Password", "retries": 10})
+			http.Error(w, "Login failed!", 401) 
 			return
 		case result != nil:
 			log.Fatal(result)
 		default:
 
 			//TODO check expiry of license
-			//TODO check amount of loggined in users
+			//TODO check amount of logged in users
 
 
 
@@ -132,6 +133,7 @@ var actions = map[string]interface{}{
 
 			session.Values["User"] = user
 			session.Values["Company"] = company
+			session.Values["Settings"] = settings
 			session.Options = &sessions.Options{
 				Path:   "/",
 				MaxAge: 86400, //1 day

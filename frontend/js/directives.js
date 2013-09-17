@@ -15,8 +15,9 @@ angular.module('myApp.directives', []).
 				//once Angular is started, remove class:
 				elem.removeClass('waiting-for-angular');
 
-				var login = elem.find('#login-holder');
-				var main = elem.find('#content');
+
+				var login = elem.find('#login-holder'); /*TODO remove the old ugly login or at least refine it . */
+				var main = elem.find('#content-outer');
 
 				login.hide();
 
