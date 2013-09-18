@@ -1,4 +1,4 @@
-<div id="myModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+<div id="myModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false" ng-controller="loginController">
 
 	<div class="modal-header">
 		<h3 id="myModalLabel">Login</h3>
@@ -15,8 +15,8 @@
 
 				</div>
 				<div class="content">
-					<input name="username" type="text" class="input username" placeholder="Username">
-					<input name="password" type="password" class="input password" placeholder="Password">
+					<input name="username" type="text" class="input username" placeholder="Username" ng-model="Username">
+					<input name="password" type="password" class="input password" placeholder="Password" ng-model="Password">
 				</div>
 
 				<div class="footer">

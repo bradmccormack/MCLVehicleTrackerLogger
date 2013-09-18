@@ -1,6 +1,7 @@
-/*Pass in the shellService via Dependency injection rather than rely on prototypical inheritence between controllers to access User information */
+/*Pass in the shellService via Dependency injection rather than rely on prototypical inheritance between controllers to access User information */
+/*Pass in http-auth-interceptor and ngCookies modules as module dependencies too */
 
-angular.module('myApp.controllers',['http-auth-interceptor']).controller("headerController", ['$scope', 'shellService', function($scope, shellService){
+angular.module('myApp.controllers',['http-auth-interceptor', 'ngCookies']).controller("headerController", ['$scope', 'shellService', function($scope, shellService){
    
     $scope.clock = {
         interval: 1000,

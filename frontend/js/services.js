@@ -12,7 +12,9 @@ angular.module('myApp.services', [])
         User:{
             First:"Brad",
             Last:"McCormack",
-            Access:10
+            Access:10,
+	        Password: "",
+	        Email: ""
         },
         Company:{
             Name:"Test Company",
