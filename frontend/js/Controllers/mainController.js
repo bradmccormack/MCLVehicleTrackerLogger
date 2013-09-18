@@ -1,6 +1,7 @@
 /*TODO add the http-auth-interceptor as a dependency and inject in the authService so we can confirm login if we need to */
 
-angular.module('myApp.controllers').controller("mainController", ['$scope', 'networkService', 'shellService', '$http', function ($scope, networkService, shellService, $http) {
+angular.module('myApp.controllers').controller("mainController", ['$scope', '$http', 'networkService', 'shellService', 'authService' ,
+	function ($scope, $http, networkService, shellService, authService) {
 
 
 	function BindAnim()

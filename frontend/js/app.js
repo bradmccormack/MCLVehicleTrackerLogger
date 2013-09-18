@@ -3,7 +3,6 @@
 // Declare app level module which depends on filters, and services
 angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 'myApp.controllers']).
 config(['$routeProvider', function($routeProvider) {
-  //$httpProvider.defaults.withCredentials = true;
 
   $routeProvider.when('/login', {templateUrl: 'partials/login.html', controller: 'mainController'})
   $routeProvider.when('/settings', {templateUrl: 'partials/settings.html', controller: 'settingsController'})
