@@ -19,9 +19,11 @@
 				</div>
 
 				<div class="footer">
-					<input type="submit" ng-click="Login()" name="submit" value="Login" class="button">
+					<button class="btn btn-primary" ng-click="Login()"><i class="icon icon-cogs"></i>  Login</button>
+
 				</div>
 			</form>
+			<span ng-show="Error" class="text-error">Failed to Login</span>
 		</div>
 
 	</div>
