@@ -53,7 +53,7 @@
 				</a>
 			</div>
 
-			<div id="collapseTwo" class="accordion-body collapse in">
+			<div id="collapseTwo" class="accordion-body collapse out">
 				<div class="accordion-inner">
 					<div class="well">
 						<div class="btn-group">
@@ -105,50 +105,67 @@
 			<div class="accordion-heading">
 				<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionsecurity"
 				   href="#collapseThree">
-					Security Settings
+					<i class="icon-lock icon-white"></i> Security Settings
 				</a>
 			</div>
 
 
-			<div id="collapseThree" class="well accordion-body collapse in">
+			<div id="collapseThree" class="accordion-body collapse out">
 				<div class="accordion-inner">
-					<h5><i class="icon-lock icon-white"> </i> Security </h5>
 
-					<div class="control-group">
-						<div class="controls">
-							<label class="text"> <input type="checkbox" ng-model="Settings.Security.RemoteSupport">
-								Allow
-								support to remotely administer my system </label>
-							<label class="text"> <input type="checkbox"
-							                            ng-model="Settings.Security.SystemConsoleAccess"> Allow
-								system console access </label>
-							<label class="text"> <input type="checkbox"
-							                            ng-model="Settings.Security.AdminPasswordResetOnly">
-								Only allow admins to change user passwords </label>
+					<div class="well">
+						<div class="control-group">
+							<div class="controls">
+								<label class="text"> <input type="checkbox" ng-model="Settings.Security.RemoteSupport">
+									Allow
+									support to remotely administer my system </label>
+								<label class="text"> <input type="checkbox"
+								                            ng-model="Settings.Security.SystemConsoleAccess"> Allow
+									system console access </label>
+								<label class="text"> <input type="checkbox"
+								                            ng-model="Settings.Security.AdminPasswordResetOnly">
+									Only allow admins to change user passwords </label>
+							</div>
 						</div>
 					</div>
+
 				</div>
 
 			</div>
 
 
-			<h5><i class="icon-mobile-phone icon-white"> </i> Mobile </h5>
 
-			<div class="well">
-				<form id="mobileOptions">
-					<div class="control-group">
-						<div class="controls">
-							<label class="text"> <input type="checkbox" ng-model="Settings.Mobile.AllowSmartPhone">
-								Allow
-								myClubLink smartphone application system access</label>
-							<label class="text"> <input type="checkbox"
-							                            ng-model="Settings.Mobile.ShowSmartPhoneLocation"> Show
-								exact bus location to smartphone users (not recommended) </label>
+			<div class="accordion-group" id="accordionmobile">
+				<div class="accordion-heading">
+					<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionmobile"
+					   href="#collapseFource">
+						<i class="icon-mobile-phone icon-white"></i> Mobile Settings
+					</a>
+				</div>
 
+
+				<div id="collapseFource" class="accordion-body collapse out">
+					<div class="accordion-inner">
+						<div class="well">
+							<form id="mobileOptions">
+								<div class="control-group">
+									<div class="controls">
+										<label class="text"> <input type="checkbox" ng-model="Settings.Mobile.AllowSmartPhone">
+											Allow
+											myClubLink smartphone application system access</label>
+										<label class="text"> <input type="checkbox"
+										                            ng-model="Settings.Mobile.ShowSmartPhoneLocation"> Show
+											exact bus location to smartphone users (not recommended) </label>
+
+									</div>
+								</div>
+							</form>
 						</div>
 					</div>
-				</form>
-			</div>
+
+
+
+
 
 
 		</div>
