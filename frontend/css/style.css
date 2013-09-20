@@ -223,12 +223,12 @@ MAP
 }
 
 .user-icon {
-	top:107px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
+	top:42px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
 	background: rgba(65,72,72,0.75) url(../img/user-icon.png) no-repeat center;
 }
 
 .pass-icon {
-	top:191px;
+	top:129px;
 	background: rgba(65,72,72,0.75) url(../img/pass-icon.png) no-repeat center;
 }
 

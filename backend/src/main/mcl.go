@@ -103,7 +103,6 @@ var actions = map[string]interface{}{
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		fmt.Printf("name is %s and password is %s\n", name, password);
 		if Db == nil {
 			log.Fatal(Db)
 		}
@@ -144,7 +143,8 @@ var actions = map[string]interface{}{
 				fmt.Printf("Can't save session data (%s)\n", err.Error())
 
 			}
-			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user.Firstname + " " + user.Lastname})
+			
+			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
 		}
 
 	},
