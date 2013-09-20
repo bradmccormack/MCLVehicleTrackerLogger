@@ -15,20 +15,18 @@ angular.module('myApp.directives', []).
 				//once Angular is started, remove class:
 				elem.removeClass('waiting-for-angular');
 
-
-				var login = elem.find('#login-holder'); /*TODO remove the old ugly login or at least refine it . */
-				var main = elem.find('#content-outer');
-
-				login.hide();
+				//var login = elem.find('#myModal'); /*TODO remove the old ugly login or at least refine it . */
+				//var main = elem.find('#content-outer');
 
 				scope.$on('event:auth-loginRequired', function() {
-					login.slideDown('slow', function() {
-						main.hide();
-					});
+					//main.hide();
+					//login.toggle();
+
 				});
 				scope.$on('event:auth-loginConfirmed', function() {
-					main.show();
-					login.slideUp();
+					//login.toggle();
+					//main.show();
+
 				});
 			}
 		}

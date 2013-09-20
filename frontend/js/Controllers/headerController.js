@@ -14,7 +14,7 @@ angular.module('myApp.controllers',['http-auth-interceptor', 'ngCookies']).contr
    }
    
     var logout = function() {
-        
+        //do HTTP to clear cookie then redirect them back to login
     }
     
     var edit = function() {

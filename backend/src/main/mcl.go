@@ -120,7 +120,6 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			//fmt.Fprint(w, Response{"success": false, "message": "Incorrect Username or Password", "retries": 10})
 			http.Error(w, "Login failed!", 401) 
 			return
 		case result != nil:
@@ -130,9 +129,7 @@ var actions = map[string]interface{}{
 			//TODO check expiry of license
 			//TODO check amount of logged in users
 
-
-
-			session, _ := store.Get(r, "session")
+			session, _ := store.Get(r, "data")
 
 			session.Values["User"] = user
 			session.Values["Company"] = company
@@ -196,18 +193,20 @@ var views = map[string]interface{}{
 	},
 
 	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
-		var err error
-		t := template.New("Login")
-		t, err = template.ParseFiles("templates/login.html")
-		if err != nil {
-			fmt.Printf("Failed to parse the template file!\n")
-			return
+		w.Header().Add("Content-Type", "application/json")	
+		session, _ := store.Get(r, "data")
+		if (session == nil) {
+			http.Error(w, "Unauthorized", 401)
+		} else {
+		var user User
+		var company Company
+		var settings Settings
+		user = session.Values["User"]
+		company = session.Values["Company"]
+		settings = session.Values["Settings"]
+		fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
 		}
 
-		var LoginInfo = map[string]bool{
-			"LoggedOut": false,
-		}
-		t.Execute(w, LoginInfo)
 	},
 	"ViewSupport": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
