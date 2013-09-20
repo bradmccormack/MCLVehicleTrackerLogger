@@ -5,7 +5,7 @@ var directionsService;
 /* Services */
 //http://www.ng-newsletter.com/posts/beginner2expert-services.html
 angular.module('myApp.services', [])
-    .factory("shellService", [function () {
+    .factory("shellService", ['$rootScope', function ($rootScope) {
 
     //TODO pull all the data out from the cookie that is returned via Login process
     var serviceInstance = {
@@ -48,7 +48,47 @@ angular.module('myApp.services', [])
 	            }
             }
         },
-	    Messages: []
+	    Messages: [],
+	    LoadConfig: function(data) {
+			this.User = {
+				First: data.user.Firstname,
+				Last: data.user.Lastname,
+				Password: data.user.Password, //TODO encrypt serverside
+				Access: data.user.AccessLevel,
+				Email: data.user.Email,
+				LoggedIn: true
+			};
+
+			this.Company = {
+				Name: data.company.Name,
+				MaxUsers: data.company.Maxusers,
+				Expiry: data.company.Expiry,
+				Logo: data.company.LogoPath
+			}
+			this.Settings = {
+				Network: {
+					EnableRF: data.settings.RadioCommunication,
+					Enable3G: data.settings.DataCommunication
+				},
+				Security: {
+					RemoteSupport: data.settings.SecurityRemoteAdmin,
+					SystemConsoleAccess: data.settings.SecurityRemoteConsoleAccess,
+					AdminPasswordResetOnly: data.settings.SecurityAdminPasswordReset
+				},
+				Mobile: {
+					AllowSmartPhone: data.settings.MobileSmartPhoneAccess,
+					ShowSmartPhoneLocation: data.settings.MobileShowBusLocation
+				},
+				Map: {
+					API: data.settings.MapAPI,
+					Marker: {
+						Smooth: data.settings.Interpolate,
+						SnaptoRoad: data.settings.SnaptoRoad,
+						FollowVehicleTrigger: data.settings.CameraPanTrigger
+					}
+				}}
+		    $rootScope.$broadcast("ConfigChanged", serviceInstance);
+		}
     };
 
     return serviceInstance;

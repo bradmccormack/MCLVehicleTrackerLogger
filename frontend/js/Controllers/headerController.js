@@ -12,6 +12,11 @@ angular.module('myApp.controllers',['http-auth-interceptor', 'ngCookies']).contr
     First: shellService.User.First,
     Last: shellService.User.Last
    }
+
+	$scope.$on("ConfigChanged", function(Event, Data) {
+		$scope.User.First = Data.User.First;
+		$scope.User.Last = Data.User.Last;
+	});
    
     var logout = function() {
         //do HTTP to clear cookie then redirect them back to login
