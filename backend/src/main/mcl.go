@@ -92,6 +92,12 @@ var actions = map[string]interface{}{
 	"ActionInvalid": func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Action", 403)
 	},
+	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		//TODO delete from the cookiestore 		
+		fmt.Fprint(w, Response{"success": true, "message": "logout ok"})
+		
+	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
@@ -144,7 +150,7 @@ var actions = map[string]interface{}{
 
 			}
 			
-			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
+			fmt.Fprint(w, Response{"success": true, "message": "login ok", "user": user, "company": company, "settings" : settings})
 		}
 
 	},
@@ -491,6 +497,7 @@ func handleHTTP() {
 
 	//Action Routes
 	actionRouter.HandleFunc("/system/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/system/logout", actions["ActionLogout"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/historicalroute", actions["ActionHistorialRoute"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/", actions["ActionInvalid"].(func(http.ResponseWriter, *http.Request)))

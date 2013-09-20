@@ -7,7 +7,7 @@ var directionsService;
 angular.module('myApp.services', [])
     .factory("shellService", ['$rootScope', function ($rootScope) {
 
-    //TODO pull all the data out from the cookie that is returned via Login process
+
     var serviceInstance = {
         User:{
             First:"",
@@ -49,6 +49,11 @@ angular.module('myApp.services', [])
             }
         },
 	    Messages: [],
+	    ClearConfig: function() {
+			this.User = "";
+
+		  
+	    },
 	    LoadConfig: function(data) {
 			this.User = {
 				First: data.user.Firstname,
