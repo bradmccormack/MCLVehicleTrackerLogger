@@ -38,6 +38,7 @@ type Company struct {
 	Name     string
 	Maxusers int
 	Expiry   string
+	LogoPath string
 }
 
 type User struct {
@@ -108,14 +109,14 @@ var actions = map[string]interface{}{
 		}
 
 		result := Db.QueryRow(`	
-			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
+			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, C.LogoPath, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
 			S.RadioCommunication, S.DataCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation
 			FROM User U
 			JOIN COMPANY AS C on C.ID = U.ID
 			JOIN Settings AS S on S.UserID = U.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
-			&settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
+			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
 			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation)
 
 		switch {
@@ -201,9 +202,9 @@ var views = map[string]interface{}{
 		var user User
 		var company Company
 		var settings Settings
-		user = session.Values["User"]
-		company = session.Values["Company"]
-		settings = session.Values["Settings"]
+		user = session.Values["User"].(User)
+		company = session.Values["Company"].(Company)
+		settings = session.Values["Settings"].(Settings)
 		fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
 		}
 
@@ -368,7 +369,7 @@ func createDb() {
         DateTime date not null default current_timestamp,
         FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
 	);`,
-
+ 
 		`CREATE TABLE Network (
         id integer primary key autoincrement,
         GPSRecordID integer not null,
@@ -380,7 +381,8 @@ func createDb() {
         ID integer primary key autoincrement,
         Name text not null,
         Expiry date not null default current_timestamp,
-        MaxUsers integer not null default 0
+        MaxUsers integer not null default 0,
+	LogoPath text not null default ''
 	);`,
 
 		`CREATE TABLE User (
@@ -411,13 +413,14 @@ func createDb() {
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
 
-		"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
+/*This crap needs moving out of here */		
+"INSERT INTO Company (Name, MaxUsers, LogoPath) VALUES ('myClubLink' , 1, 'img/mcl_logo.png');",
 		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'Google Maps');",
 
-		"INSERT INTO Company (Name, MaxUsers, Expiry) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00');",
+		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00', 'img/sussex_logo.PNG');",
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'Google Maps');",
 		"COMMIT TRANSACTION;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")

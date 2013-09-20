@@ -3,10 +3,46 @@ angular.module('myApp.controllers').controller("loginController", ['$scope', '$c
 
 		$scope.Login = function () {
 
-			if ("data" in $.cookie()){
+			if ("data" in $.cookie()) {
 				$http({method: "GET", url: "/system/login", withCredentials: true}).
-					success(function(data, status, headers,config){
+					success(function (data, status, headers, config) {
 						//set the shellService values
+						shellService.User = {
+							First: data.user.Firstname,
+							Last: data.user.Lastname,
+							Password: data.user.Password, //TODO encrypt serverside
+							Access: data.user.AccessLevel,
+							Email: data.user.Email
+						};
+
+						shellService.Company = {
+							Name: data.company.Name,
+							MaxUsers: data.company.Maxusers,
+							Expiry: data.company.Expiry,
+							Logo: data.company.LogoPath
+						}
+						shellService.Settings = {
+							Network: {
+								EnableRF: data.settings.RadioCommunication,
+								Enable3G: data.settings.DataCommunication
+							},
+							Security: {
+								RemoteSupport: data.settings.SecurityRemoteAdmin,
+								SystemConsoleAccess: data.settings.SecurityRemoteConsoleAccess,
+								AdminPasswordResetOnly: data.settings.SecurityAdminPasswordReset
+							},
+							Mobile: {
+								AllowSmartPhone: data.settings.MobileSmartPhoneAccess,
+								ShowSmartPhoneLocation: data.settings.MobileShowBusLocation
+							},
+							Map: {
+								API: data.settings.MapAPI,
+								Marker: {
+									Smooth: data.settings.Interpolate,
+									SnaptoRoad: data.settings.SnaptoRoad,
+									FollowVehicleTrigger: data.settings.CameraPanTrigger
+								}
+							}}
 						$location.path("/tracking");
 					})
 			}

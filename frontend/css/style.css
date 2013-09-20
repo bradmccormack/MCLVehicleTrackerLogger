@@ -86,7 +86,6 @@ div#SystemMessages {
 }
 
 
-
 body.waiting-for-angular div#content-outer {
     display: none;
 }
@@ -100,6 +99,11 @@ body.waiting-for-angular div#initializing-panel {
     height: 100%;
 }
 
+img#CompanyLogo{
+    margin-bottom: 25px;
+    max-width:250px;
+    max-height:250px;
+}
 
 
 /*******************

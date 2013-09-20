@@ -10,22 +10,22 @@ angular.module('myApp.services', [])
     //TODO pull all the data out from the cookie that is returned via Login process
     var serviceInstance = {
         User:{
-            First:"Brad",
-            Last:"McCormack",
-            Access:10,
+            First:"",
+            Last:"",
+            Access:0,
 	        Password: "",
 	        Email: ""
         },
         Company:{
-            Name:"Test Company",
+            Name:"",
             MaxUsers:1,
             Expiry:new Date(),
-            Logo:"img/sussex_logo.PNG"
+            Logo:""
         },
         Settings:{
             Network:{
-                EnableRF:true,
-                Enable3G:true
+                EnableRF: false,
+                Enable3G: false
             },
             Security:{
                 RemoteSupport:false,
@@ -33,15 +33,15 @@ angular.module('myApp.services', [])
                 AdminPasswordResetOnly:false
             },
             Mobile:{
-                AllowSmartPhone:true,
+                AllowSmartPhone: false,
                 ShowSmartPhoneLocation:false
             },
             Map:{
-                API:"Google Maps", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
+                API:"", //Contains reference to the current MapAPI in use. The MAP API is a facade over specific concrete implementations
                 Marker:{
                     Smooth:false,
-	                SnaptoRoad: true,
-                    FollowVehicleTrigger:10 //Default Vehicle camera trigger. 10 would represent a camera pan after every 10 movement updates
+	                SnaptoRoad: false,
+                    FollowVehicleTrigger:0 //Default Vehicle camera trigger. 10 would represent a camera pan after every 10 movement updates
                 },
 	            Camera : {
 		            //Keeps track of settings per vehicle in the system
