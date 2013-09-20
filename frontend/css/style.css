@@ -21,7 +21,11 @@ SELECTION STYLING
 BODY STYLING
 *******************/
 
-
+.centerit{
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+}
 
  #editor {
     max-height: 250px;
