@@ -90,8 +90,12 @@ angular.module('myApp.services', [])
 						Smooth: data.settings.Interpolate,
 						SnaptoRoad: data.settings.SnaptoRoad,
 						FollowVehicleTrigger: data.settings.CameraPanTrigger
+					},
+					Camera: {
 					}
-				}}
+				},
+				
+			}
 		    $rootScope.$broadcast("ConfigChanged", serviceInstance);
 		}
     };
@@ -457,7 +461,8 @@ angular.module('myApp.services', [])
 
 		        //Note - SnaptoRoad chokes if you pound the system with updates (eg 20 per second versus 1 because of call stack - TODO block on vehicle updates if waiting for snap
 		        //to road for this vehicle
-		        if(shellService.Settings.Map.Marker.SnaptoRoad){
+		        /*
+			if(shellService.Settings.Map.Marker.SnaptoRoad){
 					directionsService.route(
 						{   origin: Src,
 							destination: Src,
@@ -470,9 +475,11 @@ angular.module('myApp.services', [])
 						});
 		        }
 				else {
+		      
 		            CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
 		        }
-
+			    */
+			CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
 	        }
         },
 	    GetVehicles: function() {
