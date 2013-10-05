@@ -241,13 +241,45 @@ var views = map[string]interface{}{
 		var percentAvailable int = random.Intn(75)
 		availability := [...]int{percentAvailable, 100 - percentAvailable}
 
-		var kmPerDay [7]int
+		//TODO restrict these reports to a range of dates
+		//dateFrom := r.FormValue("dateFrom")
+		//dateTo := r.FormValue("dateTo")
+		
+		
+		var distance float64
+		var weekday int
+		
+		
+		//init all days to 0
+		var kmPerDay [7]float64
 		for i := 0; i < 7; i++ {
-			kmPerDay[i] = random.Intn(60)
+			kmPerDay[i] = 0
+		}
+		
+		rows, err := Db.Query(`
+                        SELECT strftime('%w', datetime(GPSR1.DateTime, 'localtime')) AS Weekday,
+			SUM((strftime('%s',datetime(GPSR2.DateTime, "localtime")) - strftime('%s',datetime(GPSR1.DateTime, "localtime"))) *
+			( (GPSR1.Speed + GPSR2.Speed) /2 )  / 3600) as Distance
+			FROM GPSRecords GPSR1, GPSRecords GPSR2
+			WHERE GPSR1.ID = GPSR2.ID -1
+			AND GPSR1.Fix = 1
+			GROUP BY Weekday`)
+		
+		
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for rows.Next() {
+			if err := rows.Scan(&weekday, &distance); err != nil {
+				log.Fatal(err)
+			}
+			kmPerDay[weekday -1] = distance
+			
 		}
 
 		fmt.Fprint(w, Response{"Availability": availability, "KMPerDay": kmPerDay})
-		//t.Execute(w, session.Values)
+
 	},
 
 	"ViewMap": func(w http.ResponseWriter, r *http.Request) {
