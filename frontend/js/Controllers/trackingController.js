@@ -1,7 +1,44 @@
 angular.module('myApp.controllers').controller("trackingController", ['$scope', 'shellService', 'mapService', function($scope, shellService, mapService){
-   
+
+   function formatDate(Dte) {
+	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
+	   var Minutes = Dte.getMinutes() < 10 ? "0" + Dte.getMinutes() : Dte.getMinutes();
+	   var Seconds = Dte.getSeconds() < 10 ? "0" + Dte.getSeconds() : Dte.getSeconds();
+	   return [Dte.getDate(), Dte.getMonth()+1, Dte.getFullYear()].join('/') + " " + [Hours, Minutes, Seconds].join(":");
+   }
+
    function Init() {
        updateLiveInformation();
+
+	   var datepickerFrom = $('#routeDateFrom');
+	   datepickerFrom.datetimepicker({
+		   language : 'en-AU',
+		   pick12HourFormat : true,
+		   format : 'dd/MM/yyyy hh:mm:ss'
+	   });
+
+	   var datepickerTo = $('#routeDateTo');
+	   datepickerTo.datetimepicker({
+		   language : 'en-AU',
+		   pick12HourFormat : true,
+		   format : 'dd/MM/yyyy hh:mm:ss'
+	   });
+
+	   datepickerFrom.on('changeDate', function(e) {
+		   $scope.routeDateFrom = formatDate(e.date);
+	   });
+
+	   datepickerTo.on('changeDate', function(e) {
+		   $scope.routeDateTo = formatDate(e.date);
+	   });
+
+	   var Dte = new Date();
+       datepickerFrom.datetimepicker('setValue', Dte)
+
+	   //Set default Date from 1 week in the past
+
+	   //$scope.routeDateFrom = formatDate(new Date(Dte.getFullYear(), Dte.getMonth(), Dte.getDay() -7, Dte.getHours(), Dte.getMinutes(), Dte.getSeconds()));
+	   //$scope.routeDateTo = formatDate(Dte);
    }
 
     var updateLiveInformation = function() {
@@ -58,6 +95,9 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
         printWin.close();
     }
 
+	$scope.ShowRoute = function() {
+
+	}
 
 	$scope.SystemMessages = function(){
 		return shellService.Messages;
