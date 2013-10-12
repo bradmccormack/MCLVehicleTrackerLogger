@@ -8,7 +8,6 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 	   return [Dte.getFullYear(), Months, Days].join("-") + " " + [Hours, Minutes, Dte.getSeconds()].join(":");
    }
 
-
    function formatDate(Dte) {
 	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
 	   var Minutes = Dte.getMinutes() < 10 ? "0" + Dte.getMinutes() : Dte.getMinutes();
@@ -129,15 +128,10 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 					var vehicles = result.data;
 					var vl = Object.keys(vehicles).length;
 					if(vl == 0) {
-						alert("no vehicle data for that time period");
+						alert("No vehicle data for that time period");
 						return;
 					}
 
-					var Colors = {};
-					for(var vehicle in vehicles) {
-						Colors[vehicle] = Utility.RandomColor();
-						System.updateLegend(vehicle, Colors[vehicle]);
-					}
 					while(true) {
 						for(var i = 0; i < vl; i++) {
 							var currentvehicle = Object.keys(vehicles)[i];
@@ -146,8 +140,8 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 							if(currentpositions.length > 0) {
 								var point = vehicles[currentvehicle].shift();
 								//Lat, Long, Speed, Fix, Heading, Date
-								MapService.AddtoRoute(currentvehicle,
-									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]}, Colors[currentvehicle]);
+								mapService.Map.AddtoRoute(currentvehicle,
+									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]});
 							} else {
 								delete vehicles[currentvehicle];
 								break;

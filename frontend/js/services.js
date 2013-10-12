@@ -284,26 +284,26 @@ angular.module('myApp.services', [])
                     delete routes[Route];
 
             },
-            addtoRoute:function (Route, Point, Color) {
+            addtoRoute:function (Vehicle, Point) {
 
-                if (!(Route in routes)) {
+                if (!(Vehicle in routes)) {
                     var polyOptions = {
-                        strokeColor:Color || Utility.RandomColor(),
+                        strokeColor: Vehicles[Vehicle].Color,
                         strokeOpacity:1.0,
                         strokeWeight:3
                     }
 
-                    routes[Route] = {polyline:new google.maps.Polyline(polyOptions)};
+                    routes[Vehicle] = {polyline:new google.maps.Polyline(polyOptions)};
 
-                    routes[Route].polyline.setMap(map);
-                    routes[Route].metadata = {}; //used for looking up date at this time.
+                    routes[Vehicle].polyline.setMap(map);
+                    routes[Vehicle].metadata = {}; //used for looking up date at this time.
 
-                    google.maps.event.addListener(routes[Route].polyline, 'mouseover', function (event) {
+                    google.maps.event.addListener(routes[Vehicle].polyline, 'mouseover', function (event) {
                         /* TODO this is tricky. I'm not sure if the co-ordinates that Google is returning are guaranteed to exist in the polyline ..
                          * I might have to find the nearest co-ordinate to get the metadata
 
                          var key = event.latLng.jb.toString().substring(0,9) + "," + event.latLng.kb.toString().substring(0,9); //Google gives back more detailed co-ords than they were originally stored with.
-                         var DateTime = routes[Route].metadata[key];
+                         var DateTime = routes[Vehicle].metadata[key];
                          */
 
                     });
@@ -312,10 +312,10 @@ angular.module('myApp.services', [])
                 /*
                  * ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
                  */
-                var path = routes[Route].polyline.getPath();
+                var path = routes[Vehicle].polyline.getPath();
                 path.push(new google.maps.LatLng(Point.Latitude, Point.Longitude));
                 //use the lat, long as the key for looking up meta data
-                routes[Route].metadata[Point.Latitude + "," + Point.Longitude] = { Lat:Point.Latitude, Long:Point.Longitude, Speed:Point.Speed, Heading:Point.Heading, DateTime:Point.DateTime};
+                routes[Vehicle].metadata[Point.Latitude + "," + Point.Longitude] = { Lat:Point.Latitude, Long:Point.Longitude, Speed:Point.Speed, Heading:Point.Heading, DateTime:Point.DateTime};
 
 
             },
@@ -408,8 +408,6 @@ angular.module('myApp.services', [])
 	var VehiclesCount = 0;
 	var Messages = [];
 
-
-
 		return {
 
         //Facade
@@ -479,9 +477,26 @@ angular.module('myApp.services', [])
 			    */
 			CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
 	        },
-	        AddtoRoute:function (Route, Point, Color)
+	        AddtoRoute:function (Vehicle, Point)
 	        {
-		        CurrentMapAPI.addtoRoute(Route, Point, Color);
+		        if(!(Vehicle in Vehicles)){
+			        Vehicles[Vehicle] = {
+				        Ref: Vehicle,
+				        Latitude: Point.Latitude,
+				        Longitude: Point.Longitude,
+				        Color: utilityService.RandomColor(),
+				        Selected: false
+			        };
+			        VehiclesCount++;
+
+			        //Create a camera object for this vehicle
+			        shellService.Settings.Map.Camera[Vehicle] = {
+				        SnapCount: 0,
+				        Snap: false
+			        }
+			        $rootScope.$broadcast("LegendChange", {Count: VehiclesCount, Vehicles: Vehicles});
+		        }
+		        CurrentMapAPI.addtoRoute(Vehicle, Point, Vehicles[Vehicle].Color);
 	        }
         },
 	    GetVehicles: function() {
