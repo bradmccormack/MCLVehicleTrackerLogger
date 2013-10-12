@@ -1,4 +1,13 @@
-angular.module('myApp.controllers').controller("trackingController", ['$scope', 'shellService', 'mapService', function($scope, shellService, mapService){
+angular.module('myApp.controllers').controller("trackingController", ['$scope', '$http', 'shellService', 'mapService', function($scope, $http, shellService, mapService){
+
+   function formatDateSQL(Dte) {
+	   var Months = Dte.getMonth() + 1 < 10 ? "0" + (Dte.getMonth() + 1) : Dte.getMonth() + 1;
+	   var Days = Dte.getDate() < 10 ? "0" + Dte.getDate() : Dte.getDate();
+	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
+	   var Minutes = Dte.getMinutes() < 10 ? "0" + Dte.getMinutes() : Dte.getMinutes();
+	   return [Dte.getFullYear(), Months, Days].join("-") + " " + [Hours, Minutes, Dte.getSeconds()].join(":");
+   }
+
 
    function formatDate(Dte) {
 	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
@@ -13,7 +22,7 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
        updateLiveInformation();
 
 	   var Dte = new Date();
-	   var DteFrom = new Date(Dte.getFullYear(), Dte.getMonth(), Dte.getDay() -7, Dte.getHours(), Dte.getMinutes(), Dte.getSeconds());
+	   var DteFrom = new Date(Dte.getFullYear(), Dte.getMonth() - 1, Dte.getDay(), Dte.getHours(), Dte.getMinutes(), Dte.getSeconds());
 	   $scope.routeDateFrom = formatDate(DteFrom);
 	   $scope.routeDateTo = formatDate(Dte);
 
@@ -101,6 +110,62 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
 	$scope.ShowRoute = function() {
 
+		/*
+		SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime
+		FROM GPSRecords
+		WHERE datetime >='2013-07-2 22:14:45' AND datetime <='2013-10-12 12:14:45' GROUP BY id ORDER BY datetime asc
+		*/
+
+		var FromDate = formatDateSQL( $('#routeDateFrom').data('datetimepicker').getDate());
+		var ToDate = formatDateSQL( $('#routeDateTo').data('datetimepicker').getDate());
+
+
+
+
+		$http({method: 'POST', url: '/system/historicalroute', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+			withCredentials: true, data: $.param({dateFrom: FromDate, dateTo: ToDate})}).
+			success(function (result, status, headers, config) {
+				if (result.success) {
+					var vehicles = result.data;
+					var vl = Object.keys(vehicles).length;
+					if(vl == 0) {
+						alert("no vehicle data for that time period");
+						return;
+					}
+
+					var Colors = {};
+					for(var vehicle in vehicles) {
+						Colors[vehicle] = Utility.RandomColor();
+						System.updateLegend(vehicle, Colors[vehicle]);
+					}
+					while(true) {
+						for(var i = 0; i < vl; i++) {
+							var currentvehicle = Object.keys(vehicles)[i];
+							var currentpositions = vehicles[currentvehicle];
+
+							if(currentpositions.length > 0) {
+								var point = vehicles[currentvehicle].shift();
+								//Lat, Long, Speed, Fix, Heading, Date
+								MapService.AddtoRoute(currentvehicle,
+									{Latitude: point[0], Longitude: point[1], Speed: point[2], Fix: point[3], Heading: point[4], DateTime: point[5]}, Colors[currentvehicle]);
+							} else {
+								delete vehicles[currentvehicle];
+								break;
+							}
+						}
+						var vl = Object.keys(vehicles).length;
+						if(vl == 0) {
+							break;
+						}
+
+					}
+				}
+
+			}).
+			error(function (data, status, headers, config) {
+				alert(data + " - " + status + " - " + headers);
+				//alert("Time to show error message as Couldn't get the route")
+			});
 	}
 
 	$scope.SystemMessages = function(){

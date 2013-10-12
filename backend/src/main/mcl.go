@@ -168,11 +168,12 @@ var actions = map[string]interface{}{
 		dateFrom := r.FormValue("dateFrom")
 		dateTo := r.FormValue("dateTo")
 
+        fmt.Printf("dateFrom is %s, dateTo is %s", dateFrom, dateTo)
+
 		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		var ID, Lat, Long, Speed, Fix, Heading, Date string
 
 		//build up the map here

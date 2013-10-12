@@ -253,8 +253,6 @@ angular.module('myApp.services', [])
                 }
             });
         }
-
-
         return {
 
             zoomIn:function () {
@@ -480,6 +478,10 @@ angular.module('myApp.services', [])
 		        }
 			    */
 			CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
+	        },
+	        AddtoRoute:function (Route, Point, Color)
+	        {
+		        CurrentMapAPI.addtoRoute(Route, Point, Color);
 	        }
         },
 	    GetVehicles: function() {
