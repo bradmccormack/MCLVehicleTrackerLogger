@@ -4,24 +4,33 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
 	   var Minutes = Dte.getMinutes() < 10 ? "0" + Dte.getMinutes() : Dte.getMinutes();
 	   var Seconds = Dte.getSeconds() < 10 ? "0" + Dte.getSeconds() : Dte.getSeconds();
-	   return [Dte.getDate(), Dte.getMonth()+1, Dte.getFullYear()].join('/') + " " + [Hours, Minutes, Seconds].join(":");
+	   var Months = Dte.getMonth() + 1 < 10 ? "0" + (Dte.getMonth() + 1) : Dte.getMonth() + 1;
+	   var Days = Dte.getDate() < 10 ? "0" + Dte.getDate() : Dte.getDate();
+	   return [Days, Months, Dte.getFullYear()].join('/') + " " + [Hours, Minutes, Seconds].join(":");
    }
 
    function Init() {
        updateLiveInformation();
 
+	   var Dte = new Date();
+	   var DteFrom = new Date(Dte.getFullYear(), Dte.getMonth(), Dte.getDay() -7, Dte.getHours(), Dte.getMinutes(), Dte.getSeconds());
+	   $scope.routeDateFrom = formatDate(DteFrom);
+	   $scope.routeDateTo = formatDate(Dte);
+
 	   var datepickerFrom = $('#routeDateFrom');
 	   datepickerFrom.datetimepicker({
 		   language : 'en-AU',
 		   pick12HourFormat : true,
-		   format : 'dd/MM/yyyy hh:mm:ss'
+		   format : 'dd/MM/yyyy hh:mm:ss',
+		   startDate: $scope.routeDateFrom
 	   });
 
 	   var datepickerTo = $('#routeDateTo');
 	   datepickerTo.datetimepicker({
 		   language : 'en-AU',
 		   pick12HourFormat : true,
-		   format : 'dd/MM/yyyy hh:mm:ss'
+		   format : 'dd/MM/yyyy hh:mm:ss',
+		   startDate: $scope.routeDateTo
 	   });
 
 	   datepickerFrom.on('changeDate', function(e) {
@@ -32,13 +41,8 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 		   $scope.routeDateTo = formatDate(e.date);
 	   });
 
-	   var Dte = new Date();
-       datepickerFrom.datetimepicker('setValue', Dte)
-
-	   //Set default Date from 1 week in the past
-
-	   //$scope.routeDateFrom = formatDate(new Date(Dte.getFullYear(), Dte.getMonth(), Dte.getDay() -7, Dte.getHours(), Dte.getMinutes(), Dte.getSeconds()));
-	   //$scope.routeDateTo = formatDate(Dte);
+	   $('#routeDateFrom').data('datetimepicker').setLocalDate(DteFrom);
+	   $('#routeDateTo').data('datetimepicker').setLocalDate(Dte);
    }
 
     var updateLiveInformation = function() {
