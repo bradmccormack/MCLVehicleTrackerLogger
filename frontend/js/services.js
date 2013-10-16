@@ -109,7 +109,38 @@ angular.module('myApp.services', [])
                 return s[m.floor(m.random() * s.length)] +
                     (c && lol(m, s, c - 1));
             })(Math, '0123456789ABCDEF', 4)
-        }
+        },
+	    DegreesToDirection: function(Degrees) {
+		    Degrees = Math.round(Degrees, 2);
+		    if(Degrees == 0)
+		        return "N";
+		    if(Degrees >=0 && Degrees <= 22.5)
+		        return "NNE";
+		    if(Degrees > 22.5 && Degrees <= 45)
+		        return "NE";
+		    if(Degrees > 45 && Degrees <= 67.5)
+		        return "ENE";
+		    if(Degrees == 90)
+		        return "E";
+		    if(Degrees > 90 && Degrees <= 112.5)
+		        return "ESE";
+		    if(Degrees > 112.5 && Degrees <= 135)
+		        return "SE";
+		    if(Degrees > 135 && Degrees <= 157.5)
+		        return "SSE";
+		    if(Degrees == 180)
+		        return "S";
+		    if(Degrees > 180 && Degrees < 202.5)
+		        return "SSW";
+		    if(Degrees > 202.5 && Degrees <= 225)
+		        return "SW";
+		    if(Degrees > 225 && Degrees <= 247.5)
+		        return "WSW";
+		    else
+		        return "TOFINISH";
+
+
+	    }
 
     }
 
@@ -287,35 +318,70 @@ angular.module('myApp.services', [])
             addtoRoute:function (Vehicle, Point) {
 
                 if (!(Vehicle in routes)) {
-                    var polyOptions = {
-                        strokeColor: Vehicles[Vehicle].Color,
-                        strokeOpacity:1.0,
-                        strokeWeight:3
-                    }
+	                routes[Vehicle] = {};
+                    routes[Vehicle].polyline = [];
 
-                    routes[Vehicle] = {polyline:new google.maps.Polyline(polyOptions)};
-
-                    routes[Vehicle].polyline.setMap(map);
-                    routes[Vehicle].metadata = {}; //used for looking up date at this time.
-
-                    google.maps.event.addListener(routes[Vehicle].polyline, 'mouseover', function (event) {
-                        /* TODO this is tricky. I'm not sure if the co-ordinates that Google is returning are guaranteed to exist in the polyline ..
-                         * I might have to find the nearest co-ordinate to get the metadata
-
-                         var key = event.latLng.jb.toString().substring(0,9) + "," + event.latLng.kb.toString().substring(0,9); //Google gives back more detailed co-ords than they were originally stored with.
-                         var DateTime = routes[Vehicle].metadata[key];
-                         */
-
-                    });
-
+	                //lets create a fake previous polyline point for the first one to "draw back to" subsequent points will have real previous points
+	                routes[Vehicle].polyline.push(
+		                new google.maps.Polyline({
+			                path: [
+				                new google.maps.LatLng(Point.Latitude, Point.Longitude),
+				                new google.maps.LatLng(Point.Latitude, Point.Longitude)
+			                ],
+			                map: map,
+			                strokeColor: Vehicles[Vehicle].Color,
+			                strokeOpacity: 1.0,
+			                strokeWeight: 3 })
+	                );
                 }
-                /*
-                 * ["Latitude", "Longitude", "Speed", "Heading", "Fix", "DateTime"].forEach(function() {
-                 */
-                var path = routes[Vehicle].polyline.getPath();
-                path.push(new google.maps.LatLng(Point.Latitude, Point.Longitude));
-                //use the lat, long as the key for looking up meta data
-                routes[Vehicle].metadata[Point.Latitude + "," + Point.Longitude] = { Lat:Point.Latitude, Long:Point.Longitude, Speed:Point.Speed, Heading:Point.Heading, DateTime:Point.DateTime};
+
+	            var PreviousPolyGon = routes[Vehicle].polyline;
+	            var PrevPath = routes[Vehicle].polyline[PreviousPolyGon.length - 1].getPath();
+	            var PrevLat = PrevPath.b[1].lb;
+	            var PrevLong = PrevPath.b[1].mb;
+
+	            //TODO link up when there is no GPS fix to previous fix point with ghosted route
+	            if(Point.Fix)
+	            {
+		            routes[Vehicle].polyline.push(
+			            new google.maps.Polyline({
+					            path: [
+						            new google.maps.LatLng(PrevLat, PrevLong),
+						            new google.maps.LatLng(Point.Latitude, Point.Longitude)
+					            ],
+					            map: map,
+					            strokeColor: Vehicles[Vehicle].Color,
+					            strokeOpacity:1.0,
+					            strokeWeight:3,
+					            data: { Speed: Math.round(Point.Speed,0), Heading: Point.Heading, ID: Vehicle, Fix: Point.Fix, DateTime: Point.DateTime}}
+			            )
+		            );
+	            }
+
+
+				var infoWindow;
+
+
+                google.maps.event.addListener(routes[Vehicle].polyline[routes[Vehicle].polyline.length -1], 'click', function (event) {
+
+	              infoWindow = new google.maps.InfoWindow({
+		              content: "<div id='notice' class='container-fluid'>" +
+			                                     "<div class='row'><i class='icon-truck'></i> <strong>Vehicle</strong>: " + this.data.ID + "</div>" +
+			                                     "<div class='row'><strong><i class='icon-time'></i> Date Time</strong>: " + this.data.DateTime + "</div>" +
+			                                     "<div class='row'><strong><i class='icon-dashboard'></i> Speed</strong>:" + (this.data.Speed > 0 ? this.data.Speed + "km/hr" : "unknown") + "</div>" +
+			                                     "<div class='row'><i class='icon-location-arrow'></i> Heading:" + (this.data.Heading > 0 ? Math.round(this.data.Heading,2) + "(" + utilityService.DegreesToDirection(this.data.Heading) + ")" : "unknown") + "</div>" +
+			                                     "<div class='row'><i class='icon-map-marker'></i> Lat/Lng</strong>:" + event.latLng.lb + "," + event.latLng.mb + "</div>",
+
+
+		              position: new google.maps.LatLng(event.latLng.lb, event.latLng.mb)
+	              });
+	                infoWindow.open(map);
+
+	                setTimeout(function() {
+		                infoWindow.close();
+	                }, 10000);
+                });
+
 
 
             },

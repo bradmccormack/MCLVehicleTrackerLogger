@@ -118,9 +118,6 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 		var FromDate = formatDateSQL( $('#routeDateFrom').data('datetimepicker').getDate());
 		var ToDate = formatDateSQL( $('#routeDateTo').data('datetimepicker').getDate());
 
-
-
-
 		$http({method: 'POST', url: '/system/historicalroute', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 			withCredentials: true, data: $.param({dateFrom: FromDate, dateTo: ToDate})}).
 			success(function (result, status, headers, config) {
