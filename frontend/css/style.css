@@ -21,6 +21,36 @@ SELECTION STYLING
 BODY STYLING
 *******************/
 
+.centerit{
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+}
+
+ #editor {
+    max-height: 250px;
+    height: 250px;
+    background-color: white;
+    border: 1px solid rgb(204, 204, 204);
+    padding: 4px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+    box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+    border-top-right-radius: 3px; border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px; border-top-left-radius: 3px;
+    overflow: scroll;
+
+}
+
+#VehicleStatistics{
+    font-size: smaller;
+    width: 650px;
+    table-layout:fixed;
+}
+
+#VehicleStatistics tbody tr td{
+    width:16.5%;
+}
+
 #wrapper {
 
 	width: 300px;
@@ -60,6 +90,26 @@ div#SystemMessages {
 }
 
 
+body.waiting-for-angular div#content-outer {
+    display: none;
+}
+body.waiting-for-angular div#initializing-panel {
+    display: block;
+    background: url(../img/loading.gif) center center no-repeat;
+    position:absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+}
+
+img#CompanyLogo{
+    margin-bottom: 25px;
+    max-width:250px;
+    max-height:250px;
+}
+
+
 /*******************
 LOGIN FORM
 *******************/
@@ -69,7 +119,6 @@ LOGIN FORM
 	margin: 0 auto;
 	position: relative;
 	z-index:5;
-	
 	background: #f3f3f3;
 	border: 1px solid #fff;
 	border-radius: 5px;
@@ -78,10 +127,6 @@ LOGIN FORM
 	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
-
-/*******************
-HEADER
-*******************/
 
 .login-form .header {
 	padding: 10px 10px 10px 10px;
@@ -137,7 +182,7 @@ MAP
 	font-size: 14px;
 	color: #9d9e9e;
 	text-shadow: 1px 1px 0 rgba(256,256,256,1.0);
-	
+
 	background: #fff;
 	border: 1px solid #fff;
 	border-radius: 5px;
@@ -182,12 +227,12 @@ MAP
 }
 
 .user-icon {
-	top:107px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
+	top:22px; /* Positioning fix for slide-in, got lazy to think up of simpler method. */
 	background: rgba(65,72,72,0.75) url(../img/user-icon.png) no-repeat center;
 }
 
 .pass-icon {
-	top:191px;
+	top:110px;
 	background: rgba(65,72,72,0.75) url(../img/pass-icon.png) no-repeat center;
 }
 
@@ -207,8 +252,8 @@ FOOTER
 .login-form .footer {
 	padding: 10px 10px 10px 10px;
 	overflow: auto;
-	
-	background: #d4dedf;
+
+	background: #5C5C5C;;
 	border-top: 1px solid #fff;
 	
 	box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
@@ -216,46 +261,5 @@ FOOTER
 	-webkit-box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
 }
 
-/* Login button */
-.login-form .footer .button {
 
-    display: block;
-    margin: 0 auto;
-    text-align: center;
 
-    padding: 11px 25px;
-	font-family: 'Bree Serif', serif;
-	font-weight: 300;
-	font-size: 18px;
-	color: #fff;
-	text-shadow: 0px 1px 0 rgba(0,0,0,0.25);
-
-	background: #56c2e1;
-	border: 1px solid #46b3d3;
-	border-radius: 5px;
-	cursor: pointer;
-
-	box-shadow: inset 0 0 2px rgba(256,256,256,0.75);
-	-moz-box-shadow: inset 0 0 2px rgba(256,256,256,0.75);
-	-webkit-box-shadow: inset 0 0 2px rgba(256,256,256,0.75);
-}
-
-.login-form .footer .button:hover {
-	background: #3f9db8;
-	border: 1px solid rgba(256,256,256,0.75);
-
-	box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-	-moz-box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-	-webkit-box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-}
-
-.login-form .footer .button:focus {
-	position: relative;
-	bottom: -1px;
-
-	background: #56c2e1;
-
-	box-shadow: inset 0 1px 6px rgba(256,256,256,0.75);
-	-moz-box-shadow: inset 0 1px 6px rgba(256,256,256,0.75);
-	-webkit-box-shadow: inset 0 1px 6px rgba(256,256,256,0.75);
-}

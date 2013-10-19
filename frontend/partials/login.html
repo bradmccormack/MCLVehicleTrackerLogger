@@ -1,0 +1,35 @@
+<div id="myModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"
+     data-backdrop="static" data-keyboard="false" ng-controller="loginController" ng-init="Login()">
+
+	<div class="modal-header">
+		<h3 id="myModalLabel">Login</h3>
+	</div>
+
+	<div class="modal-body">
+		<div id="wrapper">
+			<div class="user-icon"> </div>
+			<div class="pass-icon"> </div>
+
+			<form name="login-form" class="login-form" action="" method="post">
+				<div class="header">
+				</div>
+				<div class="content">
+					<input name="username" type="text" class="input username" placeholder="Username" ng-model="Username">
+					<input name="password" type="password" class="input password" placeholder="Password" ng-model="Password">
+				</div>
+
+				<div class="footer centerit">
+					<button class="btn btn-large btn-primary" ng-click="Login()"><i class="icon icon-cogs"></i>  Login</button>
+
+				</div>
+			</form>
+			<span ng-show="Error" class="text-error">{{Error}}</span>
+		</div>
+
+	</div>
+
+	<div class="modal-footer" style="background-color:#050505">
+		<img src="img/logoheader.png" class="centerit">
+	</div>
+</div>
+

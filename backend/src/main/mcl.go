@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+//	"bytes"
 	"database/sql"
 	"encoding/gob"
 	"encoding/json"
@@ -38,6 +38,7 @@ type Company struct {
 	Name     string
 	Maxusers int
 	Expiry   string
+	LogoPath string
 }
 
 type User struct {
@@ -46,8 +47,23 @@ type User struct {
 	Lastname    string
 	Password    string
 	Accesslevel int
-	MapAPI      string
+	Email	    string
 }
+
+type Settings struct {
+	MapAPI 	    string
+	Interpolate	int
+	SnaptoRoad	int
+	CameraPanTrigger int
+	RadioCommunication int
+	DataCommunication int
+	SecurityRemoteAdmin int
+	SecurityConsoleAccess int
+	SecurityAdminPasswordReset int
+	MobileSmartPhoneAccess int
+	MobileShowBusLocation int
+}
+
 
 type Response map[string]interface{}
 
@@ -76,12 +92,19 @@ var actions = map[string]interface{}{
 	"ActionInvalid": func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Action", 403)
 	},
+	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		//TODO delete from the cookiestore 		
+		fmt.Fprint(w, Response{"success": true, "message": "logout ok"})
+		
+	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
 		var user User
 		var company Company
+		var settings Settings
 
 		name := r.FormValue("name")
 		password := r.FormValue("password")
@@ -90,26 +113,33 @@ var actions = map[string]interface{}{
 			log.Fatal(Db)
 		}
 
-		result := Db.QueryRow(`
-			SELECT U.ID, U.FirstName, U.LastName, U.AccessLevel, C.Name, C.MaxUsers, C.Expiry 
-			FROM User U, Company C
-			WHERE UPPER(U.FirstName) = ? AND U.Password = ? AND C.ID = U.CompanyID`,
-			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Accesslevel, &company.Name, &company.Maxusers, &company.Expiry)
+		result := Db.QueryRow(`	
+			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, C.LogoPath, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
+			S.RadioCommunication, S.DataCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation
+			FROM User U
+			JOIN COMPANY AS C on C.ID = U.ID
+			JOIN Settings AS S on S.UserID = U.ID
+			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
+			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
+			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
+			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation)
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "message": "Incorrect Username or Password", "retries": 10})
+			http.Error(w, "Login failed!", 401) 
 			return
 		case result != nil:
 			log.Fatal(result)
 		default:
 
 			//TODO check expiry of license
+			//TODO check amount of logged in users
 
-			session, _ := store.Get(r, "session")
+			session, _ := store.Get(r, "data")
 
 			session.Values["User"] = user
 			session.Values["Company"] = company
+			session.Values["Settings"] = settings
 			session.Options = &sessions.Options{
 				Path:   "/",
 				MaxAge: 86400, //1 day
@@ -119,7 +149,8 @@ var actions = map[string]interface{}{
 				fmt.Printf("Can't save session data (%s)\n", err.Error())
 
 			}
-			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user.Firstname + " " + user.Lastname})
+			
+			fmt.Fprint(w, Response{"success": true, "message": "login ok", "user": user, "company": company, "settings" : settings})
 		}
 
 	},
@@ -137,11 +168,12 @@ var actions = map[string]interface{}{
 		dateFrom := r.FormValue("dateFrom")
 		dateTo := r.FormValue("dateTo")
 
-		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
+        fmt.Printf("dateFrom is %s, dateTo is %s", dateFrom, dateTo)
+
+		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? AND Fix GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		var ID, Lat, Long, Speed, Fix, Heading, Date string
 
 		//build up the map here
@@ -169,18 +201,20 @@ var views = map[string]interface{}{
 	},
 
 	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
-		var err error
-		t := template.New("Login")
-		t, err = template.ParseFiles("templates/login.html")
-		if err != nil {
-			fmt.Printf("Failed to parse the template file!\n")
-			return
+		w.Header().Add("Content-Type", "application/json")	
+		session, _ := store.Get(r, "data")
+		if (session == nil) {
+			http.Error(w, "Unauthorized", 401)
+		} else {
+		var user User
+		var company Company
+		var settings Settings
+		user = session.Values["User"].(User)
+		company = session.Values["Company"].(Company)
+		settings = session.Values["Settings"].(Settings)
+		fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
 		}
 
-		var LoginInfo = map[string]bool{
-			"LoggedOut": false,
-		}
-		t.Execute(w, LoginInfo)
 	},
 	"ViewSupport": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
@@ -203,30 +237,50 @@ var views = map[string]interface{}{
 
 		w.Header().Add("Content-Type", "application/json")
 
-		session, _ := store.Get(r, "session")
-
-		var err error
-		t := template.New("Reports")
-		t, err = template.ParseFiles("templates/report.html")
-		if err != nil {
-			log.Fatal("Failed to read the template file for Reports. Fix it")
-		}
-
-		//execute to string and send back JSON with the view and the data view the charts
-		var viewsettings bytes.Buffer
-		t.Execute(&viewsettings, session.Values)
-		s := viewsettings.String()
+		//session, _ := store.Get(r, "session")
 
 		var percentAvailable int = random.Intn(75)
 		availability := [...]int{percentAvailable, 100 - percentAvailable}
 
-		var kmPerDay [7]int
+		//TODO restrict these reports to a range of dates
+		//dateFrom := r.FormValue("dateFrom")
+		//dateTo := r.FormValue("dateTo")
+		
+		
+		var distance float64
+		var weekday int
+		
+		
+		//init all days to 0
+		var kmPerDay [7]float64
 		for i := 0; i < 7; i++ {
-			kmPerDay[i] = random.Intn(60)
+			kmPerDay[i] = 0
+		}
+		
+		rows, err := Db.Query(`
+                        SELECT strftime('%w', datetime(GPSR1.DateTime, 'localtime')) AS Weekday,
+			SUM((strftime('%s',datetime(GPSR2.DateTime, "localtime")) - strftime('%s',datetime(GPSR1.DateTime, "localtime"))) *
+			( (GPSR1.Speed + GPSR2.Speed) /2 )  / 3600) as Distance
+			FROM GPSRecords GPSR1, GPSRecords GPSR2
+			WHERE GPSR1.ID = GPSR2.ID -1
+			AND GPSR1.Fix = 1
+			GROUP BY Weekday`)
+		
+		
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		fmt.Fprint(w, Response{"HTML": s, "Availability": availability, "KMPerDay": kmPerDay})
-		//t.Execute(w, session.Values)
+		for rows.Next() {
+			if err := rows.Scan(&weekday, &distance); err != nil {
+				log.Fatal(err)
+			}
+			kmPerDay[weekday -1] = distance
+			
+		}
+
+		fmt.Fprint(w, Response{"Availability": availability, "KMPerDay": kmPerDay})
+
 	},
 
 	"ViewMap": func(w http.ResponseWriter, r *http.Request) {
@@ -290,11 +344,13 @@ var views = map[string]interface{}{
 			}
 			session.Save(r, w)
 		}
+
 		var err error
 		t := template.New("Settings")
 		t, err = template.ParseFiles("templates/settings.html")
 		if err != nil {
-			log.Fatal("Failed to parse the template file for settings. Fix it")
+			fmt.Printf(err.Error())
+			log.Fatal("\nFailed to parse the template file for settings. Fix it")
 		}
 
 		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */
@@ -334,6 +390,16 @@ func createDb() {
          Fix integer not null,
          DateTime date not null default current_timestamp,
         BusID text not null);`,
+		
+	`CREATE TABLE Support (
+	SupportID integer primary key autoincrement,
+	UserID integer not null,
+	Subject text not null,
+	Body text not null,
+	DateTime date not null default current_timestamp,
+	FOREIGN KEY (UserID) REFERENCES User(ID)
+	);`,
+
 
 		`CREATE TABLE Errors (
         id integer primary key autoincrement,
@@ -342,7 +408,7 @@ func createDb() {
         DateTime date not null default current_timestamp,
         FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
 	);`,
-
+ 
 		`CREATE TABLE Network (
         id integer primary key autoincrement,
         GPSRecordID integer not null,
@@ -354,7 +420,8 @@ func createDb() {
         ID integer primary key autoincrement,
         Name text not null,
         Expiry date not null default current_timestamp,
-        MaxUsers integer not null default 0
+        MaxUsers integer not null default 0,
+	LogoPath text not null default ''
 	);`,
 
 		`CREATE TABLE User (
@@ -364,6 +431,7 @@ func createDb() {
         CompanyID integer not null,
         Password text not null,
         AccessLevel integer not null default 0,
+	Email text not null,	
         FOREIGN KEY (CompanyID) REFERENCES Company(ID)
 	);`,
 
@@ -371,18 +439,27 @@ func createDb() {
         ID integer primary key autoincrement,
         UserID integer not null,
         MapAPI text not null default 'GoogleMaps',
-		Interpolate integer not null default 1,
-		SnaptoRoad integer not null default 1, 
+	Interpolate integer not null default 1,
+	SnaptoRoad integer not null default 1,
+	CameraPanTrigger integer not null default 10,
+        RadioCommunication integer not null default 1,
+        DataCommunication integer not null default 1,
+        SecurityRemoteAdmin integer not null default 0,
+        SecurityConsoleAccess integer not null default 0,
+        SecurityAdminPasswordReset integer not null default 0,
+        MobileSmartPhoneAccess integer not null default 0,
+        MobileShowBusLocation integer not null default 0,
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
 
-		"INSERT INTO Company (Name, MaxUsers) VALUES ('myClubLink' , 1);",
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel) VALUES ('guest','user', 1, 'guest', 0);",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'GoogleMaps');",
+/*This crap needs moving out of here */		
+"INSERT INTO Company (Name, MaxUsers, LogoPath) VALUES ('myClubLink' , 1, 'img/mcl_logo.png');",
+		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'Google Maps');",
 
-		"INSERT INTO Company (Name, MaxUsers, Expiry) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00');",
-		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel) VALUES ('Craig', 'Smith', 2, 'craig', 10);",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'GoogleMaps');",
+		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00', 'img/sussex_logo.PNG');",
+		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
+		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'Google Maps');",
 		"COMMIT TRANSACTION;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
@@ -453,6 +530,7 @@ func handleHTTP() {
 
 	//Action Routes
 	actionRouter.HandleFunc("/system/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/system/logout", actions["ActionLogout"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/historicalroute", actions["ActionHistorialRoute"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/", actions["ActionInvalid"].(func(http.ResponseWriter, *http.Request)))
@@ -472,6 +550,7 @@ func handleHTTP() {
 func init() {
 	gob.Register(User{})
 	gob.Register(Company{})
+	gob.Register(Settings{})
 }
 
 func main() {
@@ -577,6 +656,7 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	for data {
 		n, err = conn.Read(buff)
 		if err != nil {
+			fmt.Printf("Error occured - %s", err.Error())
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}
