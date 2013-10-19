@@ -40,15 +40,15 @@
 	<div id="Mainuser" ng-show="User.First" class="span4 pull-right">
 		<div class="row">
 			<div class="btn-group pull-right">
-				<a ng-click="Logout()" class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username"> {{ User.First }} {{User.Last}}</span></a>
+				<a class="btn btn-primary" href="#"><i class="icon-user icon-white"> </i> <span id="username"> {{ User.First }} {{User.Last}}</span></a>
 				<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> <span class="caret"> </span>
 				</a>
 				<ul class="dropdown-menu">
 					<li>
 						<a href="#"> <i class="icon-pencil"> </i> Edit</a>
 					</li>
-					<li>
-						<a href="#"><i class="icon-trash" ng-click="Logout()"> </i> Log Out</a>
+					<li ng-click="Logout()">
+						<a href="#"><i class="icon-trash"></i> Log Out</a>
 					</li>
 				</ul>
 			</div>

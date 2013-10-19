@@ -16,12 +16,14 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
 
 
 		$scope.Logout = function(){
-			$http({method: 'POST', url: '/system/logout',
+            $.removeCookie("data");
+            $http({method: 'POST', url: '/system/logout',
 				withCredentials: true}).
 				success(function (data, status, headers, config) {
+
 					//TODO Need to stop the network service networkService.Init();
-					//delete the data cookie
-					$.cookie("data", null);
+                    $scope.User = "";
+
 					$location.path("/login");
 
 				}).
@@ -33,6 +35,7 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
 	$scope.$on("ConfigChanged", function (Event, Data) {
 		$scope.User.First = Data.User.First;
 		$scope.User.Last = Data.User.Last;
+        updateClock();
 	});
 
 
@@ -42,13 +45,14 @@ var edit = function () {
 
 var updateClock = function () {
 	$scope.clock.time = new Date().toLocaleString();
+
 }
 
 
 var timer = setInterval(function () {
 	$scope.$apply(updateClock);
 }, $scope.clock.interval);
-updateClock();
+
 
 }])
 ;
