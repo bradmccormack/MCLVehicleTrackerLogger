@@ -65,7 +65,7 @@
 	<div id="Maincontent" class="row-fluid">
 		<div class="row-fluid row-heightmax">
 
-			<div id="Mainnav" class="span2" ng-controller="navController">
+			<div ng-show="IsLogged" id="Mainnav" class="span2" ng-controller="navController">
 				<ul class="nav nav-pills nav-stacked">
 					<li ng-class="{active: isActive('/tracking') }">
 						<a id="tracking" href="#/tracking"><i class="icon-globe icon-white icon-3x"> </i> Tracking</a>
@@ -85,6 +85,7 @@
 					</li>
 				</ul>
 			</div>
+
 			<!--Nav -->
 
 			<div id="Maintab" class="span10" ng-view="myApp">

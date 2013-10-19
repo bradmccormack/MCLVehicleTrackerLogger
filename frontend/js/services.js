@@ -51,8 +51,7 @@ angular.module('myApp.services', [])
 	    Messages: [],
 	    ClearConfig: function() {
 			this.User = "";
-
-		  
+            $rootScope.$broadcast("ConfigChanged", serviceInstance);
 	    },
 	    LoadConfig: function(data) {
 			this.User = {
@@ -93,8 +92,7 @@ angular.module('myApp.services', [])
 					},
 					Camera: {
 					}
-				},
-				
+				}
 			}
 		    $rootScope.$broadcast("ConfigChanged", serviceInstance);
 		}
@@ -584,19 +582,26 @@ angular.module('myApp.services', [])
 }])
     .factory("networkService", ['mapService', 'utilityService', '$rootScope', function (mapService, utilityService, $rootScope) {
 
-    return {
+    return (function() {
+        var Con;
+        return {
+
+        Stop: function() {
+            Con.close();
+            Con = undefined;
+        },
         Init: function () {
-            var Con;
+
 
             if (window["WebSocket"]) {
                 Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
 
                 Con.onopen = function () {
-	                $rootScope.$broadcast("systemMessage", "Connected to server");
+                    $rootScope.$broadcast("systemMessage", "Connected to server");
                 };
 
                 Con.onclose = function (evt) {
-	                $rootScope.$broadcast("systemMessage", "Server connection closed");
+                    $rootScope.$broadcast("systemMessage", "Server connection closed");
                 }
                 Con.onmessage = function (evt) {
                     var data = JSON.parse(evt.data).Entry;
@@ -607,6 +612,11 @@ angular.module('myApp.services', [])
             }
         }
     }
+    })();
+
+
+
+
 
 
 }]);

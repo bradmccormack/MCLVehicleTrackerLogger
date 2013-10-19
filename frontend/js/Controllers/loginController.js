@@ -1,5 +1,5 @@
-var LoginCtrl = angular.module('myApp.controllers').controller("loginController", ['$scope', '$cookieStore', '$http', 'shellService', 'authService', 'networkService', '$location',
-	function ($scope, $cookieStore, $http, shellService, authService, networkService, $location) {
+var LoginCtrl = angular.module('myApp.controllers').controller("loginController", ['$scope', '$cookieStore', '$http', 'shellService', 'authService', 'networkService', '$location', '$timeout',
+	function ($scope, $cookieStore, $http, shellService, authService, networkService, $location, $timeout) {
 
 
         /*bind event handlers using jquery to do the animation */
@@ -20,17 +20,28 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
 
 
         $scope.Login = function() {
+            $scope.LoginProgress = true;
             $http({method: 'POST', url: '/system/login', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 withCredentials: true, data: $.param({name: $scope.Username, password: $scope.Password})}).
                 success(function (data, status, headers, config) {
-                    shellService.LoadConfig(data);
-                    networkService.Init();
-                    $location.path("/tracking");
-                    authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
+                    if(data.success) {
+
+                        $timeout(function(){
+                            $scope.LoginProgress = false;
+                            shellService.LoadConfig(data);
+                            networkService.Init();
+                            $location.path("/tracking");
+                            authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
+                        }, 1000)
+
+                    }
+                    else {
+                        $scope.Error = data.error;
+                    }
 
                 }).
                 error(function (data, status, headers, config) {
-
+                    var error = data;
                 });
         }
 
@@ -63,14 +74,13 @@ LoginCtrl.Login = function($q, $http, $location, shellService, networkService) {
         $http({method: 'POST', url: '/system/login', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             withCredentials: true, data: $.param({name: '', password: ''})}).
             success(function (data, status, headers, config) {
-                shellService.LoadConfig(data);
-                networkService.Init();
-                $location.path("/tracking");
-                authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
+
+
+                //authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
 
             }).
             error(function (data, status, headers, config) {
-
+                var error = data;
             });
         defer.resolve();
 

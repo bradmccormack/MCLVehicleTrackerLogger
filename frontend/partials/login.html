@@ -19,11 +19,12 @@
 				</div>
 
 				<div class="footer centerit">
-					<button class="btn btn-large btn-primary" ng-click="Login()"><i class="icon icon-cogs"></i>  Login</button>
+					<button class="btn btn-large btn-primary" ng-click="Login()"><i ng-class="{'icon-cogs' : true, 'icon-spin' : LoginProgress}"></i>  Login</button>
 
 				</div>
 			</form>
-			<span ng-show="Error" class="text-error">{{Error}}</span>
+            <hr>
+			<span ng-show="Error" class="text-error centerit"><i class="icon-warning-sign 2x"></i>{{Error}}</span>
 		</div>
 
 	</div>

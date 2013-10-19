@@ -126,8 +126,8 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			http.Error(w, "Login failed!", 401) 
-			return
+			fmt.Fprint(w, Response{"success": false, "error": "Incorrect User/Password specified"})
+
 		case result != nil:
 			log.Fatal(result)
 		default:
