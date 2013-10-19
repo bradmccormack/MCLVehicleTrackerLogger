@@ -17,6 +17,11 @@ angular.module('myApp.controllers').controller("footerController", ['$scope', 's
 		}
 	});
 
+    $scope.$on("ConfigChanged", function (Event, Data) {
+        $scope.IsLogged = Data.User != "" && $.cookie("data") != undefined;
+    });
+
+
 
 
 }]);
