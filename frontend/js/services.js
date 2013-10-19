@@ -581,7 +581,8 @@ angular.module('myApp.services', [])
 
     }
 
-}]).factory("networkService", ['mapService', 'utilityService', '$rootScope', function (mapService, utilityService, $rootScope) {
+}])
+    .factory("networkService", ['mapService', 'utilityService', '$rootScope', function (mapService, utilityService, $rootScope) {
 
     return {
         Init: function () {
