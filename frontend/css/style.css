@@ -93,6 +93,11 @@ div#SystemMessages {
 body.waiting-for-angular div#content-outer {
     display: none;
 }
+
+body div#initializing-panel{
+    display:none;
+}
+
 body.waiting-for-angular div#initializing-panel {
     display: block;
     background: url(../img/loading.gif) center center no-repeat;
@@ -103,6 +108,12 @@ body.waiting-for-angular div#initializing-panel {
     height: 100%;
     text-align: center;
     margin-top: 200px;
+}
+
+body.waiting-for-angular div#initializing-panel img#fail{
+    width: 100px;
+    height: 100px;
+
 }
 
 

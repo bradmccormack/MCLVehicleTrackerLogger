@@ -19,7 +19,7 @@
 	<script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
 </head>
 
-<body ng-app="myApp" ng-controller="mainController" ng-init="SystemInit()" class="authapplication waiting-for-angular">
+<body ng-app="myApp" ng-controller="mainController" ng-init="SystemInit()" class="authapplication">
 
 
 <!--[if lt IE 7]>
@@ -30,10 +30,10 @@
 
 <!--https://github.com/witoldsz/angular-http-auth/blob/gh-pages/index.html -->
 
-<div id="initializing-panel" class="container row-heightmax">
+<div id="initializing-panel">
     <h1 class="text-error"><i class="icon-ban-circle"></i>  Connection to the server failed</h1>
     <h3 class="text-error">Please try refreshing your browser or contact myClublink support</h3>
-    <img src="img/fail3.jpg">
+    <img id="fail" src="img/fail3.jpg">
 </div>
 
 <div id="Mainheader" class="container-fluid" ng-controller="headerController">
