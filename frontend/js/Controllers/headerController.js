@@ -41,6 +41,11 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
         }, $scope.clock.interval);
 	});
 
+    $scope.$on('event:server-lostContact', function() {
+        shellService.ClearConfig();
+    });
+
+
 
 var edit = function () {
 

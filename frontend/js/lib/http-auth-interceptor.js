@@ -38,6 +38,12 @@
           $rootScope.$broadcast('event:auth-loginRequired');
           return deferred.promise;
         }
+        else if(response.status === 502 && !response.config.ignoreAuthModule) {
+            var deferred = $q.defer();
+            httpBuffer.append(response.config, deferred);
+            $rootScope.$broadcast('event:server-lostContact')
+            return deferred.promise;
+        }
         // otherwise, default behaviour
         return $q.reject(response);
       }
