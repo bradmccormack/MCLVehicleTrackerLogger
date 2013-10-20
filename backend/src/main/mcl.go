@@ -143,33 +143,49 @@ var actions = map[string]interface{}{
 		case result != nil:
 			log.Fatal(result)
 		default:
-
+            var Errors[] string
 			//TODO check expiry of license
 
 
 			//TODO check amount of logged in users
             // select count(*) from ApplicationLogin where LoggedOut is null
 
+            var LoggedInCount, MaxUsers int
+            var Expiry time.Time
+
+            result := Db.QueryRow(`
+                            SELECT COUNT(LoggedIn), C.MaxUsers , C.Expiry
+                                         FROM ApplicationLogin L
+                                         JOIN User AS U ON U.ID = L.UserID
+                                         JOIN Company AS C ON C.ID = U.CompanyID
+                                         WHERE L.UserID = ? AND L.LoggedOut IS NULL`, user.ID).Scan(&LoggedInCount, &MaxUsers, &Expiry)
+
+            switch {
+            case result != nil:
+                log.Fatal(result)
+            default:
+                if(LoggedInCount > MaxUsers)
+                    Errors.append("TOO MANY LOGGED IN USERS")
+                Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
+
+
+                session, _ := store.Get(r, "data")
+                session.Values["User"] = user
+                session.Values["Company"] = company
+                session.Values["Settings"] = settings
+                session.Options = &sessions.Options{
+                    Path:   "/",
+                    MaxAge: 86400, //1 day
+                }
+
+                if err := session.Save(r, w); err != nil {
+                    fmt.Printf("Can't save session data (%s)\n", err.Error())
+
+                }
+            }
 
 
 
-			//TODO update the LoggedIn record for the current user
-			Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
-
-
-			session, _ := store.Get(r, "data")
-			session.Values["User"] = user
-			session.Values["Company"] = company
-			session.Values["Settings"] = settings
-			session.Options = &sessions.Options{
-				Path:   "/",
-				MaxAge: 86400, //1 day
-			}
-
-			if err := session.Save(r, w); err != nil {
-				fmt.Printf("Can't save session data (%s)\n", err.Error())
-
-			}
 			
 			fmt.Fprint(w, Response{"success": true, "message": "login ok", "user": user, "company": company, "settings" : settings})
 		}
