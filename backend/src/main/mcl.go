@@ -94,8 +94,20 @@ var actions = map[string]interface{}{
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		//TODO delete from the cookiestore 		
-		fmt.Fprint(w, Response{"success": true, "message": "logout ok"})
+
+		//TODO delete from the cookiestore
+		session, _ := store.Get(r, "data")
+		session.Values["User"] = ""
+        session.Values["Company"] = ""
+        session.Values["Settings"] = ""
+
+        if Db == nil {
+        			log.Fatal(Db)
+        		}
+
+        Db.Exec("UPDATE ApplicationLogin SET LoggedOut = VALUES(DateTime('now'))")
+		//TODO Update the LoggedOut record for the current user in the ApplicationLogin table
+		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
 		
 	},
 
@@ -133,10 +145,19 @@ var actions = map[string]interface{}{
 		default:
 
 			//TODO check expiry of license
+
+
 			//TODO check amount of logged in users
+            // select count(*) from ApplicationLogin where LoggedOut is null
+
+
+
+
+			//TODO update the LoggedIn record for the current user
+			Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
+
 
 			session, _ := store.Get(r, "data")
-
 			session.Values["User"] = user
 			session.Values["Company"] = company
 			session.Values["Settings"] = settings
@@ -451,6 +472,12 @@ func createDb() {
         MobileShowBusLocation integer not null default 0,
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
+
+	`CREATE TABLE ApplicationLogin (
+	UserID integer primary key,
+	LoggedIn date not null,
+	LoggedOut date);`,
+
 
 /*This crap needs moving out of here */		
 "INSERT INTO Company (Name, MaxUsers, LogoPath) VALUES ('myClubLink' , 1, 'img/mcl_logo.png');",
