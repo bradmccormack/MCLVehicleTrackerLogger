@@ -25,6 +25,11 @@ angular.module('myApp.directives', []).
 					//main.show();
 
 				});
-			}
+
+                scope.$on('event:server-lostContact', function() {
+                    elem.addClass("waiting-for-angular");
+                })
+
+            }
 		}
 	});
