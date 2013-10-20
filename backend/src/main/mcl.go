@@ -138,17 +138,13 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "error": "Incorrect User/Password specified"})
+			fmt.Fprint(w, Response{"success": false, "errors": []string { "Incorrect User/Password specified" }})
 
 		case result != nil:
 			log.Fatal(result)
 		default:
-            var Errors[] string
+            var Errors []string
 			//TODO check expiry of license
-
-
-			//TODO check amount of logged in users
-            // select count(*) from ApplicationLogin where LoggedOut is null
 
             var LoggedInCount, MaxUsers int
             var Expiry time.Time
@@ -164,8 +160,16 @@ var actions = map[string]interface{}{
             case result != nil:
                 log.Fatal(result)
             default:
-                if(LoggedInCount > MaxUsers)
-                    Errors.append("TOO MANY LOGGED IN USERS")
+                if(LoggedInCount > MaxUsers) {
+                    Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") exceeds license limit " + strconv.Itoa(MaxUsers))
+                }
+
+                /*
+                if(Expiry < time.UTC()) {
+                    Errors = append(Errors, "Your license has expired")
+                }
+                */
+
                 Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
 
 
@@ -184,10 +188,14 @@ var actions = map[string]interface{}{
                 }
             }
 
-
+            if(len(Errors) == 0) {
+                fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
+            } else {
+                fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
+            }
 
 			
-			fmt.Fprint(w, Response{"success": true, "message": "login ok", "user": user, "company": company, "settings" : settings})
+
 		}
 
 	},
@@ -205,7 +213,6 @@ var actions = map[string]interface{}{
 		dateFrom := r.FormValue("dateFrom")
 		dateTo := r.FormValue("dateTo")
 
-        fmt.Printf("dateFrom is %s, dateTo is %s", dateFrom, dateTo)
 
 		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? AND Fix GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
 		if err != nil {
