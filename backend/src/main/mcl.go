@@ -144,7 +144,7 @@ var actions = map[string]interface{}{
 			log.Fatal(result)
 		default:
             var Errors []string
-			//TODO check expiry of license
+
 
             var LoggedInCount, MaxUsers int
             var Expiry string
@@ -161,16 +161,20 @@ var actions = map[string]interface{}{
             }
 
 
-
             if(LoggedInCount > MaxUsers) {
                 Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") exceeds license limit (" + strconv.Itoa(MaxUsers) + ")")
             }
 
-                /*
-            if(Expiry < time.UTC()) {
-                Errors = append(Errors, "Your license has expired")
+            var ExpiryDate time.Time
+            ExpiryDate, _ = time.Parse(time.RFC3339, Expiry)
+
+
+
+
+            if(ExpiryDate.Unix() < time.Now().Unix()) {
+                Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
             }
-            */
+
 
 
 
