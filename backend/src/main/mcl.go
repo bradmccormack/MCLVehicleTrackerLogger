@@ -166,18 +166,12 @@ var actions = map[string]interface{}{
             }
 
             var ExpiryDate time.Time
-            ExpiryDate, _ = time.Parse(time.RFC3339, Expiry)
-
-
-
+            layout := "2006-01-02 15:04:05" //http://golang.org/src/pkg/time/format.go
+            ExpiryDate, _ = time.Parse(layout, Expiry)
 
             if(ExpiryDate.Unix() < time.Now().Unix()) {
                 Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
             }
-
-
-
-
 
             if(len(Errors) == 0) {
                 Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
@@ -192,9 +186,8 @@ var actions = map[string]interface{}{
 
                 if err := session.Save(r, w); err != nil {
                     fmt.Printf("Can't save session data (%s)\n", err.Error())
-
                 }
-                 fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
+                fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
             } else {
                 fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
             }
