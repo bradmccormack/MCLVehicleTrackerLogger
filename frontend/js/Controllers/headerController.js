@@ -16,13 +16,14 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
 
 
 		$scope.Logout = function(){
-            $.removeCookie("data");
+
             $http({method: 'POST', url: '/system/logout',
 				withCredentials: true}).
 				success(function (data, status, headers, config) {
 
                     shellService.ClearConfig();
                     networkService.Stop();
+                    $.removeCookie("data");
 					$location.path("/login");
 
 				}).
