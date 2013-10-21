@@ -93,20 +93,26 @@ var actions = map[string]interface{}{
 		http.Error(w, "Invalid Action", 403)
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
+        fmt.Printf("Logging out")
 		w.Header().Add("Content-Type", "application/json")
 
-		//TODO delete from the cookiestore
-		session, _ := store.Get(r, "data")
+
+
+
+        if Db == nil {
+        			log.Fatal(Db)
+        }
+
+        session, _ := store.Get(r, "data")
+
+        var user User = session.Values["User"].(User)
+        Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+
 		session.Values["User"] = ""
         session.Values["Company"] = ""
         session.Values["Settings"] = ""
 
-        if Db == nil {
-        			log.Fatal(Db)
-        		}
 
-        Db.Exec("UPDATE ApplicationLogin SET LoggedOut = VALUES(DateTime('now'))")
-		//TODO Update the LoggedOut record for the current user in the ApplicationLogin table
 		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
 		
 	},
