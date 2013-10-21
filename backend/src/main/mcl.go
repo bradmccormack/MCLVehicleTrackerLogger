@@ -147,32 +147,36 @@ var actions = map[string]interface{}{
 			//TODO check expiry of license
 
             var LoggedInCount, MaxUsers int
-            var Expiry time.Time
+            var Expiry string
 
-            result := Db.QueryRow(`
-                            SELECT COUNT(LoggedIn), C.MaxUsers , C.Expiry
-                                         FROM ApplicationLogin L
-                                         JOIN User AS U ON U.ID = L.UserID
-                                         JOIN Company AS C ON C.ID = U.CompanyID
-                                         WHERE L.UserID = ? AND L.LoggedOut IS NULL`, user.ID).Scan(&LoggedInCount, &MaxUsers, &Expiry)
-
-            switch {
-            case result != nil:
+            var result error
+            result = Db.QueryRow("SELECT COUNT(1) FROM ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
+            if(result != nil) {
                 log.Fatal(result)
-            default:
-                if(LoggedInCount > MaxUsers) {
-                    Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") exceeds license limit " + strconv.Itoa(MaxUsers))
-                }
+            }
+
+            result = Db.QueryRow("SELECT MaxUsers, Expiry FROM Company WHERE ID = (SELECT CompanyID FROM USER WHERE ID = ?)", user.ID).Scan(&MaxUsers, &Expiry)
+            if(result != nil) {
+                log.Fatal(result)
+            }
+
+
+
+            if(LoggedInCount > MaxUsers) {
+                Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") exceeds license limit (" + strconv.Itoa(MaxUsers) + ")")
+            }
 
                 /*
-                if(Expiry < time.UTC()) {
-                    Errors = append(Errors, "Your license has expired")
-                }
-                */
+            if(Expiry < time.UTC()) {
+                Errors = append(Errors, "Your license has expired")
+            }
+            */
 
+
+
+
+            if(len(Errors) == 0) {
                 Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
-
-
                 session, _ := store.Get(r, "data")
                 session.Values["User"] = user
                 session.Values["Company"] = company
@@ -186,10 +190,7 @@ var actions = map[string]interface{}{
                     fmt.Printf("Can't save session data (%s)\n", err.Error())
 
                 }
-            }
-
-            if(len(Errors) == 0) {
-                fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
+                 fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
             } else {
                 fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
             }

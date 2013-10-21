@@ -36,11 +36,9 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
 
                     }
                     else {
-                        $timeout(function() {
-                            $scope.LoginProgress = false;
-                            $scope.Errors = data.errors;
-                        })
-
+                        $scope.LoginProgress = false;
+                        $scope.Errors = data.errors;
+                        $location.path("/login");
                     }
 
                 }).
