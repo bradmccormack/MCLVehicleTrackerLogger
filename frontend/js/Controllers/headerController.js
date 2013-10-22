@@ -33,6 +33,7 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
                 Last: Data.User.Last
             }
         }
+        else $scope.User = {};
 
 
         var timer = setInterval(function () {
