@@ -12,9 +12,9 @@ import (
 )
 
 
-var ip = flag.String("ip", "localhost:6969", "ip address to send gps co-ordinates to")
+var ip = flag.String("ip", "127.0.0.1:6969", "ip address to send gps co-ordinates to")
 var dbname = flag.String("database", "backend.db", "database to open gps records from")
-var query = flag.String("query", "select id, Latitude, Longitude, Speed, Heading, Fix, BusID from GPSRecords", "query to obtain gps records -eg select * from GPSRecords")
+var query = flag.String("query", "select id, Latitude, Longitude, Speed, Heading, Fix, BusID from GPSRecords where ID > 1000", "query to obtain gps records -eg select * from GPSRecords")
 var db *sql.DB
 
 type GPS struct {
@@ -22,7 +22,7 @@ type GPS struct {
 	Message string
 	Latitude string
 	Longitude string
-	Speed int
+	Speed float64
 	Heading float64
 	Fix bool
 	DateTime time.Time
@@ -62,7 +62,10 @@ func main() {
 	conn, err := net.Dial("tcp", *ip)
 	if err != nil {
 		log.Fatal("Cannot do tcp connection - %s", err.Error()) 
+	} else {
+		fmt.Printf("Connection made successfully \n")
 	}
+
 
 
 	var msg string
@@ -78,7 +81,7 @@ func main() {
 		msg = "T" + cord.Message + ",L"
                 msg += cord.Latitude + ","
                 msg += cord.Longitude + ","
-                msg += "S" + string(cord.Speed) + ","
+                msg += "S" + fmt.Sprint(cord.Speed) + ","
 		msg += "H" + fmt.Sprint(cord.Heading) + ","
                 msg += "D" + cord.DateTime.Format(time.RFC3339) + ","
                 msg += "F" + Fix + ","
@@ -86,11 +89,11 @@ func main() {
 
 		//convert string to bytes.. send to server then wait a second and loop
 		//bytes := []byte(msg)
-
-		fmt.Fprintf(conn, msg)
-		time.Sleep(1000 * time.Millisecond)
-
 		fmt.Printf("sentence is %s\n", msg)       
+		fmt.Fprintf(conn, msg)
+		time.Sleep(250 * time.Millisecond)
+
+	
 		
 	}
 

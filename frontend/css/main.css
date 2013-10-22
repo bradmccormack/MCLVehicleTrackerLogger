@@ -97,28 +97,26 @@ textarea {
 html, body
 {
 	height: 100%;
-	width 100%;
+	width: 100%;
 }
 
 div#Mainheader
 {
-	/*
-	padding-top: 5px;
-	padding-bottom: 5px;
-	*/
-	height: 40px;
-	background-color: #1b1b1b;
+	height: 75px;
+	background-color: #050505;
 	color: white;
 }
 
-div#Mainlogo
+div#Mainlogo,div#Mainuser
 {
-
+    height:75px;
 }
-
-div#Mainuser
+img#logo
 {
-	margin-top: 5px;
+    height: 75px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
 }
 
 
