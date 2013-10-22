@@ -9,13 +9,8 @@ angular.module('myApp.services', [])
 
 
     var serviceInstance = {
-        User:{
-            First:"",
-            Last:"",
-            Access:0,
-	        Password: "",
-	        Email: ""
-        },
+        User: undefined
+        ,
         Company:{
             Name:"",
             MaxUsers:1,
@@ -50,7 +45,7 @@ angular.module('myApp.services', [])
         },
 	    Messages: [],
 	    ClearConfig: function() {
-			this.User = "";
+			this.User = undefined;
             $rootScope.$broadcast("ConfigChanged", serviceInstance);
 	    },
 	    LoadConfig: function(data) {

@@ -18,21 +18,16 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
 		});
 
 
-
         $scope.Login = function() {
             $scope.LoginProgress = true;
             $http({method: 'POST', url: '/system/login', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 withCredentials: true, data: $.param({name: $scope.Username, password: $scope.Password})}).
                 success(function (data, status, headers, config) {
                     if(data.success) {
-
-                        $timeout(function(){
-                            $scope.LoginProgress = false;
-                            shellService.LoadConfig(data);
-                            networkService.Init();
-                            $location.path("/tracking");
-                            authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
-                        }, 1000)
+                        $scope.LoginProgress = false;
+                        shellService.LoadConfig(data);
+                        networkService.Init();
+                        $location.path("/tracking");
 
                     }
                     else {
@@ -54,13 +49,14 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
 
 
 //the $q library is the promise library
-LoginCtrl.Login = function($q, $http, $location, shellService, networkService) {
+LoginCtrl.Login = function($q, $http, $location, shellService, networkService, $cookies) {
 
     var defer = $q.defer();
 
     //The following needs refining. If a malicious user was to inject a cookie called data it would log in. It would be erroneous, but it would still try.
     //Instead we still need to hit the server with the Post login regardless to confirm the data cookie is valid
-    if ("data" in $.cookie()) {
+    if("data" in $cookies) {
+    //if ("data" in $.cookie()) {
 
         defer.reject("User logged in already");
 

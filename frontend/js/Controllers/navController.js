@@ -1,7 +1,7 @@
-angular.module('myApp.controllers').controller("navController", ['$scope', '$location', 'shellService', function($scope, $location, shellService){
+angular.module('myApp.controllers').controller("navController", ['$scope', '$location', '$cookies', function($scope, $location, $cookies){
 
     $scope.$on("ConfigChanged", function (Event, Data) {
-        $scope.IsLogged = Data.User != "" && $.cookie("data") != undefined;
+        $scope.IsLogged = (Data.User != undefined && Data.User != "" && ("data" in $.cookie()))
     });
 
     //For setting the active attribute on the navbar tabs for the main menu

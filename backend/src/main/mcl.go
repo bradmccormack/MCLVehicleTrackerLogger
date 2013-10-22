@@ -175,6 +175,7 @@ var actions = map[string]interface{}{
             layout := "2006-01-02 15:04:05" //http://golang.org/src/pkg/time/format.go
             ExpiryDate, _ = time.Parse(layout, Expiry)
 
+
             if(ExpiryDate.Unix() < time.Now().Unix()) {
                 Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
             }
@@ -501,9 +502,9 @@ func createDb() {
 	);`,
 
 	`CREATE TABLE ApplicationLogin (
-	UserID integer primary key,
-	LoggedIn date not null,
-	LoggedOut date);`,
+	UserID integer,
+	LoggedIn date NOT NULL default current_timestamp,
+	LoggedOut date, PRIMARY KEY(UserID, LoggedIN));`,
 
 
 /*This crap needs moving out of here */		
