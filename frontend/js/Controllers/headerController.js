@@ -26,10 +26,12 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
 	}
 
 	$scope.$on("ConfigChanged", function (Event, Data) {
-		if(Data.User && Data.User != "")
-        $scope.User = {
-            First: Data.User.First,
-            Last: Data.User.Last
+        $scope.IsLogged = (Data.User != undefined && Data.User != "" && ("data" in $.cookie()))
+        if($scope.IsLogged) {
+            $scope.User = {
+                First: Data.User.First,
+                Last: Data.User.Last
+            }
         }
 
 
@@ -49,7 +51,11 @@ var edit = function () {
 }
 
 var updateClock = function () {
-	$scope.clock.time = new Date().toLocaleString();
+    /*        $scope.IsLogged = (Data.User != undefined && Data.User != "" && ("data" in $.cookie()))
+
+     */
+
+    $scope.clock.time = moment().format("MMM Do YYYY, h:mm:ss a")
 
 }
 
