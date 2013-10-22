@@ -55,7 +55,7 @@ var updateClock = function () {
 
      */
 
-    $scope.clock.time = moment().format("MMM Do YYYY, h:mm:ss a")
+    $scope.clock.time = moment().format("Do MMM YYYY, h:mm:ss a")
 
 }
 
