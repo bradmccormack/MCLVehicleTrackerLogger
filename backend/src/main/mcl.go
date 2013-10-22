@@ -93,9 +93,27 @@ var actions = map[string]interface{}{
 		http.Error(w, "Invalid Action", 403)
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
+        fmt.Printf("Logging out")
 		w.Header().Add("Content-Type", "application/json")
-		//TODO delete from the cookiestore 		
-		fmt.Fprint(w, Response{"success": true, "message": "logout ok"})
+
+
+
+
+        if Db == nil {
+        			log.Fatal(Db)
+        }
+
+        session, _ := store.Get(r, "data")
+
+        var user User = session.Values["User"].(User)
+        Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+
+		session.Values["User"] = ""
+        session.Values["Company"] = ""
+        session.Values["Settings"] = ""
+
+
+		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
 		
 	},
 
@@ -126,31 +144,63 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "error": "Incorrect User/Password specified"})
+			fmt.Fprint(w, Response{"success": false, "errors": []string { "Incorrect User/Password specified" }})
 
 		case result != nil:
 			log.Fatal(result)
 		default:
+            var Errors []string
 
-			//TODO check expiry of license
-			//TODO check amount of logged in users
 
-			session, _ := store.Get(r, "data")
+            var LoggedInCount, MaxUsers int
+            var Expiry string
 
-			session.Values["User"] = user
-			session.Values["Company"] = company
-			session.Values["Settings"] = settings
-			session.Options = &sessions.Options{
-				Path:   "/",
-				MaxAge: 86400, //1 day
-			}
+            var result error
+            result = Db.QueryRow("SELECT COUNT(1) FROM ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
+            if(result != nil) {
+                log.Fatal(result)
+            }
 
-			if err := session.Save(r, w); err != nil {
-				fmt.Printf("Can't save session data (%s)\n", err.Error())
+            result = Db.QueryRow("SELECT MaxUsers, Expiry FROM Company WHERE ID = (SELECT CompanyID FROM USER WHERE ID = ?)", user.ID).Scan(&MaxUsers, &Expiry)
+            if(result != nil) {
+                log.Fatal(result)
+            }
 
-			}
+
+            if(LoggedInCount > MaxUsers) {
+                Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") exceeds license limit (" + strconv.Itoa(MaxUsers) + ")")
+            }
+
+            var ExpiryDate time.Time
+            layout := "2006-01-02 15:04:05" //http://golang.org/src/pkg/time/format.go
+            ExpiryDate, _ = time.Parse(layout, Expiry)
+
+
+            if(ExpiryDate.Unix() < time.Now().Unix()) {
+                Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
+            }
+
+            if(len(Errors) == 0) {
+                Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
+                session, _ := store.Get(r, "data")
+                session.Values["User"] = user
+                session.Values["Company"] = company
+                session.Values["Settings"] = settings
+                session.Options = &sessions.Options{
+                    Path:   "/",
+                    MaxAge: 86400, //1 day
+                }
+
+                if err := session.Save(r, w); err != nil {
+                    fmt.Printf("Can't save session data (%s)\n", err.Error())
+                }
+                fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
+            } else {
+                fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
+            }
+
 			
-			fmt.Fprint(w, Response{"success": true, "message": "login ok", "user": user, "company": company, "settings" : settings})
+
 		}
 
 	},
@@ -168,7 +218,6 @@ var actions = map[string]interface{}{
 		dateFrom := r.FormValue("dateFrom")
 		dateTo := r.FormValue("dateTo")
 
-        fmt.Printf("dateFrom is %s, dateTo is %s", dateFrom, dateTo)
 
 		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? AND Fix GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
 		if err != nil {
@@ -451,6 +500,12 @@ func createDb() {
         MobileShowBusLocation integer not null default 0,
         FOREIGN KEY (UserID) REFERENCES User(ID)
 	);`,
+
+	`CREATE TABLE ApplicationLogin (
+	UserID integer,
+	LoggedIn date NOT NULL default current_timestamp,
+	LoggedOut date, PRIMARY KEY(UserID, LoggedIN));`,
+
 
 /*This crap needs moving out of here */		
 "INSERT INTO Company (Name, MaxUsers, LogoPath) VALUES ('myClubLink' , 1, 'img/mcl_logo.png');",

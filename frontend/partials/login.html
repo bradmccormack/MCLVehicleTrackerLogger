@@ -1,5 +1,5 @@
 <div id="myModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"
-     data-backdrop="static" data-keyboard="false" ng-controller="loginController">
+     data-backdrop="static" data-keyboard="false" ng-controller="loginController" ng-init="Setup()">
 
 	<div class="modal-header">
 		<h3 id="myModalLabel">Login</h3>
@@ -24,7 +24,10 @@
 				</div>
 			</form>
             <hr>
-			<span ng-show="Error" class="text-error centerit"><i class="icon-warning-sign 2x"></i>{{Error}}</span>
+            <div id="errors" ng-show="Errors">
+                <span ng-repeat="Error in Errors" class="text-error centerit"><i class="icon-warning-sign 2x"></i>{{Error}}</span>
+            </div>
+
 		</div>
 
 	</div>
