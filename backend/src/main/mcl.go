@@ -294,18 +294,19 @@ var views = map[string]interface{}{
 		//TODO restrict these reports to a range of dates
 		//dateFrom := r.FormValue("dateFrom")
 		//dateTo := r.FormValue("dateTo")
-		
-		
+
+		//23 3e
+
 		var distance float64
 		var weekday int
-		
+
 		
 		//init all days to 0
 		var kmPerDay [7]float64
 		for i := 0; i < 7; i++ {
 			kmPerDay[i] = 0
 		}
-		
+
 		rows, err := Db.Query(`
                         SELECT strftime('%w', datetime(GPSR1.DateTime, 'localtime')) AS Weekday,
 			SUM((strftime('%s',datetime(GPSR2.DateTime, "localtime")) - strftime('%s',datetime(GPSR1.DateTime, "localtime"))) *
@@ -315,16 +316,17 @@ var views = map[string]interface{}{
 			AND GPSR1.Fix = 1
 			GROUP BY Weekday`)
 		
-		
+
 		if err != nil {
 			log.Fatal(err)
 		}
+
 
 		for rows.Next() {
 			if err := rows.Scan(&weekday, &distance); err != nil {
 				log.Fatal(err)
 			}
-			kmPerDay[weekday -1] = distance
+			kmPerDay[weekday] = distance
 			
 		}
 
