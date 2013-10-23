@@ -443,6 +443,7 @@ angular.module('myApp.services', [])
                 map.setCenter(new google.maps.LatLng(Latitude, Longitude));
             },
             reload:function () {
+                markers = {};
                 init();
             }
 
