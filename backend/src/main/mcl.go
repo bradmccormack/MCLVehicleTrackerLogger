@@ -518,6 +518,7 @@ func createDb() {
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
 		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'Google Maps');",
 		"COMMIT TRANSACTION;",
+		"PRAGMA journal_mode=WAL;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 
