@@ -72,10 +72,7 @@ LoginCtrl.Login = function($q, $http, $location, shellService, networkService, $
         $http({method: 'POST', url: '/system/login', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             withCredentials: true, data: $.param({name: '', password: ''})}).
             success(function (data, status, headers, config) {
-
-
                 //authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
-
             }).
             error(function (data, status, headers, config) {
                 var error = data;

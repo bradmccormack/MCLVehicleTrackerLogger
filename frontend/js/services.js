@@ -49,11 +49,12 @@ angular.module('myApp.services', [])
             $rootScope.$broadcast("ConfigChanged", serviceInstance);
 	    },
 	    LoadConfig: function(data) {
+            //Note ternary expressions are to turn any "truthy" value into explicit true/false for checkboxes
 			this.User = {
 				First: data.user.Firstname,
 				Last: data.user.Lastname,
 				Password: data.user.Password, //TODO encrypt serverside
-				Access: data.user.AccessLevel,
+				Access: data.user.Accesslevel,
 				Email: data.user.Email,
 				LoggedIn: true
 			};
@@ -66,23 +67,24 @@ angular.module('myApp.services', [])
 			}
 			this.Settings = {
 				Network: {
-					EnableRF: data.settings.RadioCommunication,
-					Enable3G: data.settings.DataCommunication
+					EnableRF: data.settings.RadioCommunication ? true : false,
+					Enable3G: data.settings.DataCommunication ? true: false
 				},
 				Security: {
-					RemoteSupport: data.settings.SecurityRemoteAdmin,
-					SystemConsoleAccess: data.settings.SecurityRemoteConsoleAccess,
-					AdminPasswordResetOnly: data.settings.SecurityAdminPasswordReset
+
+					RemoteSupport: data.settings.SecurityRemoteAdmin ? true : false,
+					SystemConsoleAccess: data.settings.SecurityConsoleAccess ? true: false,
+					AdminPasswordResetOnly: data.settings.SecurityAdminPasswordReset ? true: false
 				},
 				Mobile: {
-					AllowSmartPhone: data.settings.MobileSmartPhoneAccess,
-					ShowSmartPhoneLocation: data.settings.MobileShowBusLocation
+					AllowSmartPhone: data.settings.MobileSmartPhoneAccess ? true: false,
+					ShowSmartPhoneLocation: data.settings.MobileShowBusLocation ? true: false
 				},
 				Map: {
 					API: data.settings.MapAPI,
 					Marker: {
-						Smooth: data.settings.Interpolate,
-						SnaptoRoad: data.settings.SnaptoRoad,
+						Smooth: data.settings.Interpolate ? true: false,
+						SnaptoRoad: data.settings.SnaptoRoad ? true: false,
 						FollowVehicleTrigger: data.settings.CameraPanTrigger
 					},
 					Camera: {
