@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	//"io/ioutil"
 )
 
 type GPSRecord struct {
@@ -96,9 +97,6 @@ var actions = map[string]interface{}{
         fmt.Printf("Logging out")
 		w.Header().Add("Content-Type", "application/json")
 
-
-
-
         if Db == nil {
         			log.Fatal(Db)
         }
@@ -111,7 +109,6 @@ var actions = map[string]interface{}{
 		session.Values["User"] = ""
         session.Values["Company"] = ""
         session.Values["Settings"] = ""
-
 
 		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
 		
@@ -207,7 +204,124 @@ var actions = map[string]interface{}{
 
 	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		fmt.Printf("In Action Settings")
+
+
+        session, _ := store.Get(r, "data")
+        var user User = session.Values["User"].(User)
+        var settings Settings = session.Values["Settings"].(Settings)
+
+         var f map[string]interface{}
+        decoder := json.NewDecoder(r.Body)
+        err := decoder.Decode(&f)
+        if err != nil {
+                log.Fatal(err)
+        }
+
+
+        Db.Exec("BEGIN EXCLUSIVE TRANSACTION");
+        Db.Exec(`
+        UPDATE Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ?,
+        RadioCommunication = ?, DataCommunication = ?,
+        SecurityRemoteAdmin = ?, SecurityConsoleAccess = ?, SecurityAdminPasswordReset = ?,
+        MobileSmartPhoneAccess = ?, MobileShowBusLocation = ? WHERE UserID = ? `,
+        f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"],
+        f["RadioCommunication"], f["DataCommunication"],
+        f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
+        f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], user.ID)
+
+
+        /* CAN'T DO THIS UNTIL COMPANY WIDE SETTINGS IS IN PLACE
+        if(user.Accesslevel == 10) {
+            //Update The zoom limitations and boundary
+
+            //update security options
+
+            //update mobile options
+        }
+        */
+
+        //If only Allow admins to reset password is NOT set then update the users password
+        //THIS IS VERY BROKEN - IT SHOULD BE CHECKING COMPANY WIDE TABLE - BUG FILED ALREADY https://trello.com/c/OyhuyldT/30-web-ui-server-all-settings-are-currently-per-user-need-to-make-a-change-so-that-some-are-per-company
+        /*
+        if(settings.SecurityAdminPasswordReset == 0) {
+            //update the users password they are allowed
+        } else {
+            if(user.Accesslevel == 10) {
+                //update the admins password
+            }
+        }
+        */
+
+        Db.Exec("COMMIT TRANSACTION")
+
+
+
+        //Update the cookie too
+        settings.MapAPI = f["MapAPI"].(string)
+
+        //TODO see if I can improve this verbose crappy code
+        if(f["Interpolate"].(bool)) {
+            settings.Interpolate = 1
+        } else {
+            settings.Interpolate = 0
+        }
+
+        if(f["SnaptoRoad"].(bool)) {
+            settings.SnaptoRoad = 1
+        } else {
+            settings.SnaptoRoad = 0
+        }
+
+        settings.CameraPanTrigger = int(f["CameraPanTrigger"].(float64))
+
+        if(f["RadioCommunication"].(bool)) {
+            settings.RadioCommunication = 1
+        } else {
+            settings.RadioCommunication = 0
+        }
+
+        if(f["DataCommunication"].(bool)) {
+            settings.DataCommunication = 1
+        } else {
+            settings.DataCommunication = 0
+        }
+
+        if(f["SecurityRemoteAdmin"].(bool)) {
+            settings.SecurityRemoteAdmin = 1
+        } else {
+            settings.SecurityRemoteAdmin = 0
+        }
+
+        if(f["SecurityConsoleAccess"].(bool)) {
+            settings.SecurityConsoleAccess = 1
+        } else {
+            settings.SecurityConsoleAccess = 0
+        }
+
+        if(f["SecurityAdminPasswordReset"].(bool)) {
+            settings.SecurityAdminPasswordReset = 1
+        } else {
+            settings.SecurityAdminPasswordReset = 0
+        }
+
+        if(f["MobileSmartPhoneAccess"].(bool)) {
+            settings.MobileSmartPhoneAccess = 1
+        } else {
+            settings.MobileSmartPhoneAccess = 0
+        }
+
+        if(f["MobileShowBusLocation"].(bool)) {
+            settings.MobileShowBusLocation = 1
+        } else {
+            settings.MobileShowBusLocation = 0
+        }
+
+        session.Values["Settings"] = settings
+        if err := session.Save(r, w); err != nil {
+            fmt.Printf("Can't save session data (%s)\n", err.Error())
+        }
+        fmt.Fprint(w, Response{"success": true})
+
 	},
 	"ActionHistorialRoute": func(w http.ResponseWriter, r *http.Request) {
 
@@ -251,6 +365,7 @@ var views = map[string]interface{}{
 
 	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")	
+		fmt.Printf("In ViewLogin")
 		session, _ := store.Get(r, "data")
 		if (session == nil) {
 			http.Error(w, "Unauthorized", 401)
@@ -259,6 +374,7 @@ var views = map[string]interface{}{
 		var company Company
 		var settings Settings
 		user = session.Values["User"].(User)
+
 		company = session.Values["Company"].(Company)
 		settings = session.Values["Settings"].(Settings)
 		fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
@@ -518,6 +634,7 @@ func createDb() {
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
 		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'Google Maps');",
 		"COMMIT TRANSACTION;",
+		"PRAGMA journal_mode=WAL;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 

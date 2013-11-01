@@ -1,5 +1,10 @@
 #MISC
-backend/src/main/mcl
+mcl
+*.out
+*shm
+*wal
+*.db*
+
 
 .trashinfo
 

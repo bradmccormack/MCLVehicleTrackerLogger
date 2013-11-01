@@ -1,13 +1,23 @@
-angular.module('myApp.controllers').controller("settingsController", ['$scope', 'shellService', function($scope, shellService){
+angular.module('myApp.controllers').controller("settingsController", ['$scope', 'shellService', '$http', function($scope, shellService, $http){
+
+    var Loaded = false;
 
     var Helper = (function(){
         return {
             AccessLeveltoWord: function(Level) {
-                Levels = {1: "Guest", 5: "User", 8: "Senior", 10: "Admin"};
-                if(Level in Levels)
-                    return Levels[Level];
-                else
-                    return "Unknown Access Level";
+                if(Level == 0)
+                    return "Guest";
+
+                if(Level >= 1 && Level <= 5)
+                    return "User";
+
+                if(Level >=5 && Level <= 8)
+                    return "Advanced User"
+                if(Level >=8 && Level <= 10)
+                    return "Admin";
+
+                else return "Unknown Access Level"
+
             }
         }
         
@@ -39,9 +49,42 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
         Confirm: "",
         Error: false
     };
-   
+
+    $scope.$watch('Settings', function(e) {
+        //Don't attempt to Persist if the Settings are changing due to view load.
+        if(Loaded)
+        {
+            $http({method: 'POST', url: '/system/settings', headers: {'Content-Type': 'application/json'},
+                withCredentials: true, data:
+                JSON.stringify({
+                    "MapAPI" : e.Map.API,
+                    "Interpolate" : e.Map.Marker.Smooth,
+                    "SnaptoRoad" : e.Map.Marker.SnaptoRoad,
+                    "CameraPanTrigger" : e.Map.Marker.FollowVehicleTrigger,
+                    "RadioCommunication" : e.Network.EnableRF,
+                    "DataCommunication" : e.Network.Enable3G,
+                    "SecurityRemoteAdmin" : e.Security.RemoteSupport,
+                    "SecurityConsoleAccess" : e.Security.SystemConsoleAccess,
+                    "SecurityAdminPasswordReset" : e.Security.AdminPasswordResetOnly,
+                    "MobileSmartPhoneAccess" : e.Mobile.AllowSmartPhone,
+                    "MobileShowBusLocation" : e.Mobile.ShowSmartPhoneLocation
+                })}).
+                success(function (data, status, headers, config) {
+                    //authService.loginConfirmed(); //Login confirmed so the authservice will broadcast auth event which the directive will take care of and close login etc
+                }).
+                error(function (data, status, headers, config) {
+                    var error = data;
+                });
+
+        }
+        Loaded = true;
+
+    }, true);
+
+
+
     $scope.User = shellService.User;
-    $scope.User.Access = Helper.AccessLeveltoWord($scope.User.Access);
+    $scope.User.AccessWord = Helper.AccessLeveltoWord($scope.User.Access);
     $scope.Map = shellService.Map;
     $scope.Settings = shellService.Settings;
 

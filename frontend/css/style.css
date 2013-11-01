@@ -279,3 +279,8 @@ FOOTER
 
 
 
+/********** MISC INPUT ETC *********/
+input.input_number {
+    text-align: center;
+    width: 60px;
+}
