@@ -142,6 +142,8 @@ angular.module('myApp.services', [])
 }])
     .factory("mapService", ['shellService', 'utilityService','$rootScope', function (shellService, utilityService, $rootScope) {
 
+    var LiveMode = true;
+
     var LastPosition = {
         Time: new Date(),
         Position: {
@@ -559,7 +561,14 @@ angular.module('myApp.services', [])
 			        $rootScope.$broadcast("LegendChange", {Count: VehiclesCount, Vehicles: Vehicles});
 		        }
 		        CurrentMapAPI.addtoRoute(Vehicle, Point, Vehicles[Vehicle].Color);
-	        }
+	        },
+            SetMode: function(IsLive) {
+                LiveMode = IsLive;
+            },
+            GetMode: function() {
+                return LiveMode;
+            }
+
         },
 	    GetVehicles: function() {
 		    return Vehicles;
@@ -602,8 +611,10 @@ angular.module('myApp.services', [])
                     $rootScope.$broadcast("systemMessage", "Server connection closed");
                 }
                 Con.onmessage = function (evt) {
-                    var data = JSON.parse(evt.data).Entry;
-                    $rootScope.$broadcast("positionChange", data); //send the data out to any listeners
+                    if(mapService.Map.GetMode()) {
+                        var data = JSON.parse(evt.data).Entry;
+                        $rootScope.$broadcast("positionChange", data); //send the data out to any listeners
+                    }
                 }
             } else {
                 alert("Your browser does not support WebSockets. You cannot use myClubLink until you upgrade to a modern browser");
