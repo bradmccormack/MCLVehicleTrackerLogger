@@ -1,56 +1,34 @@
 angular.module('myApp.controllers').controller("trackingController", ['$scope', '$http', 'shellService', 'mapService', function($scope, $http, shellService, mapService){
 
-   function formatDateSQL(Dte) {
-	   var Months = Dte.getMonth() + 1 < 10 ? "0" + (Dte.getMonth() + 1) : Dte.getMonth() + 1;
-	   var Days = Dte.getDate() < 10 ? "0" + Dte.getDate() : Dte.getDate();
-	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
-	   var Minutes = Dte.getMinutes() < 10 ? "0" + Dte.getMinutes() : Dte.getMinutes();
-	   return [Dte.getFullYear(), Months, Days].join("-") + " " + [Hours, Minutes, Dte.getSeconds()].join(":");
-   }
-
-   function formatDate(Dte) {
-	   var Hours = Dte.getHours() < 10 ? "0" + Dte.getHours() : Dte.getHours();
-	   var Minutes = Dte.getMinutes() < 10 ? "0" + Dte.getMinutes() : Dte.getMinutes();
-	   var Seconds = Dte.getSeconds() < 10 ? "0" + Dte.getSeconds() : Dte.getSeconds();
-	   var Months = Dte.getMonth() + 1 < 10 ? "0" + (Dte.getMonth() + 1) : Dte.getMonth() + 1;
-	   var Days = Dte.getDate() < 10 ? "0" + Dte.getDate() : Dte.getDate();
-	   return [Days, Months, Dte.getFullYear()].join('/') + " " + [Hours, Minutes, Seconds].join(":");
-   }
-
    function Init() {
        updateLiveInformation();
 
-	   var Dte = new Date();
-	   var DteFrom = new Date(Dte.getFullYear(), Dte.getMonth() - 1, Dte.getDay(), Dte.getHours(), Dte.getMinutes(), Dte.getSeconds());
-	   $scope.routeDateFrom = formatDate(DteFrom);
-	   $scope.routeDateTo = formatDate(Dte);
 
-	   var datepickerFrom = $('#routeDateFrom');
-	   datepickerFrom.datetimepicker({
-		   language : 'en-AU',
-		   pick12HourFormat : true,
-		   format : 'dd/MM/yyyy hh:mm:ss',
-		   startDate: $scope.routeDateFrom
-	   });
+       //Set the time in Local time to be today
+       var Dte = moment().local();
+       var DteFrom = moment().local().subtract('days', 1);
 
-	   var datepickerTo = $('#routeDateTo');
-	   datepickerTo.datetimepicker({
-		   language : 'en-AU',
-		   pick12HourFormat : true,
-		   format : 'dd/MM/yyyy hh:mm:ss',
-		   startDate: $scope.routeDateTo
-	   });
 
-	   datepickerFrom.on('changeDate', function(e) {
-		   $scope.routeDateFrom = formatDate(e.date);
-	   });
+       $scope.routeDateFrom = DteFrom.format("DD/MM/YYYY HH:MM:SS");
+       $scope.routeDateTo = Dte.format("DD/MM/YYYY HH:MM:SS");
 
-	   datepickerTo.on('changeDate', function(e) {
-		   $scope.routeDateTo = formatDate(e.date);
-	   });
+       var datepickerFrom = $('#routeDateFrom');
+       datepickerFrom.datetimepicker({
+           language : 'en-AU',
+           pick12HourFormat : true,
+           format : 'dd/MM/yyyy hh:mm:ss'
+       });
 
-	   $('#routeDateFrom').data('datetimepicker').setLocalDate(DteFrom);
-	   $('#routeDateTo').data('datetimepicker').setLocalDate(Dte);
+       var datepickerTo = $('#routeDateTo');
+       datepickerTo.datetimepicker({
+           language : 'en-AU',
+           pick12HourFormat : true,
+           format : 'dd/MM/yyyy hh:mm:ss'
+       });
+
+
+       $('#routeDateFrom').data('datetimepicker').setLocalDate(DteFrom.toDate());
+       $('#routeDateTo').data('datetimepicker').setLocalDate(Dte.toDate());
    }
 
     var updateLiveInformation = function() {
@@ -122,8 +100,11 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 		WHERE datetime >='2013-07-2 22:14:45' AND datetime <='2013-10-12 12:14:45' GROUP BY id ORDER BY datetime asc
 		*/
 
-		var FromDate = formatDateSQL( $('#routeDateFrom').data('datetimepicker').getDate());
-		var ToDate = formatDateSQL( $('#routeDateTo').data('datetimepicker').getDate());
+
+        //Parse current values and convert to a format that we can use in the SQL query
+        var FromDate = moment($('#routeDateFrom').data('datetimepicker').getLocalDate()).format("YYYY-MM-DD HH:MM:SS");
+        var ToDate =   moment($('#routeDateTo').data('datetimepicker').getLocalDate()).format("YYYY-MM-DD HH:MM:SS");
+
 
 		$http({method: 'POST', url: '/system/historicalroute', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 			withCredentials: true, data: $.param({dateFrom: FromDate, dateTo: ToDate})}).
