@@ -82,6 +82,13 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
         mapService.Map.ReLoad();
     };
 
+
+    $scope.LiveMode = function(value) {
+        mapService.Map.SetMode(value);
+    }
+
+
+
     $scope.Print = function() {
         //var elm = $("#MapCanvas");
         var elm = document.getElementById('MapCanvas');
