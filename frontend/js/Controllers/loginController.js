@@ -24,15 +24,19 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
                 withCredentials: true, data: $.param({name: $scope.Username, password: $scope.Password})}).
                 success(function (data, status, headers, config) {
                     if(data.success) {
-                        $scope.LoginProgress = false;
-                        shellService.LoadConfig(data);
-                        networkService.Init();
-                        $location.path("/tracking");
+                        $scope.LoginProgress = true;
+						$timeout(function() {
+							shellService.LoadConfig(data);
+							networkService.Init();
+							$location.path("/tracking");
+						}, 1000)
+
 
                     }
                     else {
                         $scope.LoginProgress = false;
                         $scope.Errors = data.errors;
+						$timeout(function(){ $scope.Errors = ""}, 3000);/// Change the class to be animated fadeOutRight
                         $location.path("/login");
                     }
 
