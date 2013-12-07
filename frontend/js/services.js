@@ -14,7 +14,7 @@ angular.module('myApp.services', [])
         Company:{
             Name:"",
             MaxUsers:1,
-            Expiry:new Date(),
+            Expiry : new Date(),
             Logo:""
         },
         Settings:{
@@ -38,6 +38,11 @@ angular.module('myApp.services', [])
 	                SnaptoRoad: false,
                     FollowVehicleTrigger:0 //Default Vehicle camera trigger. 10 would represent a camera pan after every 10 movement updates
                 },
+				Boundary: {
+					MinZoom: 1,
+					MaxZoom: 10,
+					ClubBoundaryKM: 100
+				},
 	            Camera : {
 		            //Keeps track of settings per vehicle in the system
 	            }
@@ -71,7 +76,6 @@ angular.module('myApp.services', [])
 					Enable3G: data.settings.DataCommunication ? true: false
 				},
 				Security: {
-
 					RemoteSupport: data.settings.SecurityRemoteAdmin ? true : false,
 					SystemConsoleAccess: data.settings.SecurityConsoleAccess ? true: false,
 					AdminPasswordResetOnly: data.settings.SecurityAdminPasswordReset ? true: false
@@ -82,6 +86,12 @@ angular.module('myApp.services', [])
 				},
 				Map: {
 					API: data.settings.MapAPI,
+					Boundary: {
+						MinZoom: data.settings.MinZoom,
+						MaxZoom: data.settings.MaxZoom,
+						ClubBoundaryKM : data.settings.ClubBoundaryKM
+					},
+
 					Marker: {
 						Smooth: data.settings.Interpolate ? true: false,
 						SnaptoRoad: data.settings.SnaptoRoad ? true: false,

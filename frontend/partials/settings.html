@@ -26,9 +26,9 @@
 
                                 <div ng-hide="Password.Hidden">
 
-                                    <input type="text" placeholder="Old Password ..." ng-model="Password.Old">
-                                    <input type="text" placeholder="New Password ..." ng-model="Password.New">
-                                    <input type="text" placeholder="Confirm New Password ..."
+                                    <input type="password" placeholder="Old Password ..." ng-model="Password.Old">
+                                    <input type="password" placeholder="New Password ..." ng-model="Password.New">
+                                    <input type="password" placeholder="Confirm New Password ..."
                                            ng-model="Password.NewConfirm">
                                     <button class="btn btn-primary" ng-click="Password.Update()"><i
                                             class="icon-pencil"> </i> Update
@@ -37,7 +37,8 @@
                             </div>
 
                         </div>
-                        <span class="text-error" ng-show="Password.Error"><i class="icon-exclamation"></i> {{Password.Error}}</span>
+                        <span class="text-error" ng-show="Password.Error"><i class="icon-thumbs-down-alt"></i> {{Password.Error}}</span>
+                        <span class="text-success" ng-show="Password.Note"><i class="icon-thumbs-up-alt"></i> {{Password.Note}}</span>
                     </div>
                 </div>
 
@@ -104,11 +105,11 @@
                                 <strong>Boundaries</strong>
 
                                 <div class="controls">
-                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ZoomMin">
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.MinZoom">
                                         Minimum zoom level</label>
-                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ZoomMax">
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.MaxZoom">
                                         Maximum zoom level</label>
-                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.KM"> KM
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ClubBoundaryKM"> KM
                                         Boundary around the club</label>
                                 </div>
                             </div>

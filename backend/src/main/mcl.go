@@ -51,6 +51,7 @@ type User struct {
 	Email	    string
 }
 
+
 type Settings struct {
 	MapAPI 	    string
 	Interpolate	int
@@ -63,6 +64,10 @@ type Settings struct {
 	SecurityAdminPasswordReset int
 	MobileSmartPhoneAccess int
 	MobileShowBusLocation int
+	MinZoom int
+	MaxZoom int
+	HistoricalmapsKmMin int
+	ClubBoundaryKM int
 }
 
 
@@ -130,14 +135,16 @@ var actions = map[string]interface{}{
 
 		result := Db.QueryRow(`	
 			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, C.LogoPath, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
-			S.RadioCommunication, S.DataCommunication, S.SecurityRemoteAdmin, S.SecurityConsoleAccess, S.SecurityAdminPasswordReset, S.MobileSmartPhoneAccess, S.MobileShowBusLocation
+			CS.RadioCommunication, CS.DataCommunication, CS.SecurityRemoteAdmin, CS.SecurityConsoleAccess, CS.SecurityAdminPasswordReset, CS.MobileSmartPhoneAccess, CS.MobileShowBusLocation,
+			CS.MinZoom, CS.MaxZoom, CS.ClubBoundaryKM
 			FROM User U
 			JOIN COMPANY AS C on C.ID = U.ID
-			JOIN Settings AS S on S.UserID = U.ID
+			LEFT JOIN Settings AS S on S.UserID = U.ID
+		    LEFT JOIN CompanySettings AS CS on CS.CompanyID = C.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
 			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
-			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation)
+			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation, &settings.MinZoom, &settings.MaxZoom, &settings.ClubBoundaryKM)
 
 		switch {
 		case result == sql.ErrNoRows:
@@ -201,7 +208,42 @@ var actions = map[string]interface{}{
 		}
 
 	},
+	"ActionSettingsPassword" : func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		session, _ := store.Get(r, "data")
+		var user User = session.Values["User"].(User)
+		var settings Settings = session.Values["Settings"].(Settings)
 
+    	var f map[string]interface{}
+        decoder := json.NewDecoder(r.Body)
+        err := decoder.Decode(&f)
+        if err != nil {
+                log.Fatal(err)
+        }
+		var password string
+
+		_ = Db.QueryRow("SELECT Password FROM User WHERE ID = ?", user.ID).Scan(&password)
+		if(password == f["passwordold"]) {
+				//If only Allow admins to reset password is NOT set then update the users password
+        		if(settings.SecurityAdminPasswordReset == 0) {
+        			Db.Exec("UPDATE User SET Password = ? WHERE ID = ?", f["password"], user.ID)
+        		} else {
+        			if(user.Accesslevel == 10) {
+        				Db.Exec("UPDATE User SET Password = ? WHERE ID = ?", user.ID)
+        			}
+        		}
+
+        		user.Password = f["password"].(string)
+			    session.Values["User"] = user
+				if err := session.Save(r, w); err != nil {
+					fmt.Printf("Can't save session data (%s)\n", err.Error())
+				}
+				fmt.Fprint(w, Response{"success" : "Password Updated"})
+
+		} else {
+       		fmt.Fprint(w, Response{"error": "Old Password incorrect"})
+		}
+	},
 	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
@@ -210,51 +252,32 @@ var actions = map[string]interface{}{
         var user User = session.Values["User"].(User)
         var settings Settings = session.Values["Settings"].(Settings)
 
-         var f map[string]interface{}
+        var f map[string]interface{}
         decoder := json.NewDecoder(r.Body)
         err := decoder.Decode(&f)
         if err != nil {
                 log.Fatal(err)
         }
 
-
         Db.Exec("BEGIN EXCLUSIVE TRANSACTION");
-        Db.Exec(`
-        UPDATE Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ?,
-        RadioCommunication = ?, DataCommunication = ?,
-        SecurityRemoteAdmin = ?, SecurityConsoleAccess = ?, SecurityAdminPasswordReset = ?,
-        MobileSmartPhoneAccess = ?, MobileShowBusLocation = ? WHERE UserID = ? `,
-        f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"],
-        f["RadioCommunication"], f["DataCommunication"],
-        f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
-        f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], user.ID)
+        Db.Exec(`UPDATE Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ? WHERE UserID = ? `,
+        f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"], user.ID)
 
 
-        /* CAN'T DO THIS UNTIL COMPANY WIDE SETTINGS IS IN PLACE
-        if(user.Accesslevel == 10) {
-            //Update The zoom limitations and boundary
+		//If the user is an admin then allow update of admin level fields
 
-            //update security options
+        if( user.Accesslevel == 10) {
 
-            //update mobile options
+        	Db.Exec(`UPDATE CompanySettings SET RadioCommunication = ?, DataCommunication = ?,
+                             SecurityRemoteAdmin = ?, SecurityConsoleAccess = ?, SecurityAdminPasswordReset = ?,
+                             MobileSmartPhoneAccess = ?, MobileShowBusLocation = ?, MinZoom = ?, MaxZoom = ?, ClubBoundaryKM = ? WHERE CompanyID = (SELECT CompanyID FROM User WHERE ID = ?)`,
+                                      f["RadioCommunication"], f["DataCommunication"],
+                                      f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
+                                      f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], f["MinZoom"], f["MaxZoom"], f["ClubBoundaryKM"], user.ID)
+
         }
-        */
-
-        //If only Allow admins to reset password is NOT set then update the users password
-        //THIS IS VERY BROKEN - IT SHOULD BE CHECKING COMPANY WIDE TABLE - BUG FILED ALREADY https://trello.com/c/OyhuyldT/30-web-ui-server-all-settings-are-currently-per-user-need-to-make-a-change-so-that-some-are-per-company
-        /*
-        if(settings.SecurityAdminPasswordReset == 0) {
-            //update the users password they are allowed
-        } else {
-            if(user.Accesslevel == 10) {
-                //update the admins password
-            }
-        }
-        */
 
         Db.Exec("COMMIT TRANSACTION")
-
-
 
         //Update the cookie too
         settings.MapAPI = f["MapAPI"].(string)
@@ -273,6 +296,9 @@ var actions = map[string]interface{}{
         }
 
         settings.CameraPanTrigger = int(f["CameraPanTrigger"].(float64))
+        settings.MinZoom = int(f["MinZoom"].(float64))
+        settings.MaxZoom = int(f["MaxZoom"].(float64))
+		settings.ClubBoundaryKM = int(f["ClubBoundaryKM"].(float64))
 
         if(f["RadioCommunication"].(bool)) {
             settings.RadioCommunication = 1
@@ -315,6 +341,9 @@ var actions = map[string]interface{}{
         } else {
             settings.MobileShowBusLocation = 0
         }
+
+
+
 
         session.Values["Settings"] = settings
         if err := session.Save(r, w); err != nil {
@@ -560,14 +589,14 @@ func createDb() {
          DateTime date not null default current_timestamp,
         BusID text not null);`,
 		
-	`CREATE TABLE Support (
-	SupportID integer primary key autoincrement,
-	UserID integer not null,
-	Subject text not null,
-	Body text not null,
-	DateTime date not null default current_timestamp,
-	FOREIGN KEY (UserID) REFERENCES User(ID)
-	);`,
+		`CREATE TABLE Support (
+		SupportID integer primary key autoincrement,
+		UserID integer not null,
+		Subject text not null,
+		Body text not null,
+		DateTime date not null default current_timestamp,
+		FOREIGN KEY (UserID) REFERENCES User(ID)
+		);`,
 
 
 		`CREATE TABLE Errors (
@@ -576,22 +605,22 @@ func createDb() {
         Error text,
         DateTime date not null default current_timestamp,
         FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
-	);`,
+		);`,
  
 		`CREATE TABLE Network (
         id integer primary key autoincrement,
         GPSRecordID integer not null,
         Acknowledge integer not null default 0,
         FOREIGN KEY (GPSRecordID) REFERENCES GPSRecords(id)
-	);`,
+		);`,
 
 		`CREATE TABLE Company (
         ID integer primary key autoincrement,
         Name text not null,
         Expiry date not null default current_timestamp,
         MaxUsers integer not null default 0,
-	LogoPath text not null default ''
-	);`,
+		LogoPath text not null default ''
+		);`,
 
 		`CREATE TABLE User (
         ID integer primary key autoincrement,
@@ -600,43 +629,58 @@ func createDb() {
         CompanyID integer not null,
         Password text not null,
         AccessLevel integer not null default 0,
-	Email text not null,	
+		Email text not null,
         FOREIGN KEY (CompanyID) REFERENCES Company(ID)
-	);`,
+		);`,
 
 		`CREATE TABLE Settings (
         ID integer primary key autoincrement,
         UserID integer not null,
         MapAPI text not null default 'GoogleMaps',
-	Interpolate integer not null default 1,
-	SnaptoRoad integer not null default 1,
-	CameraPanTrigger integer not null default 10,
+	    Interpolate integer not null default 1,
+	    SnaptoRoad integer not null default 1,
+	    CameraPanTrigger integer not null default 10,
+        FOREIGN KEY (UserID) REFERENCES User(ID)
+		);`,
+
+    	`CREATE TABLE CompanySettings (
+        ID integer primary key autoincrement,
+	    CompanyID integer not null,
         RadioCommunication integer not null default 1,
-        DataCommunication integer not null default 1,
-        SecurityRemoteAdmin integer not null default 0,
+	    DataCommunication integer not null default 1,
+	    SecurityRemoteAdmin integer not null default 0,
         SecurityConsoleAccess integer not null default 0,
         SecurityAdminPasswordReset integer not null default 0,
         MobileSmartPhoneAccess integer not null default 0,
         MobileShowBusLocation integer not null default 0,
-        FOREIGN KEY (UserID) REFERENCES User(ID)
-	);`,
+	    MinZoom integer not null default 10,
+	    Maxzoom integer not null default 2,
+	    HistoricalmapsKmMin integer not null default 10,
+	    ClubBoundaryKM integer not null default 100,
+        FOREIGN KEY (CompanyID) REFERENCES Company(ID)
+		);`,
 
-	`CREATE TABLE ApplicationLogin (
-	UserID integer,
-	LoggedIn date NOT NULL default current_timestamp,
-	LoggedOut date, PRIMARY KEY(UserID, LoggedIN));`,
+
+		`CREATE TABLE ApplicationLogin (
+		UserID integer,
+		LoggedIn date NOT NULL default current_timestamp,
+		LoggedOut date, PRIMARY KEY(UserID, LoggedIN));`,
 
 
-/*This crap needs moving out of here */		
-"INSERT INTO Company (Name, MaxUsers, LogoPath) VALUES ('myClubLink' , 1, 'img/mcl_logo.png');",
+		/*This crap needs moving out of here */
+        "INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('myClubLink' , 1, '2100-01-20 12:00:00', 'img/mcl_logo.png');",
 		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
 		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'Google Maps');",
 
-		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2013-07-20 12:00:00', 'img/sussex_logo.PNG');",
+		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2014-01-20 12:00:00', 'img/sussex_logo.PNG');",
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
 		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'Google Maps');",
+		"INSERT INTO CompanySettings (CompanyID) VALUES (1);",
+		"INSERT INTO CompanySettings (CompanyID) VALUES (2);",
 		"COMMIT TRANSACTION;",
+
 		"PRAGMA journal_mode=WAL;",
+		"PRAGMA foreign_keys=true;",
 	}
 	Db, err = sql.Open("sqlite3", "./backend.db")
 
@@ -708,6 +752,7 @@ func handleHTTP() {
 	actionRouter.HandleFunc("/system/login", actions["ActionLogin"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/logout", actions["ActionLogout"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/settings", actions["ActionSettings"].(func(http.ResponseWriter, *http.Request)))
+	actionRouter.HandleFunc("/system/settings/password", actions["ActionSettingsPassword"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/system/historicalroute", actions["ActionHistorialRoute"].(func(http.ResponseWriter, *http.Request)))
 	actionRouter.HandleFunc("/", actions["ActionInvalid"].(func(http.ResponseWriter, *http.Request)))
 
