@@ -20,11 +20,11 @@
                         <div class="controls">
                             <div class="input-prepend">
                                 <Span>{{Settings}}</span>
-                                <button id="settingsReset" ng-Hide="Settings.Security.AdminPasswordResetOnly" ng-click="Password.ToggleResetWidget()" class="btn"> Reset
+                                <button id="settingsReset" ng-Hide="Password.Hidden" ng-click="Password.ToggleResetWidget()" class="btn"> Reset
                                     Password
                                 </button>
 
-                                <div ng-hide="Password.Hidden">
+                                <div ng-hide="Password.WidgetHidden">
 
                                     <input type="password" placeholder="Old Password ..." ng-model="Password.Old">
                                     <input type="password" placeholder="New Password ..." ng-model="Password.New">
@@ -168,7 +168,7 @@
                                                         ng-model="Settings.Security.SystemConsoleAccess"> Allow
                                 system console access </label>
                             <label class="text"> <input type="checkbox"
-                                                        ng-model="Settings.Security.AdminPasswordResetOnly">
+                                                        ng-model="Settings.Security.AdminPasswordResetOnly" ng-click="Password.ToggleResetHidden()">
                                 Only allow admins to change user passwords </label>
                         </div>
                     </div>

@@ -138,7 +138,7 @@ var actions = map[string]interface{}{
 			CS.RadioCommunication, CS.DataCommunication, CS.SecurityRemoteAdmin, CS.SecurityConsoleAccess, CS.SecurityAdminPasswordReset, CS.MobileSmartPhoneAccess, CS.MobileShowBusLocation,
 			CS.MinZoom, CS.MaxZoom, CS.ClubBoundaryKM
 			FROM User U
-			JOIN COMPANY AS C on C.ID = U.ID
+			LEFT JOIN COMPANY AS C on C.ID = U.CompanyID
 			LEFT JOIN Settings AS S on S.UserID = U.ID
 		    LEFT JOIN CompanySettings AS CS on CS.CompanyID = C.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
@@ -669,14 +669,29 @@ func createDb() {
 
 		/*This crap needs moving out of here */
         "INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('myClubLink' , 1, '2100-01-20 12:00:00', 'img/mcl_logo.png');",
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (1, 'Google Maps');",
+
+
 
 		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2014-01-20 12:00:00', 'img/sussex_logo.PNG');",
+
+		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
-		"INSERT INTO Settings (UserID, MapAPI) VALUES (2, 'Google Maps');",
-		"INSERT INTO CompanySettings (CompanyID) VALUES (1);",
-		"INSERT INTO CompanySettings (CompanyID) VALUES (2);",
+		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('Brad' , 'McCormack', 2, 'brad', 9, 'bradmccormack100@gmail.com');",
+
+		"INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (1, 'Google Maps', 0, 0, 10);",
+		"INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (2, 'Google Maps', 0, 0, 10);",
+		"INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (3, 'Google Maps', 0, 0, 10);",
+
+		`INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
+		SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
+		VALUES
+		(1, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);
+
+		INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
+		SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
+		VALUES
+		(2, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);`,
+
 		"COMMIT TRANSACTION;",
 
 		"PRAGMA journal_mode=WAL;",
