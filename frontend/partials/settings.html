@@ -6,7 +6,7 @@
     <div class="accordion-group">
         <div class="accordion-heading">
             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionuser" href="#collapseOne">
-                <i class="icon-user"></i> User Settings
+                <i class="icon-user"></i> User
             </a>
         </div>
 
@@ -20,15 +20,15 @@
                         <div class="controls">
                             <div class="input-prepend">
                                 <Span>{{Settings}}</span>
-                                <button id="settingsReset" ng-Hide="Settings.Security.AdminPasswordResetOnly" ng-click="Password.ToggleResetWidget()" class="btn"> Reset
+                                <button id="settingsReset" ng-Hide="Password.Hidden" ng-click="Password.ToggleResetWidget()" class="btn"> Reset
                                     Password
                                 </button>
 
-                                <div ng-hide="Password.Hidden">
+                                <div ng-hide="Password.WidgetHidden">
 
-                                    <input type="text" placeholder="Old Password ..." ng-model="Password.Old">
-                                    <input type="text" placeholder="New Password ..." ng-model="Password.New">
-                                    <input type="text" placeholder="Confirm New Password ..."
+                                    <input type="password" placeholder="Old Password ..." ng-model="Password.Old">
+                                    <input type="password" placeholder="New Password ..." ng-model="Password.New">
+                                    <input type="password" placeholder="Confirm New Password ..."
                                            ng-model="Password.NewConfirm">
                                     <button class="btn btn-primary" ng-click="Password.Update()"><i
                                             class="icon-pencil"> </i> Update
@@ -37,7 +37,8 @@
                             </div>
 
                         </div>
-                        <span class="text-error" ng-show="Password.Error"><i class="icon-exclamation"></i> {{Password.Error}}</span>
+                        <span class="text-error" ng-show="Password.Error"><i class="icon-thumbs-down-alt"></i> {{Password.Error}}</span>
+                        <span class="text-success" ng-show="Password.Note"><i class="icon-thumbs-up-alt"></i> {{Password.Note}}</span>
                     </div>
                 </div>
 
@@ -48,7 +49,7 @@
     <div class="accordion-group" id="accordionmap">
         <div class="accordion-heading">
             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionmap" href="#collapseTwo">
-                <i class="icon-globe"> </i> Map Settings
+                <i class="icon-globe"> </i> Map
             </a>
         </div>
 
@@ -104,11 +105,11 @@
                                 <strong>Boundaries</strong>
 
                                 <div class="controls">
-                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ZoomMin">
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.MinZoom">
                                         Minimum zoom level</label>
-                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ZoomMax">
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.MaxZoom">
                                         Maximum zoom level</label>
-                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.KM"> KM
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ClubBoundaryKM"> KM
                                         Boundary around the club</label>
                                 </div>
                             </div>
@@ -149,7 +150,7 @@
         <div class="accordion-heading">
             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionsecurity"
                href="#collapseThree">
-                <i class="icon-lock icon-white"></i> Security Settings
+                <i class="icon-lock icon-white"></i> Security
             </a>
         </div>
 
@@ -167,7 +168,7 @@
                                                         ng-model="Settings.Security.SystemConsoleAccess"> Allow
                                 system console access </label>
                             <label class="text"> <input type="checkbox"
-                                                        ng-model="Settings.Security.AdminPasswordResetOnly">
+                                                        ng-model="Settings.Security.AdminPasswordResetOnly" ng-click="Password.ToggleResetHidden()">
                                 Only allow admins to change user passwords </label>
                         </div>
                     </div>
@@ -182,7 +183,7 @@
             <div class="accordion-heading">
                 <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionmobile"
                    href="#collapseFource">
-                    <i class="icon-mobile-phone icon-white"></i> Mobile Settings
+                    <i class="icon-mobile-phone icon-white"></i> Mobile
                 </a>
             </div>
 
@@ -206,9 +207,43 @@
                         </form>
                     </div>
                 </div>
-
-
             </div>
+
+            <div class="accordion-group" id="accordionreport">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionreport"
+                       href="#collapseFive">
+                        <i class="icon-bar-chart icon-white"></i> Reports / Data
+                    </a>
+                </div>
+
+
+                <div id="collapseFive" class="accordion-body collapse out">
+                    <div class="accordion-inner">
+                        <div class="well">
+                            <form id="ReportOptions">
+                                <div class="control-group">
+                                    <div class="controls">
+
+                                        <h5>Historical Maps</h5>
+                                        <label>Plot points on map where Bus speed is greater than </label>
+                                        <label class="text"> <input class="input_number"value=10 type="number"  max=10 min=10>
+                                            KM/H <i  data-toggle="tooltip" title="Coming soon - Editable" class="icon-question-sign text-warning icon-2x"></i></label>
+
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+        </div>
+    </div>
+</div>
 
 
 
