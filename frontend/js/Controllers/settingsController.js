@@ -13,8 +13,10 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
 
                 if(Level >=5 && Level <= 8)
                     return "Advanced User"
-                if(Level >=8 && Level <= 10)
-                    return "Admin";
+                if(Level >=8 && Level < 10)
+                    return "Senior User";
+				else if(Level == 10)
+					return "Admin";
 
                 else return "Unknown Access Level"
 
@@ -23,12 +25,20 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
         
     })();
 
-   
+	$scope.User = shellService.User;
+	$scope.User.AccessWord = Helper.AccessLeveltoWord($scope.User.Access);
+	$scope.Map = shellService.Map;
+	$scope.Settings = shellService.Settings;
+
     $scope.Password = 
     {
+		ToggleResetHidden: function()
+		{
+			$scope.Password.Hidden = $scope.Settings.Security.AdminPasswordResetOnly ? $scope.User.Access !=10 : false;
+		},
         ToggleResetWidget: function()
         {
-            $scope.Password.Hidden = !$scope.Password.Hidden;
+			$scope.Password.WidgetHidden = !$scope.Password.WidgetHidden;
         },
         Update: function()
         {
@@ -66,7 +76,8 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
             $scope.Password.Old = $scope.Password.New = $scope.Password.NewConfirm = "";
             $scope.Password.Hidden = !$scope.Password.Hidden;
         },
-        Hidden: true,
+        Hidden: $scope.Settings.Security.AdminPasswordResetOnly ? $scope.User.Access != 10 : false,
+		WidgetHidden: $scope.Settings.Security.AdminPasswordResetOnly ? $scope.User.Access != 10 : false,
         Old: "",
         New: "",
         Confirm: "",
@@ -109,10 +120,5 @@ angular.module('myApp.controllers').controller("settingsController", ['$scope', 
     }, true);
 
 
-
-    $scope.User = shellService.User;
-    $scope.User.AccessWord = Helper.AccessLeveltoWord($scope.User.Access);
-    $scope.Map = shellService.Map;
-    $scope.Settings = shellService.Settings;
 
 }]);
