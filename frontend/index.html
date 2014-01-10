@@ -109,6 +109,12 @@
 					<li>
 						<a href="#tab2" data-toggle="tab">Vehicles</a>
 					</li>
+                    <li>
+                        <a href="#tab3" data-toggle="tab">Diagnostics</a>
+                    </li>
+                    <li>
+                        <a href="#tab4" data-toggle="tab">Employees</a>
+                    </li>
 				</ul>
 
 				<div class="tab-content">
@@ -143,7 +149,32 @@
 						</table>
 					</div>
 
-					<div id="tab3" class="tab-pane">
+                    <div id="tab3" class="tab-pane">
+                        <span ng-hide="VehicleCount" class="text-error"> No diagnostic data yet</span>
+                        <table id="Diagnostics" ng-show="VehicleCount"
+                               class="table table-striped table-hover table-bordered table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>CPU Temp (C)</th>
+                                    <th>CPU Voltage</th>
+                                    <th>CPU Freq (Mhz)</th>
+                                    <th>Memory Free(MB)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="D in DiagnosticData">
+                                <td>{{D.Data.ID}}</td>
+                                <td>{{D.Data.CPUTemp.toFixed(2)}}</td>
+                                <td>{{D.Data.CPUVolt.toFixed(2)}}</td>
+                                <td>{{(D.Data.CPUFreq / 1000000).toFixed(0)}}</td>
+                                <td>{{(D.Data.MemFree / 1048576).toFixed(0) }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+					<div id="tab4" class="tab-pane">
 						<span>Employee statistics can be shown here (Who is on duty etc)</span>
 					</div>
 

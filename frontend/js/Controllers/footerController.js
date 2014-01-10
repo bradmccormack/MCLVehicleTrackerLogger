@@ -4,6 +4,7 @@ angular.module('myApp.controllers').controller("footerController", ['$scope', fu
 	$scope.Date = window.Date;
 	$scope.VehicleCount = 0;
 	$scope.VehicleData = {};
+	$scope.DiagnosticData = {};
 
 	$scope.$on('LegendChange', function(Event, Data) {
 		$scope.VehicleCount = Data.Count;
@@ -16,6 +17,13 @@ angular.module('myApp.controllers').controller("footerController", ['$scope', fu
 			Data: Data
 		}
 	});
+
+	$scope.$on('diagnosticChange', function(Event, Data){
+		$scope.DiagnosticData[Data.ID] = {
+			Data: Data
+		}
+	})
+
 
     $scope.$on("ConfigChanged", function (Event, Data) {
         $scope.IsLogged = (Data.User != undefined && Data.User != "" && ("data" in $.cookie()))

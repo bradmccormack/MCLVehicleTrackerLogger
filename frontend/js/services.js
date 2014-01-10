@@ -622,8 +622,11 @@ angular.module('myApp.services', [])
                 }
                 Con.onmessage = function (evt) {
                     if(mapService.Map.GetMode()) {
-                        var data = JSON.parse(evt.data).Entry;
-                        $rootScope.$broadcast("positionChange", data); //send the data out to any listeners
+                        var data = JSON.parse(evt.data);
+                        data.Diagnostic.ID = data.Entry.ID; //copy over vehicle ID
+						$rootScope.$broadcast("positionChange", data.Entry);
+
+						$rootScope.$broadcast("diagnosticChange", data.Diagnostic)
                     }
                 }
             } else {
