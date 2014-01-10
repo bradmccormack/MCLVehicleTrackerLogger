@@ -822,7 +822,7 @@ func main() {
 
 			tcpcon, err = lnk.Accept()
 				
-			fmt.Printf("Link Accepted")
+			fmt.Printf("Link Accepted\n")
 			if err != nil {
 				fmt.Printf("Failed to create tcp connection - %s", err)
 				os.Exit(1)
@@ -883,7 +883,7 @@ func logEntry(entry *GPSRecord) {
 func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	var buff = make([]byte, 512)
 	var incomingpacket Packet
-	var entry GPSRecord
+	//var entry GPSRecord
 	
 	conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 	conn.SetReadBuffer(512)
@@ -892,30 +892,35 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	var data bool = true
 	for data {
 		n, err = conn.Read(buff)
+		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
+
 		if err != nil {
-			fmt.Printf("Error occured - %s", err.Error())
+			fmt.Printf("Error occured - %s\n", err.Error())
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}
+		//check n bytes
 
-		//lets unmarshal those JSON bytes into the map
-		err := json.Unmarshal(buff, &incomingpacket)
+
+		//lets unmarshal those JSON bytes into the map https://groups.google.com/forum/#!topic/golang-nuts/77HJlZhWXpk  note to slice properly otherwise it chockes on trying to decode the full buffer
+		err := json.Unmarshal(buff[:n], &incomingpacket)
 		if err != nil {
-			fmt.Printf("Failed to decode the JSON bytes -%s", err.Error())
+			fmt.Printf("Failed to decode the JSON bytes -%s\n", err.Error())
 		}
 
 
-		fmt.Printf("Sentence was %s", string(incomingpacket["sentence"]))
-		fmt.Printf("Diagnostic data was %s", string(incomingpacket["diagnostics"]))
+		fmt.Printf("Sentence was %s\n", string(incomingpacket["sentence"]))
+		fmt.Printf("Diagnostic data was %s\n", string(incomingpacket["diagnostics"]))
 
-		gpsfields := strings.Split(string(incomingpacket["sentence"][:n]), ",")
-		if len(gpsfields) != 8 {
+		gpsfields := strings.Split(string(incomingpacket["sentence"]), ",")
+
+		if len(gpsfields) != 7 {
 			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
 			fmt.Printf("The source string was %s\n", string(buff[:n]))
 			continue
 		}
 		//All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
-
+/*
 		entry.Message = gpsfields[0][1:]
 		entry.Latitude = gpsfields[1][1:]
 		entry.Longitude = gpsfields[2]
@@ -935,13 +940,14 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 			entry.Date,
 			entry.ID)
 
-		if string(buff[0:1]) != "T" {
+		if string(incomingpacket["sentence"][0:1]) != "T" {
 			go logEntry(&entry) //save to database
 		} else {
 			fmt.Printf("Replayed packets. Not saving to DB\n")
 		}
 
 		updateClient(&entry) //notify any HTTP observers //make this a goroutine later
+		*/
 		conn.Write([]byte("OK\n"))
 	}
 	return false
