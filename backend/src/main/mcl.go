@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	//"io/ioutil"
 )
 
 type GPSRecord struct {
@@ -33,6 +32,13 @@ type GPSRecord struct {
 	Fix       bool
 	Date      time.Time
 	ID        string
+}
+
+type DiagnosticRecord struct {
+	CPUTemp	float64
+	CPUVolt float64
+	CPUFreq float64
+	MemFree	uint64
 }
 
 type Company struct {
@@ -70,8 +76,9 @@ type Settings struct {
 	ClubBoundaryKM int
 }
 
-
+type Packet map[string]string
 type Response map[string]interface{}
+
 
 //set the domain based upon the path the executable was run from
 var domain string = "dev.myclublink.com.au"
@@ -580,7 +587,8 @@ func createDb() {
 		//Use a string array of raw string literals
 
 		`CREATE TABLE GPSRecords (
-         id integer primary key autoincrement, Message text,
+         id integer primary key autoincrement,
+         Message text,
          Latitude text not null,
          Longitude text not null,
          Speed integer not null,
@@ -588,7 +596,15 @@ func createDb() {
          Fix integer not null,
          DateTime date not null default current_timestamp,
         BusID text not null);`,
-		
+
+		`create table DiagnosticRecords (
+		id integer primary key autoincrement,
+		CPUTemperature REAL,
+		CPUVoltage REAL,
+		CPUFrequency REAL,
+		MemoryFree integer,
+		Date DateTime DEFAULT CURRENT_TIMESTAMP);`,
+
 		`CREATE TABLE Support (
 		SupportID integer primary key autoincrement,
 		UserID integer not null,
@@ -822,7 +838,7 @@ func main() {
 
 			tcpcon, err = lnk.Accept()
 				
-			fmt.Printf("Link Accepted")
+			fmt.Printf("Link Accepted\n")
 			if err != nil {
 				fmt.Printf("Failed to create tcp connection - %s", err)
 				os.Exit(1)
@@ -836,10 +852,10 @@ func main() {
 	}
 }
 
-func updateClient(entry *GPSRecord) {
+func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 
 	if connections == nil {
-		//fmt.Printf("No clients listening.. not reporting")
+		//fmt.Printf("No clients listening.. not reporting\n")
 		return
 	}
 
@@ -849,7 +865,7 @@ func updateClient(entry *GPSRecord) {
 		wswriter, _ := client.NextWriter(websocket.OpText)
 
 		if wswriter != nil {
-			io.WriteString(wswriter, Response{"Entry": entry}.String())
+			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
 		} else {
 			//fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
 			client.Close()
@@ -860,9 +876,10 @@ func updateClient(entry *GPSRecord) {
 	}
 }
 
-func logEntry(entry *GPSRecord) {
+func logEntry(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 
-	_, err := Db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
+	_, err := Db.Exec("BEGIN TRANSACTION")
+	_, err = Db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
 		entry.Message,
 		entry.Latitude,
 		entry.Longitude,
@@ -872,6 +889,13 @@ func logEntry(entry *GPSRecord) {
 		entry.Date,
 		entry.ID)
 
+	_, err = Db.Exec("INSERT INTO DiagnosticRecords (CPUTemperature, CPUVoltage, CPUFrequency, MemoryFree) VALUES (?, ?, ?, ?)",
+		diagnostic.CPUTemp,
+        diagnostic.CPUVolt,
+        diagnostic.CPUFreq,
+        diagnostic.MemFree)
+
+	Db.Exec("COMMIT TRANSACTION")
 	if err != nil {
 		fmt.Printf("Failed to insert row %s", err)
 	}
@@ -881,9 +905,12 @@ func logEntry(entry *GPSRecord) {
 
 //palm off reading and writing to a go routine
 func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
+
 	var buff = make([]byte, 512)
+	var incomingpacket Packet
 	var entry GPSRecord
-	
+	var diagnostic DiagnosticRecord
+
 	conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 	conn.SetReadBuffer(512)
 	var n int
@@ -891,29 +918,63 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	var data bool = true
 	for data {
 		n, err = conn.Read(buff)
+		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
+
 		if err != nil {
-			fmt.Printf("Error occured - %s", err.Error())
+			fmt.Printf("Error occured - %s\n", err.Error())
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}
-		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
-		fmt.Printf("Sentence was %s", string(buff))
-		gpsfields := strings.Split(string(buff[:n]), ",")
-		if len(gpsfields) != 8 {
-			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
-			fmt.Printf("The source string was %s\n", string(buff[:n]))
+
+		//lets unmarshal those JSON bytes into the map https://groups.google.com/forum/#!topic/golang-nuts/77HJlZhWXpk  note to slice properly otherwise it chockes on trying to decode the full buffer
+		err := json.Unmarshal(buff[:n], &incomingpacket)
+		if err != nil {
+			fmt.Printf("Failed to decode the JSON bytes -%s\n", err.Error())
+		}
+
+
+		fmt.Printf("Sentence was %s\n", string(incomingpacket["sentence"]))
+		fmt.Printf("Diagnostic data was %s\n", string(incomingpacket["diagnostics"]))
+
+
+		diagnosticfields := strings.Split(string(incomingpacket["diagnostics"]), ",")
+		if len(diagnosticfields) !=4 {
+			fmt.Printf("Error. Diagnostic fields length is incorrect. Is %d should be %d", len(diagnosticfields), 4)
+			fmt.Printf("The source string was %s\n", string(incomingpacket["diagnostics"]))
+		}
+
+		gpsfields := strings.Split(string(incomingpacket["sentence"]), ",")
+
+		if len(gpsfields) != 7 {
+			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 7)
+			fmt.Printf("The source string was %s\n", string(incomingpacket["sentence"]))
 			continue
 		}
-		//All data is validated on the logger end so I'm going to assume for now that Parsing will be fine. Perhaps a network error could occur and I'll fix that up later
+
+
+        diagnostic.CPUTemp, _ = strconv.ParseFloat(diagnosticfields[0][2:],32)
+        diagnostic.CPUVolt, _ = strconv.ParseFloat(diagnosticfields[1][2:],32)
+        diagnostic.CPUFreq, _ = strconv.ParseFloat(diagnosticfields[2][2:],32)
+        diagnostic.MemFree, _ = strconv.ParseUint(diagnosticfields[3][2:], 10, 64)
+
+
+		//TODO move this function into a goroutine in case it chokes on parsing the data
+
 
 		entry.Message = gpsfields[0][1:]
-		entry.Latitude = gpsfields[1][1:]
-		entry.Longitude = gpsfields[2]
-		entry.Speed, _ = strconv.ParseFloat(gpsfields[3][1:], 32)
-		entry.Heading, _ = strconv.ParseFloat(gpsfields[4][1:], 32)
-		entry.Date, _ = time.Parse(time.RFC3339, gpsfields[5][1:]) //todo pull out just the date component and format
-		entry.Fix = gpsfields[6][1:] == "true"
-		entry.ID = gpsfields[7][1:]
+		entry.Latitude = gpsfields[0][2:]
+		entry.Longitude = gpsfields[1]
+		entry.Speed, _ = strconv.ParseFloat(gpsfields[2][1:], 32)
+		entry.Heading, _ = strconv.ParseFloat(gpsfields[3][1:], 32)
+		entry.Date, _ = time.Parse(time.RFC3339, gpsfields[4][1:])
+		entry.Fix = gpsfields[5][1:] == "true"
+		entry.ID = gpsfields[6][1:]
+
+		fmt.Printf("Temp %d, Voltage %d, Frequency %d, MemoryFree %d",
+		 diagnostic.CPUTemp,
+		 diagnostic.CPUVolt,
+		 diagnostic.CPUFreq,
+		 diagnostic.MemFree)
 
 		fmt.Printf("Message %s Lat %s Long %s speed %f heading %f fix %t date %s id %s\n",
 			entry.Message,
@@ -925,13 +986,15 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 			entry.Date,
 			entry.ID)
 
-		if string(buff[0:1]) != "T" {
-			go logEntry(&entry) //save to database
+
+		if string(incomingpacket["sentence"][0:1]) != "T" {
+			go logEntry(&entry, &diagnostic) //save to database
 		} else {
 			fmt.Printf("Replayed packets. Not saving to DB\n")
 		}
 
-		updateClient(&entry) //notify any HTTP observers //make this a goroutine later
+		updateClient(&entry, &diagnostic) //notify any HTTP observers //make this a goroutine later
+
 		conn.Write([]byte("OK\n"))
 	}
 	return false
