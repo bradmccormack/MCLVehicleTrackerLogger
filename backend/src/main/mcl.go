@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	//"io/ioutil"
 )
 
 type GPSRecord struct {
@@ -70,8 +69,9 @@ type Settings struct {
 	ClubBoundaryKM int
 }
 
-
+type Packet map[string]string
 type Response map[string]interface{}
+
 
 //set the domain based upon the path the executable was run from
 var domain string = "dev.myclublink.com.au"
@@ -882,6 +882,7 @@ func logEntry(entry *GPSRecord) {
 //palm off reading and writing to a go routine
 func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 	var buff = make([]byte, 512)
+	var incomingpacket Packet
 	var entry GPSRecord
 	
 	conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
@@ -896,9 +897,18 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
 			return true
 		}
-		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
-		fmt.Printf("Sentence was %s", string(buff))
-		gpsfields := strings.Split(string(buff[:n]), ",")
+
+		//lets unmarshal those JSON bytes into the map
+		err := json.Unmarshal(buff, &incomingpacket)
+		if err != nil {
+			fmt.Printf("Failed to decode the JSON bytes -%s", err.Error())
+		}
+
+
+		fmt.Printf("Sentence was %s", string(incomingpacket["sentence"]))
+		fmt.Printf("Diagnostic data was %s", string(incomingpacket["diagnostics"]))
+
+		gpsfields := strings.Split(string(incomingpacket["sentence"][:n]), ",")
 		if len(gpsfields) != 8 {
 			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 8)
 			fmt.Printf("The source string was %s\n", string(buff[:n]))
