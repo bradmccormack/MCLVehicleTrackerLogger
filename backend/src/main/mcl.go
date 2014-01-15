@@ -92,7 +92,7 @@ var domain string = "dev.myclublink.com.au"
 
 var service = flag.String("service", ":6969", "tcp port to bind to")
 
-var addr = flag.String("addr", ":8080", "http(s)) service address")
+var addr = flag.String("addr", ":8080", "http(s) service address")
 
 
 
@@ -737,16 +737,16 @@ func createDb() {
 }
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Web socket requested from %s", r.RemoteAddr)
+
+	fmt.Printf("Web socket requested from %s\n", r.RemoteAddr)
 	if r.Method != "GET" {
 		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
 
-	fmt.Printf("Origin of request to be upgraded is %s\n", r.Header.Get("Origin"))
 
-	if r.Header.Get("Origin") != "http://" + r.Host {
+	if r.Header.Get("Origin") + *addr != "http://" + r.Host {
     	http.Error(w, "Origin not allowed", 403)
     	return
     }
