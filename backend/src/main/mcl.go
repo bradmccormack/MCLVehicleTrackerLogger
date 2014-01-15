@@ -1,13 +1,12 @@
 package main
 
 import (
-//	"bytes"
 	"database/sql"
 	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/garyburd/go-websocket/websocket"
+	"github.com/gorilla/websocket"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
@@ -76,6 +75,14 @@ type Settings struct {
 	ClubBoundaryKM int
 }
 
+type WebSocket struct {
+	messageType int //can be websocket.BinaryMessage or websocket.Textmessage values
+	ip string
+	connection *websocket.Conn
+}
+
+
+
 type Packet map[string]string
 type Response map[string]interface{}
 
@@ -84,7 +91,11 @@ type Response map[string]interface{}
 var domain string = "dev.myclublink.com.au"
 
 var service = flag.String("service", ":6969", "tcp port to bind to")
+
 var addr = flag.String("addr", ":8080", "http(s)) service address")
+
+
+
 var connections []*websocket.Conn                                       //slice of Websocket connections
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
@@ -733,18 +744,25 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*
-		if r.Header.Get("Origin") != "http://"+r.Host {
-			http.Error(w, "Origin not allowed", 403)
-			return
-		}
-	*/
+	fmt.Printf("Origin of request to be upgraded is %s\n", r.Header.Get("Origin"))
+
+	if r.Header.Get("Origin") != "http://" + r.Host {
+    	http.Error(w, "Origin not allowed", 403)
+    	return
+    }
+
+
 	var (
 		connection *websocket.Conn
 		err        error
 	)
 
-	connection, err = websocket.Upgrade(w, r.Header, nil, 1024, 1024)
+/*
+func Upgrade(w http.ResponseWriter, r *http.Request, responseHeader http.Header, readBufSize, writeBufSize int) (*Conn, error)
+*/
+
+
+	connection, err = websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
 		fmt.Printf("Not a websocket handshake \n")
 		http.Error(w, "Not a websocket handshake", 400)
@@ -753,6 +771,8 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+
+	//lets safe some info about this connection and add it to the list
 	connections = append(connections, connection)
 	fmt.Printf("Amount of clients listening is %d\n", len(connections))
 }
@@ -861,12 +881,15 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 	//fmt.Printf("Responding to %d listening clients\n", len(connections))
 	for index, client := range connections {
 		//get a websocket writer
-		wswriter, _ := client.NextWriter(websocket.OpText)
+
+		//can we get any status info about the client
+
+		wswriter, _ := client.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
 			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
 		} else {
-			//fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
+			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
 			client.Close()
 			//remove from slice
 			connections = append(connections[:index], connections[index+1:]...)
