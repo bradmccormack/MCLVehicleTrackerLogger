@@ -755,7 +755,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 	//check if there was an existing web socket connection for this ip(key) if so close it and free memory
 	if _, exists := connections[ip]; exists {
-		//no need to delete the connections[ip].connection as Golang is garbage collected
+		//no need to delete the connections[ip].connection as Go is garbage collected
 		connections[ip].connection.Close()
         delete(connections, ip)
     }
@@ -881,9 +881,6 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 	for _, client := range connections {
 		//get a websocket writer
 
-		//can we get any status info about the client - we can probably store the ip when they login or something
-		//there needs to be a way to match up the websocket to a user of the system to check if they own the vehicle before writing out vehicle updates etc ... right now it is a security risk
-
 		wswriter, _ := client.connection.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
@@ -891,10 +888,6 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 		} else {
 			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
 			client.connection.Close()
-			//remove from slice
-			//connections = append(connections[:index], connections[index+1:]...)
-
-			//deallocate memory from the  map value connection key then remove the key from the map
 		}
 
 	}
