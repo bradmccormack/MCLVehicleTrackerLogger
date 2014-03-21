@@ -1,13 +1,12 @@
 package main
 
 import (
-//	"bytes"
 	"database/sql"
 	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/garyburd/go-websocket/websocket"
+	"github.com/gorilla/websocket"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
@@ -76,6 +75,13 @@ type Settings struct {
 	ClubBoundaryKM int
 }
 
+type WebSocket struct {
+	connection *websocket.Conn
+	//will be storing other stuff in here later
+}
+
+
+
 type Packet map[string]string
 type Response map[string]interface{}
 
@@ -84,8 +90,13 @@ type Response map[string]interface{}
 var domain string = "dev.myclublink.com.au"
 
 var service = flag.String("service", ":6969", "tcp port to bind to")
-var addr = flag.String("addr", ":8080", "http(s)) service address")
-var connections []*websocket.Conn                                       //slice of Websocket connections
+
+var addr = flag.String("addr", ":8080", "http(s) service address")
+
+var connections map[string]*WebSocket
+
+//var connections []*websocket.Conn                                       //slice of Websocket connections
+
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
 var store = sessions.NewCookieStore([]byte("emtec789"))
@@ -402,8 +413,7 @@ var views = map[string]interface{}{
 	},
 
 	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "application/json")	
-		fmt.Printf("In ViewLogin")
+		w.Header().Add("Content-Type", "application/json")
 		session, _ := store.Get(r, "data")
 		if (session == nil) {
 			http.Error(w, "Unauthorized", 401)
@@ -726,25 +736,31 @@ func createDb() {
 }
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Web socket requested from %s", r.RemoteAddr)
+
+	fmt.Printf("Web socket requested from %s\n", r.RemoteAddr)
+
+
 	if r.Method != "GET" {
 		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
 
-	/*
-		if r.Header.Get("Origin") != "http://"+r.Host {
-			http.Error(w, "Origin not allowed", 403)
-			return
-		}
-	*/
-	var (
-		connection *websocket.Conn
-		err        error
-	)
+	if r.Header.Get("Origin") + *addr != "http://" + r.Host {
+    	http.Error(w, "Origin not allowed", 403)
+    	return
+    }
 
-	connection, err = websocket.Upgrade(w, r.Header, nil, 1024, 1024)
+	var ip string = r.RemoteAddr[0 : strings.LastIndex(r.RemoteAddr, ":")]
+
+	//check if there was an existing web socket connection for this ip(key) if so close it and free memory
+	if _, exists := connections[ip]; exists {
+		//no need to delete the connections[ip].connection as Go is garbage collected
+		connections[ip].connection.Close()
+        delete(connections, ip)
+    }
+
+	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
 		fmt.Printf("Not a websocket handshake \n")
 		http.Error(w, "Not a websocket handshake", 400)
@@ -753,8 +769,11 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	connections = append(connections, connection)
-	fmt.Printf("Amount of clients listening is %d\n", len(connections))
+
+	connections[ip] = new(WebSocket)
+	connections[ip].connection = connection
+	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
+
 }
 
 //TODO look at implementing trinity mvc framework
@@ -807,7 +826,7 @@ func init() {
 func main() {
 
 	flag.Parse()
-
+ 	connections = make(map[string] *WebSocket)
 	var err error
 
 	createDb()
@@ -859,17 +878,16 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 	}
 
 	//fmt.Printf("Responding to %d listening clients\n", len(connections))
-	for index, client := range connections {
+	for _, client := range connections {
 		//get a websocket writer
-		wswriter, _ := client.NextWriter(websocket.OpText)
+
+		wswriter, _ := client.connection.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
 			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
 		} else {
-			//fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
-			client.Close()
-			//remove from slice
-			connections = append(connections[:index], connections[index+1:]...)
+			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
+			client.connection.Close()
 		}
 
 	}
