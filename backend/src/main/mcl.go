@@ -174,8 +174,7 @@ var actions = map[string]interface{}{
             var Errors []string
 
 
-            var LoggedInCount, MaxUsers int
-            var Expiry string
+            var LoggedInCount int
 
             var result error
             result = Db.QueryRow("SELECT COUNT(1) FROM ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
@@ -183,22 +182,17 @@ var actions = map[string]interface{}{
                 log.Fatal(result)
             }
 
-            result = Db.QueryRow("SELECT MaxUsers, Expiry FROM Company WHERE ID = (SELECT CompanyID FROM USER WHERE ID = ?)", user.ID).Scan(&MaxUsers, &Expiry)
-            if(result != nil) {
-                log.Fatal(result)
-            }
-
-
-            if(LoggedInCount > MaxUsers) {
-                Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") exceeds license limit (" + strconv.Itoa(MaxUsers) + ")")
+            if(LoggedInCount == company.Maxusers) {
+                Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") matches your license limit (" + strconv.Itoa(company.Maxusers) + ")")
             }
 
             var ExpiryDate time.Time
-            layout := "2006-01-02 15:04:05" //http://golang.org/src/pkg/time/format.go
-            ExpiryDate, _ = time.Parse(layout, Expiry)
+        	    
+            const layout = "2006-01-2 15:4:5" //http://golang.org/src/pkg/time/format.go
+            ExpiryDate, _ = time.Parse(layout, company.Expiry)
 
-
-            if(ExpiryDate.Unix() < time.Now().Unix()) {
+	    
+	    if(ExpiryDate.Unix() < time.Now().Unix()) {
                 Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
             }
 
@@ -695,7 +689,7 @@ func createDb() {
 
 		/*This crap needs moving out of here */
         "INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('myClubLink' , 1, '2100-01-20 12:00:00', 'img/mcl_logo.png');",
-		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2014-01-20 12:00:00', 'img/sussex_logo.PNG');",
+		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2014-06-6 12:00:00', 'img/sussex_logo.PNG');",
 
 		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
