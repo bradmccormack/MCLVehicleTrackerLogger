@@ -17,6 +17,9 @@
 	<script type="text/javascript" src="js/lib/jquery-1.10.0.min.js"></script>
 	<script type="text/javascript" src="js/lib/jquery.cookie.js"></script>
 	<script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/lib/bootstrap-datetimepicker.min.js"></script>
+    <script src="js/lib/angular/angular.min.js"></script>
+    <script src="js/lib/angular/angular-cookies.js"></script>
 </head>
 
 <body ng-app="myApp" ng-controller="mainController" ng-init="SystemInit()" class="authapplication">
@@ -35,7 +38,7 @@
     <img id="fail" src="img/fail3.jpg">
 </div>
 
-<div id="Mainheader" class="container-fluid" ng-controller="headerController">
+<div id="Mainheader" class="container-fluid" ng-controller="headerController" ng-cloak>
 
 	<div id="Mainlogo" class="span4">
 		<img id="logo" src="img/logoheader.png">
@@ -211,9 +214,6 @@
 <!--TODO use a JS sticther on all these server side  -->
 <script type="text/javascript" src="js/leaflet/leaflet.js"></script>
 <script type="text/javascript" src="js/plugins.js"></script>
-<script type="text/javascript" src="js/lib/bootstrap-datetimepicker.min.js"></script>
-<script src="js/lib/angular/angular.min.js"></script>
-<script src="js/lib/angular/angular-cookies.js"></script>
 <script src="js/lib/http-auth-interceptor.js" type="text/javascript"></script>
 <script src="js/lib/moment.min.js" type="text/javascript"></script>
 <script src="js/app.js"></script>
