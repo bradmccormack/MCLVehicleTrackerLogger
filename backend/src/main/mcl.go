@@ -95,8 +95,6 @@ var addr = flag.String("addr", ":8080", "http(s) service address")
 
 var connections map[string]*WebSocket
 
-//var connections []*websocket.Conn                                       //slice of Websocket connections
-
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
 var store = sessions.NewCookieStore([]byte("emtec789"))
@@ -915,6 +913,7 @@ func logEntry(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 }
 
 //palm off reading and writing to a go routine
+//TODO palm of all the parsing to go routine too and handle panics with recover and use channels between goroutines
 func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 
 	var buff = make([]byte, 512)
@@ -957,7 +956,7 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 		gpsfields := strings.Split(string(incomingpacket["sentence"]), ",")
 
 		if len(gpsfields) != 7 {
-			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d", len(gpsfields), 7)
+			fmt.Printf("Error. GPS fields length is incorrect. Is %d should be %d\n", len(gpsfields), 7)
 			fmt.Printf("The source string was %s\n", string(incomingpacket["sentence"]))
 			continue
 		}

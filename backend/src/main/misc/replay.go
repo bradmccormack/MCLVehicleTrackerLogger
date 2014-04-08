@@ -125,14 +125,13 @@ func main() {
 		}
 
 		//T signifies testing. The server will not log replayed co-ordinates
-		msg = "T" + cord.Message + ",L"
-                msg += cord.Latitude + ","
-                msg += cord.Longitude + ","
+				msg = "T" + cord.Message
+                msg += "L" + cord.Latitude + "," + cord.Longitude + ","
                 msg += "S" + fmt.Sprint(cord.Speed) + ","
-		msg += "H" + fmt.Sprint(cord.Heading) + ","
+				msg += "H" + fmt.Sprint(cord.Heading) + ","
                 msg += "D" + cord.DateTime.Format(time.RFC3339) + ","
                 msg += "F" + Fix + ","
-                msg += cord.BusID
+                msg += "I" + cord.BusID
 
 
 		diag = "CT0.0,CV0.0,CF0.0,MF0.0"
