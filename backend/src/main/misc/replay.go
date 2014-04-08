@@ -18,6 +18,8 @@ type Response map[string]interface{}
 var ip = flag.String("ip", "127.0.0.1:6969", "ip address to send gps co-ordinates to")
 var dbname = flag.String("database", "backend.db", "database to open gps records from")
 var query = flag.String("query", "select id, Latitude, Longitude, Speed, Heading, Fix, BusID from GPSRecords where ID > 1000", "query to obtain gps records -eg select * from GPSRecords")
+var vid = flag.String("vid", "", "The id of the vehicle to use (override db value")
+
 var db *sql.DB
 
 type GPS struct {
@@ -124,6 +126,13 @@ func main() {
 			Fix = "false"
 		}
 
+		var vehicleID string
+		if(*vid != "") {
+			vehicleID = *vid
+		} else {
+			vehicleID = cord.BusID
+		}
+
 		//T signifies testing. The server will not log replayed co-ordinates
 				msg = "T" + cord.Message
                 msg += "L" + cord.Latitude + "," + cord.Longitude + ","
@@ -131,7 +140,7 @@ func main() {
 				msg += "H" + fmt.Sprint(cord.Heading) + ","
                 msg += "D" + cord.DateTime.Format(time.RFC3339) + ","
                 msg += "F" + Fix + ","
-                msg += "I" + cord.BusID
+                msg += "I" + vehicleID
 
 
 		diag = "CT0.0,CV0.0,CF0.0,MF0.0"
