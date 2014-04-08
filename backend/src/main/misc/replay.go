@@ -7,10 +7,13 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"encoding/gob"
+    "encoding/json"
 	"os"
 	"time"
 )
 
+type Response map[string]interface{}
 
 var ip = flag.String("ip", "127.0.0.1:6969", "ip address to send gps co-ordinates to")
 var dbname = flag.String("database", "backend.db", "database to open gps records from")
@@ -28,6 +31,43 @@ type GPS struct {
 	DateTime time.Time
 	BusID string
 }
+
+type GPSRecord struct {
+	Latitude  string
+	Longitude string
+	Message   string
+	Speed     float64
+	Heading   float64
+	Fix       bool
+	Date      time.Time
+	ID        string
+}
+
+type DiagnosticRecord struct {
+	CPUTemp	float64
+	CPUVolt float64
+	CPUFreq float64
+	MemFree	uint64
+}
+
+
+
+func (r Response) String() (s string) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		s = ""
+		return
+	}
+	s = string(b)
+	return
+}
+
+func init() {
+	gob.Register(GPS{})
+
+}
+
+
 func main() {
 	flag.Parse()
 	var err error
@@ -58,7 +98,6 @@ func main() {
 	db.Close()
  
 	fmt.Printf("Sending data to %s", *ip)
-	//for now just spit across the latitude and longitude
 	conn, err := net.Dial("tcp", *ip)
 	if err != nil {
 		log.Fatal("Cannot do tcp connection - %s", err.Error()) 
@@ -68,7 +107,7 @@ func main() {
 
 
 
-	var msg string
+	var msg,diag string
 	for _, cord := range cords {
 		var Fix string
 		if(cord.Fix) { 
@@ -87,10 +126,14 @@ func main() {
                 msg += "F" + Fix + ","
                 msg += cord.BusID
 
-		//convert string to bytes.. send to server then wait a second and loop
-		//bytes := []byte(msg)
+
+		diag = "CT0.0,CV0.0,CF0.0,MF0.0"
+
+
+		//send JSON over
 		fmt.Printf("sentence is %s\n", msg)       
-		fmt.Fprintf(conn, msg)
+
+		fmt.Fprint(conn, Response{ "sentence" : msg, "diagnostics" : diag})
 		time.Sleep(250 * time.Millisecond)
 
 	
