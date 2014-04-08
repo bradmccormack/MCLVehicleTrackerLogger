@@ -77,9 +77,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Printf("Using Query %s\n", *query)
+
 	rows, err := db.Query(*query)
 	if err != nil {
-		fmt.Printf("Failed to execute query %s", query)
+		fmt.Printf("Failed to execute query (%s)\n", err.Error())
 		os.Exit(1)
 	}
 
@@ -96,8 +98,14 @@ func main() {
 		cords = append(cords, row)
 	}
 	db.Close()
- 
-	fmt.Printf("Sending data to %s", *ip)
+
+ 	recCnt := len(cords)
+ 	if(recCnt == 0) {
+ 		fmt.Printf("Found no records that matched your query !\n")
+ 		os.Exit(0)
+ 	}
+
+	fmt.Printf("Sending data to %s\n", *ip)
 	conn, err := net.Dial("tcp", *ip)
 	if err != nil {
 		log.Fatal("Cannot do tcp connection - %s", err.Error()) 
@@ -105,7 +113,7 @@ func main() {
 		fmt.Printf("Connection made successfully \n")
 	}
 
-
+	fmt.Printf("Found the following amount of records %d\n", recCnt)
 
 	var msg,diag string
 	for _, cord := range cords {
