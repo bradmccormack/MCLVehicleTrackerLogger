@@ -853,7 +853,7 @@ func main() {
 				fmt.Printf("Failed to create tcp connection - %s", err)
 				os.Exit(1)
 			}
-			recreateConnection = handleClient(Db, tcpcon.(*net.TCPConn))
+			go handleClient(Db, tcpcon.(*net.TCPConn), &recreateConnection)
 			if recreateConnection {
 				lnk.Close()
 			}
@@ -878,7 +878,7 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 		if wswriter != nil {
 			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
 		} else {
-			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client and remove it from the connections slice
+			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
 			client.connection.Close()
 		}
 
@@ -914,7 +914,15 @@ func logEntry(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 
 //palm off reading and writing to a go routine
 //TODO palm of all the parsing to go routine too and handle panics with recover and use channels between goroutines
-func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
+func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
+
+	//defer anonymous func to handle panics - most likely panicking from garbage tha was tried to be parsed.
+	defer func() {
+            if r := recover(); r != nil {
+                fmt.Println("Recovered from a panic \n", r)
+            }
+    }()
+
 
 	var buff = make([]byte, 512)
 	var incomingpacket Packet
@@ -933,7 +941,8 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 		if err != nil {
 			fmt.Printf("Error occured - %s\n", err.Error())
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
-			return true
+			*recreateConnection = true;
+			return
 		}
 
 		//lets unmarshal those JSON bytes into the map https://groups.google.com/forum/#!topic/golang-nuts/77HJlZhWXpk  note to slice properly otherwise it chockes on trying to decode the full buffer
@@ -1007,5 +1016,6 @@ func handleClient(Db *sql.DB, conn *net.TCPConn) bool {
 
 		conn.Write([]byte("OK\n"))
 	}
-	return false
+	*recreateConnection = false
+	return
 }
