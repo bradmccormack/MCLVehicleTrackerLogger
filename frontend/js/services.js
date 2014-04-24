@@ -611,7 +611,8 @@ angular.module('myApp.services', [])
 
 
             if (window["WebSocket"]) {
-                Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
+	        Con = new WebSocket("ws://dev.myclublink.com.au/ws"); //let nginx proxy it        
+		//Con = new WebSocket("ws://dev.myclublink.com.au:8080/ws");
 
                 Con.onopen = function () {
                     $rootScope.$broadcast("systemMessage", "Connected to server");

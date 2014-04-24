@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/sha256"
+	"bytes"
 )
 
 type GPSRecord struct {
@@ -75,9 +77,9 @@ type Settings struct {
 	ClubBoundaryKM int
 }
 
-type WebSocket struct {
-	connection *websocket.Conn
-	//will be storing other stuff in here later
+type ClientSocket struct {
+	websocket *websocket.Conn
+	ip, username string
 }
 
 
@@ -93,7 +95,8 @@ var service = flag.String("service", ":6969", "tcp port to bind to")
 
 var addr = flag.String("addr", ":8080", "http(s) service address")
 
-var connections map[string]*WebSocket
+//the string key will be a hash of the username and ip
+var connections map[[32]byte]*ClientSocket
 
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
@@ -137,6 +140,10 @@ var actions = map[string]interface{}{
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
+		
+		fmt.Printf("Login -> RemoteAddr is %s", r.RemoteAddr)
+
+		var ip string = r.RemoteAddr[0 : strings.LastIndex(r.RemoteAddr, ":")]
 
 		var user User
 		var company Company
@@ -208,6 +215,22 @@ var actions = map[string]interface{}{
                 if err := session.Save(r, w); err != nil {
                     fmt.Printf("Can't save session data (%s)\n", err.Error())
                 }
+
+
+		//hash the incoming ip and username	
+		var buffer bytes.Buffer
+		fmt.Printf("\nLogin -> IP is %s name is %s\n", ip , name)
+
+		buffer.WriteString(ip)
+		buffer.WriteString(name)
+		var hash = sha256.Sum256(buffer.Bytes())
+
+		fmt.Printf("The hash in login is is %b\n", hash)
+
+
+		//create new connection ready to go	
+		connections[hash] = new(ClientSocket)
+
                 fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
             } else {
                 fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
@@ -729,6 +752,9 @@ func createDb() {
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
+	//TODO need to get the user name from the cookie
+	user := "craig"
+
 	fmt.Printf("Web socket requested from %s\n", r.RemoteAddr)
 
 
@@ -739,18 +765,31 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Header.Get("Origin") + *addr != "http://" + r.Host {
-    	http.Error(w, "Origin not allowed", 403)
-    	return
-    }
+    		http.Error(w, "Origin not allowed", 403)
+    		return
+    	}
 
+	fmt.Printf("ws -> RemoteAddr is %s\n", r.RemoteAddr)
 	var ip string = r.RemoteAddr[0 : strings.LastIndex(r.RemoteAddr, ":")]
 
-	//check if there was an existing web socket connection for this ip(key) if so close it and free memory
-	if _, exists := connections[ip]; exists {
-		//no need to delete the connections[ip].connection as Go is garbage collected
-		connections[ip].connection.Close()
-        delete(connections, ip)
-    }
+	//hash the incoming ip and username	
+	var buffer bytes.Buffer
+	buffer.WriteString(ip)
+	buffer.WriteString(user)
+
+	fmt.Printf("ws -> the ip is %s the user is %s\n", ip, user)
+
+	var hash = sha256.Sum256(buffer.Bytes())
+	fmt.Printf("The hash in web socket is %b\n", hash)
+
+	if _, exists := connections[hash]; exists {
+		fmt.Printf("Connection existed .. closing \n")
+		connections[hash].websocket.Close()
+        } else {
+		fmt.Printf("New connection created");
+	}
+
+
 
 	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
@@ -761,9 +800,19 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+	
+	
 
-	connections[ip] = new(WebSocket)
-	connections[ip].connection = connection
+	//THERE ARE TWO PROBLEMS CURRENTLY WITH THE BELOW
+
+
+	/*
+	1) Ip reported back to this golang binary doens't match when its coming via http(s) protocol and via websocket protocol thus the hashes don't match and its not already allocated and blows up
+	2) If the user is already logged in (cookie present) it bypasses the ActionLogin and it doesn't get allocated and blows up
+	*/
+
+	fmt.Printf("About to set the connection\n")
+	connections[hash].websocket = connection
 	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
 
 }
@@ -818,7 +867,8 @@ func init() {
 func main() {
 
 	flag.Parse()
- 	connections = make(map[string] *WebSocket)
+ 	connections = make(map[[32]byte] *ClientSocket)
+
 	var err error
 
 	createDb()
@@ -873,13 +923,13 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 	for _, client := range connections {
 		//get a websocket writer
 
-		wswriter, _ := client.connection.NextWriter(websocket.TextMessage)
+		wswriter, _ := client.websocket.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
 			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
 		} else {
 			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
-			client.connection.Close()
+			client.websocket.Close()
 		}
 
 	}
