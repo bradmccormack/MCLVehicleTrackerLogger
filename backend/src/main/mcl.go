@@ -22,6 +22,7 @@ import (
 	"time"
 	"crypto/sha256"
 	"bytes"
+	"./utility"
 )
 
 type GPSRecord struct {
@@ -118,32 +119,51 @@ var actions = map[string]interface{}{
 		http.Error(w, "Invalid Action", 403)
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
-        fmt.Printf("Logging out")
+        	fmt.Printf("Logging out")
 		w.Header().Add("Content-Type", "application/json")
 
-        if Db == nil {
-        			log.Fatal(Db)
-        }
+        	if Db == nil {
+        		log.Fatal(Db)
+        	}
 
-        session, _ := store.Get(r, "data")
+		session, _ := store.Get(r, "data")
 
-        var user User = session.Values["User"].(User)
-        Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+		var user User = session.Values["User"].(User)
 
+		//Update DB
+		Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+	
+
+		//Close WebSocket
+		ip := utility.GetIpAddress(r)
+		//hash the incoming ip and username	
+		var buffer bytes.Buffer
+		buffer.WriteString(ip)
+		buffer.WriteString(user.Firstname)
+		buffer.WriteString(user.Lastname)
+		var hash = sha256.Sum256(buffer.Bytes())
+		if(connections[hash] != nil) {
+			connections[hash].websocket.Close()
+		}
+
+		//clear cookie
 		session.Values["User"] = ""
-        session.Values["Company"] = ""
-        session.Values["Settings"] = ""
-
-		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
+		session.Values["Company"] = ""
+		session.Values["Settings"] = ""
 		
+		if err := session.Save(r, w); err != nil {
+			fmt.Printf("Can't save session data (%s)\n", err.Error())
+		}
+		
+		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
+			
 	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		
-		fmt.Printf("Login -> RemoteAddr is %s", r.RemoteAddr)
-
-		var ip string = r.RemoteAddr[0 : strings.LastIndex(r.RemoteAddr, ":")]
+		
+		//fmt.Printf("\nActionLogin -> RemoteAddr is %s\n", utility.GetIpAddress(r))
 
 		var user User
 		var company Company
@@ -216,21 +236,6 @@ var actions = map[string]interface{}{
                     fmt.Printf("Can't save session data (%s)\n", err.Error())
                 }
 
-
-		//hash the incoming ip and username	
-		var buffer bytes.Buffer
-		fmt.Printf("\nLogin -> IP is %s name is %s\n", ip , name)
-
-		buffer.WriteString(ip)
-		buffer.WriteString(name)
-		var hash = sha256.Sum256(buffer.Bytes())
-
-		fmt.Printf("The hash in login is is %b\n", hash)
-
-
-		//create new connection ready to go	
-		connections[hash] = new(ClientSocket)
-
                 fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
             } else {
                 fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
@@ -239,8 +244,8 @@ var actions = map[string]interface{}{
 			
 
 		}
-
 	},
+
 	"ActionSettingsPassword" : func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		session, _ := store.Get(r, "data")
@@ -564,9 +569,6 @@ var views = map[string]interface{}{
 		case result != nil:
 			log.Fatal(result)
 		default:
-			session, _ := store.Get(r, "session")
-
-			//TODO add the receive data settings here and get from the DB
 			session.Values["Settings"] = map[string]interface{}{
 				"MapAPI":      mapAPI,
 				"Interpolate": interpolate,
@@ -752,35 +754,39 @@ func createDb() {
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
-	//TODO need to get the user name from the cookie
-	user := "craig"
+	
+	session, _ := store.Get(r, "data")
+	var user User = session.Values["User"].(User)
+	
+	//fmt.Printf("Username is %s %s\n", user.Firstname, user.Lastname)
+	//fmt.Printf("Web socket requested from %s\n", utility.GetIpAddress(r))
 
-	fmt.Printf("Web socket requested from %s\n", r.RemoteAddr)
-
-
+	
 	if r.Method != "GET" {
 		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-
+	
+	/*
 	if r.Header.Get("Origin") + *addr != "http://" + r.Host {
     		http.Error(w, "Origin not allowed", 403)
     		return
     	}
+	*/
 
-	fmt.Printf("ws -> RemoteAddr is %s\n", r.RemoteAddr)
-	var ip string = r.RemoteAddr[0 : strings.LastIndex(r.RemoteAddr, ":")]
+
+	var ip string = utility.GetIpAddress(r)
 
 	//hash the incoming ip and username	
 	var buffer bytes.Buffer
 	buffer.WriteString(ip)
-	buffer.WriteString(user)
-
-	fmt.Printf("ws -> the ip is %s the user is %s\n", ip, user)
+	buffer.WriteString(user.Firstname)
+	buffer.WriteString(user.Lastname)
+	//fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
 
 	var hash = sha256.Sum256(buffer.Bytes())
-	fmt.Printf("The hash in web socket is %b\n", hash)
+	//fmt.Printf("The hash in web socket is %b\n", hash)
 
 	if _, exists := connections[hash]; exists {
 		fmt.Printf("Connection existed .. closing \n")
@@ -788,8 +794,6 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
         } else {
 		fmt.Printf("New connection created");
 	}
-
-
 
 	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
@@ -802,14 +806,9 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	
+	//create new connection ready to go	
+	connections[hash] = new(ClientSocket)
 
-	//THERE ARE TWO PROBLEMS CURRENTLY WITH THE BELOW
-
-
-	/*
-	1) Ip reported back to this golang binary doens't match when its coming via http(s) protocol and via websocket protocol thus the hashes don't match and its not already allocated and blows up
-	2) If the user is already logged in (cookie present) it bypasses the ActionLogin and it doesn't get allocated and blows up
-	*/
 
 	fmt.Printf("About to set the connection\n")
 	connections[hash].websocket = connection
