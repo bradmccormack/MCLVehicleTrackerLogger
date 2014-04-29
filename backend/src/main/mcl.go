@@ -978,14 +978,14 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 	var entry GPSRecord
 	var diagnostic DiagnosticRecord
 
-	conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
-	conn.SetReadBuffer(512)
+	//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
+	//conn.SetReadBuffer(512)
 	var n int
 	var err error
 	var data bool = true
 	for data {
 		n, err = conn.Read(buff)
-		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
+		//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 
 		if err != nil {
 			fmt.Printf("Error occured - %s\n", err.Error())
