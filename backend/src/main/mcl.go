@@ -20,6 +20,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/sha256"
+	"bytes"
+	"./utility"
 )
 
 type GPSRecord struct {
@@ -75,9 +78,9 @@ type Settings struct {
 	ClubBoundaryKM int
 }
 
-type WebSocket struct {
-	connection *websocket.Conn
-	//will be storing other stuff in here later
+type ClientSocket struct {
+	websocket *websocket.Conn
+	ip, username string
 }
 
 
@@ -93,7 +96,8 @@ var service = flag.String("service", ":6969", "tcp port to bind to")
 
 var addr = flag.String("addr", ":8080", "http(s) service address")
 
-var connections map[string]*WebSocket
+//the string key will be a hash of the username and ip
+var connections map[[32]byte]*ClientSocket
 
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
@@ -115,28 +119,51 @@ var actions = map[string]interface{}{
 		http.Error(w, "Invalid Action", 403)
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
-        fmt.Printf("Logging out")
+        	fmt.Printf("Logging out")
 		w.Header().Add("Content-Type", "application/json")
 
-        if Db == nil {
-        			log.Fatal(Db)
-        }
+        	if Db == nil {
+        		log.Fatal(Db)
+        	}
 
-        session, _ := store.Get(r, "data")
+		session, _ := store.Get(r, "data")
 
-        var user User = session.Values["User"].(User)
-        Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+		var user User = session.Values["User"].(User)
 
+		//Update DB
+		Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+	
+
+		//Close WebSocket
+		ip := utility.GetIpAddress(r)
+		//hash the incoming ip and username	
+		var buffer bytes.Buffer
+		buffer.WriteString(ip)
+		buffer.WriteString(user.Firstname)
+		buffer.WriteString(user.Lastname)
+		var hash = sha256.Sum256(buffer.Bytes())
+		if(connections[hash] != nil) {
+			connections[hash].websocket.Close()
+		}
+
+		//clear cookie
 		session.Values["User"] = ""
-        session.Values["Company"] = ""
-        session.Values["Settings"] = ""
-
-		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
+		session.Values["Company"] = ""
+		session.Values["Settings"] = ""
 		
+		if err := session.Save(r, w); err != nil {
+			fmt.Printf("Can't save session data (%s)\n", err.Error())
+		}
+		
+		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
+			
 	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
+		
+		
+		//fmt.Printf("\nActionLogin -> RemoteAddr is %s\n", utility.GetIpAddress(r))
 
 		var user User
 		var company Company
@@ -208,6 +235,7 @@ var actions = map[string]interface{}{
                 if err := session.Save(r, w); err != nil {
                     fmt.Printf("Can't save session data (%s)\n", err.Error())
                 }
+
                 fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
             } else {
                 fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
@@ -216,8 +244,8 @@ var actions = map[string]interface{}{
 			
 
 		}
-
 	},
+
 	"ActionSettingsPassword" : func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		session, _ := store.Get(r, "data")
@@ -541,9 +569,6 @@ var views = map[string]interface{}{
 		case result != nil:
 			log.Fatal(result)
 		default:
-			session, _ := store.Get(r, "session")
-
-			//TODO add the receive data settings here and get from the DB
 			session.Values["Settings"] = map[string]interface{}{
 				"MapAPI":      mapAPI,
 				"Interpolate": interpolate,
@@ -729,28 +754,46 @@ func createDb() {
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Printf("Web socket requested from %s\n", r.RemoteAddr)
+	
+	session, _ := store.Get(r, "data")
+	var user User = session.Values["User"].(User)
+	
+	//fmt.Printf("Username is %s %s\n", user.Firstname, user.Lastname)
+	//fmt.Printf("Web socket requested from %s\n", utility.GetIpAddress(r))
 
-
+	
 	if r.Method != "GET" {
 		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-
+	
+	/*
 	if r.Header.Get("Origin") + *addr != "http://" + r.Host {
-    	http.Error(w, "Origin not allowed", 403)
-    	return
-    }
+    		http.Error(w, "Origin not allowed", 403)
+    		return
+    	}
+	*/
 
-	var ip string = r.RemoteAddr[0 : strings.LastIndex(r.RemoteAddr, ":")]
 
-	//check if there was an existing web socket connection for this ip(key) if so close it and free memory
-	if _, exists := connections[ip]; exists {
-		//no need to delete the connections[ip].connection as Go is garbage collected
-		connections[ip].connection.Close()
-        delete(connections, ip)
-    }
+	var ip string = utility.GetIpAddress(r)
+
+	//hash the incoming ip and username	
+	var buffer bytes.Buffer
+	buffer.WriteString(ip)
+	buffer.WriteString(user.Firstname)
+	buffer.WriteString(user.Lastname)
+	//fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
+
+	var hash = sha256.Sum256(buffer.Bytes())
+	//fmt.Printf("The hash in web socket is %b\n", hash)
+
+	if _, exists := connections[hash]; exists {
+		fmt.Printf("Connection existed .. closing \n")
+		connections[hash].websocket.Close()
+        } else {
+		fmt.Printf("New connection created");
+	}
 
 	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
@@ -758,12 +801,18 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
+		fmt.Printf("Something bad happened - %s", err)
 		log.Println(err)
 		return
 	}
+	
+	
+	//create new connection ready to go	
+	connections[hash] = new(ClientSocket)
 
-	connections[ip] = new(WebSocket)
-	connections[ip].connection = connection
+
+	fmt.Printf("About to set the connection\n")
+	connections[hash].websocket = connection
 	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
 
 }
@@ -818,7 +867,8 @@ func init() {
 func main() {
 
 	flag.Parse()
- 	connections = make(map[string] *WebSocket)
+ 	connections = make(map[[32]byte] *ClientSocket)
+
 	var err error
 
 	createDb()
@@ -873,13 +923,13 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 	for _, client := range connections {
 		//get a websocket writer
 
-		wswriter, _ := client.connection.NextWriter(websocket.TextMessage)
+		wswriter, _ := client.websocket.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
 			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
 		} else {
 			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
-			client.connection.Close()
+			client.websocket.Close()
 		}
 
 	}
@@ -929,14 +979,14 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 	var entry GPSRecord
 	var diagnostic DiagnosticRecord
 
-	conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
-	conn.SetReadBuffer(512)
+	//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
+	//conn.SetReadBuffer(512)
 	var n int
 	var err error
 	var data bool = true
 	for data {
 		n, err = conn.Read(buff)
-		conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
+		//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 
 		if err != nil {
 			fmt.Printf("Error occured - %s\n", err.Error())
