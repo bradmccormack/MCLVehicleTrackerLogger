@@ -801,6 +801,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
+		fmt.Printf("Something bad happened - %s", err)
 		log.Println(err)
 		return
 	}
