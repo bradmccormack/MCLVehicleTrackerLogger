@@ -41,12 +41,13 @@
 	<div id="MapCanvas" class="span9 div-panel" ng-init="MapReload()" ></div>
 
 	<div class="span3 well">
+        <!-- TODO set max height for Message display when it is expanded there is still room for the live/historical -->
 		<div id="SystemMessages" class="container">
-
+            <!-- TODO put an accordion in here so they can collapse and expand the messages and put a bubble with unread message count -->
 			<ul id="Messages">
 				<li ng-show="!SystemMessage.Read" ng-repeat="SystemMessage in SystemMessages()">
-                    <i class="icon-bell" ng-show="SystemMessage.Warning"> </i>
-                    <i class="icon-check" ng-show="SystemMessage.Information"></i>
+
+
                     <span ng-class="{ 'text-success' : SystemMessage.Information, 'text-error': SystemMessage.Warning}">
                         {{SystemMessage.Text}} {{SystemMessage.MsgDateTime}}
                     </span>

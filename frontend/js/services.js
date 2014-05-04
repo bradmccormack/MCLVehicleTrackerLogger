@@ -593,7 +593,7 @@ angular.module('myApp.services', [])
 		}
 
 	}])
-	.factory("networkService", ['mapService', 'utilityService', '$rootScope', function (mapService, utilityService, $rootScope) {
+	.factory("networkService", ['mapService', 'utilityService', '$rootScope', '$timeout', function (mapService, utilityService, $rootScope, $timeout) {
 
 		return (function () {
 			var Con;
@@ -605,28 +605,50 @@ angular.module('myApp.services', [])
 				},
 				Init: function () {
 
+					var isClosed = true;
+					var isError = false;
 
 					if (window["WebSocket"]) {
-						Con = new WebSocket("ws://dev.myclublink.com.au/ws"); //let nginx proxy it
+
+							var ConnectBackend = function ConnectBackend() {
+								if(isClosed) {
+									Con = new WebSocket("ws://dev.myclublink.com.au/ws"); //let nginx proxy it
+
+									Con.onerror = function () {
+										isError = true;
+										//if there is an error it still triggers onclose so lets set a flag not to broadcast on error case
+									}
+
+									Con.onopen = function () {
+										$rootScope.$broadcast("systemMessage", { message: "Connected to server", information: true});
+										isClosed = false;
+										isError = false;
+									};
+
+									Con.onclose = function (evt) {
+										if(!isError)
+											$rootScope.$broadcast("systemMessage", { message: "Server connection closed", warning: true});
 
 
-						Con.onopen = function () {
-							$rootScope.$broadcast("systemMessage", { message: "Connected to server", information: true});
-						};
+										isClosed = true;
+										$timeout(ConnectBackend, 5000);
+									}
+									Con.onmessage = function (evt) {
+										if (mapService.Map.GetMode()) {
+											var data = JSON.parse(evt.data);
+											data.Diagnostic.ID = data.Entry.ID; //copy over vehicle ID
 
-						Con.onclose = function (evt) {
-							$rootScope.$broadcast("systemMessage", { message: "Server connection closed", warning: true});
-							//settimeout and try to reconnect
-						}
-						Con.onmessage = function (evt) {
-							if (mapService.Map.GetMode()) {
-								var data = JSON.parse(evt.data);
-								data.Diagnostic.ID = data.Entry.ID; //copy over vehicle ID
-								$rootScope.$broadcast("positionChange", data.Entry);
+											$rootScope.$broadcast("positionChange", data.Entry);
+											$rootScope.$broadcast("diagnosticChange", data.Diagnostic)
+										}
+									}
+								}
 
-								$rootScope.$broadcast("diagnosticChange", data.Diagnostic)
-							}
-						}
+
+
+							}();
+
+
 					} else {
 						alert("Your browser does not support WebSockets. You cannot use myClubLink until you upgrade to a modern browser");
 					}

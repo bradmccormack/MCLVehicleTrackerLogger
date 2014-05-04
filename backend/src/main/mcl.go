@@ -754,7 +754,7 @@ func createDb() {
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
-	
+	fmt.Printf("\n In Handlewebsocketinit \n")	
 	session, _ := store.Get(r, "data")
 	var user User = session.Values["User"].(User)
 	
@@ -783,7 +783,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	buffer.WriteString(ip)
 	buffer.WriteString(user.Firstname)
 	buffer.WriteString(user.Lastname)
-	//fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
+	fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
 
 	var hash = sha256.Sum256(buffer.Bytes())
 	//fmt.Printf("The hash in web socket is %b\n", hash)
