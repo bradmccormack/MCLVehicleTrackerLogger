@@ -42,10 +42,14 @@
 
 	<div class="span3 well">
 		<div id="SystemMessages" class="container">
-			<h4><i class="icon-envelope icon-white"> </i>   System Messages </h4>
+
 			<ul id="Messages">
-				<li ng-repeat="SystemMessage in SystemMessages()">
-					{{SystemMessage.Message}}
+				<li ng-show="!SystemMessage.Read" ng-repeat="SystemMessage in SystemMessages()">
+                    <i class="icon-bell" ng-show="SystemMessage.Warning"> </i>
+                    <i class="icon-check" ng-show="SystemMessage.Information"></i>
+                    <span ng-class="{ 'text-success' : SystemMessage.Information, 'text-error': SystemMessage.Warning}">
+                        {{SystemMessage.Text}} {{SystemMessage.MsgDateTime}}
+                    </span>
 				</li>
 			</ul>
 			

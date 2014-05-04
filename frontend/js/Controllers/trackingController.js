@@ -152,7 +152,17 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 	}
 
 	$scope.$on('systemMessage', function(Event, Data){
-		shellService.Messages.push({Message: Data, Read: false})
+		var Message = {
+			Text: Data.message, Read: false, MsgDateTime: new Date().toLocaleTimeString()
+		}
+		if(Data.warning)
+			Message.Warning = true;
+
+		if(Data.information)
+			Message.Information = true;
+
+
+		shellService.Messages.push(Message);
 	});
 
     //We want to watch for changes on the model that the service will initiate via $broadcast
