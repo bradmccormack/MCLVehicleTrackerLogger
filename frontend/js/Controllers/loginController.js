@@ -30,6 +30,7 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
 							networkService.Init();
 							$location.path("/tracking");
 						}, 1000)
+						return true;
 
 
                     }
@@ -38,6 +39,7 @@ var LoginCtrl = angular.module('myApp.controllers').controller("loginController"
                         $scope.Errors = data.errors;
 						$timeout(function(){ $scope.Errors = ""}, 3000);/// Change the class to be animated fadeOutRight
                         $location.path("/login");
+						return false;
                     }
 
                 }).

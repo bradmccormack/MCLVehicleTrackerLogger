@@ -9,6 +9,7 @@ config(['$routeProvider', function($routeProvider) {
           templateUrl: 'partials/login.html',
           controller: 'loginController',
           resolve:  {
+              //http://stackoverflow.com/questions/18256106/cancel-route-and-redirect-to-other-route-without-displaying-the-original-content
               /*
               the resolve property will be called before the controller is instantiated and the view is loaded
 

@@ -15,7 +15,10 @@ angular.module('myApp.directives', []).
 
                 scope.$on('event:server-lostContact', function() {
                     elem.addClass("waiting-for-angular");
-                })
+					var timeout = setInterval(function(){
+						window.location="/login";
+					}, 5000);
+				})
 
             }
 		}
