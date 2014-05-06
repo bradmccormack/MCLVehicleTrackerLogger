@@ -1,4 +1,4 @@
-angular.module('myApp.controllers').controller("footerController", ['$scope', function($scope){
+angular.module('myApp.controllers').controller("footerController", ['$scope', 'mapService', function($scope, mapService){
 
 	$scope.Math = window.Math; //Inject Math object in so we can use round in binding eval
 	$scope.Date = window.Date;
@@ -27,7 +27,16 @@ angular.module('myApp.controllers').controller("footerController", ['$scope', fu
 
     $scope.$on("ConfigChanged", function (Event, Data) {
         $scope.IsLogged = (Data.User != undefined && Data.User != "" && ("data" in $.cookie()))
+
+		//bind panning event
+		mapService.Map.PanMap(Data.Settings.Map.Marker.FollowVehicleTrigger);
     });
+
+
+	$scope.SelectVehicle = function(Vehicle) {
+		mapService.SelectVehicle(Vehicle.Ref);
+
+	}
 
 
 

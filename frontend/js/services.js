@@ -35,7 +35,7 @@ angular.module('myApp.services', [])
 					Marker: {
 						Smooth: false,
 						SnaptoRoad: false,
-						FollowVehicleTrigger: 0 //Default Vehicle camera trigger. 10 would represent a camera pan after every 10 movement updates
+						FollowVehicleTrigger: 0 //Default Vehicle camera trigger. 10 would represent a camera pan after every 10 seconds
 					},
 					Boundary: {
 						MinZoom: 1,
@@ -149,7 +149,7 @@ angular.module('myApp.services', [])
 		}
 
 	}])
-	.factory("mapService", ['shellService', 'utilityService', '$rootScope', function (shellService, utilityService, $rootScope) {
+	.factory("mapService", ['shellService', 'utilityService', '$rootScope',  function (shellService, utilityService, $rootScope) {
 
 		var LiveMode = true;
 
@@ -242,6 +242,9 @@ angular.module('myApp.services', [])
 						funct({Location: e.latlng});
 					})
 
+				},
+				pan: function(Latitude, Longitude) {
+					//TODO
 				}
 			}
 		});
@@ -430,6 +433,7 @@ angular.module('myApp.services', [])
 							markers[ID].setPosition(new google.maps.LatLng(Latitude, Longitude));
 						}
 
+						/*
 						//Get camera settings for current vehicle
 						var Camera = shellService.Settings.Map.Camera[ID];
 
@@ -441,7 +445,11 @@ angular.module('myApp.services', [])
 							}
 
 						}
+						*/
 					}
+				},
+				pan: function(Latitude, Longitude) {
+					map.panTo(new google.maps.LatLng(Latitude, Longitude));
 				},
 				onClick: function (funct) {
 					map.on("click", function (e) {
@@ -474,15 +482,37 @@ angular.module('myApp.services', [])
 			Longitude: 150.81071,
 			Zoom: 16};
 
+
+		//Vehicle related model data
 		var Vehicles = {
 		};
+		var SelectedVehicleID;
 		var VehiclesCount = 0;
+
+		//System Messages
 		var Messages = [];
+
+
+		var PanMap = function(Seconds) {
+			if(SelectedVehicleID && (SelectedVehicleID in Vehicles)) {
+				//get current lattitude and longitude of selected Vehicle
+				var CurrentVehicle = Vehicles[SelectedVehicleID];
+				CurrentMapAPI.pan(CurrentVehicle.Latitude, CurrentVehicle.Longitude);
+			}
+
+			//rebind
+			setTimeout(function () {
+				PanMap(Seconds);
+			}, Seconds);
+		}
 
 		return {
 
 			//Facade
 			Map: {
+				PanMap: function(Seconds) {
+					PanMap(Seconds);
+				},
 				SetAPI: function (API) {
 					var matchingAPI = Vendors[API];
 					if (matchingAPI) {
@@ -490,6 +520,7 @@ angular.module('myApp.services', [])
 							CurrentMapAPI = undefined;
 						CurrentMapAPI = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
 					}
+
 				},
 				Refresh: function () {
 					CurrentMapAPI.refresh();
@@ -515,7 +546,15 @@ angular.module('myApp.services', [])
 							Color: utilityService.RandomColor(),
 							Selected: false
 						};
+
 						VehiclesCount++;
+
+						//if there is only one vehicle make sure it is selected
+						if(VehiclesCount == 1) {
+							Vehicles[ID].Selected = true;
+							SelectedVehicleID = ID;
+						}
+
 
 						//Create a camera object for this vehicle
 						shellService.Settings.Map.Camera[ID] = {
@@ -524,11 +563,12 @@ angular.module('myApp.services', [])
 						}
 						$rootScope.$broadcast("LegendChange", {Count: VehiclesCount, Vehicles: Vehicles});
 					}
-					var Src = new google.maps.LatLng(Latitude, Longitude);
+
 
 					//Note - SnaptoRoad chokes if you pound the system with updates (eg 20 per second versus 1 because of call stack - TODO block on vehicle updates if waiting for snap
 					//to road for this vehicle
 					/*
+					 var Src = new google.maps.LatLng(Latitude, Longitude);
 					 if(shellService.Settings.Map.Marker.SnaptoRoad){
 					 directionsService.route(
 					 {   origin: Src,
@@ -574,7 +614,6 @@ angular.module('myApp.services', [])
 				GetMode: function () {
 					return LiveMode;
 				}
-
 			},
 			GetVehicles: function () {
 				return Vehicles;
@@ -588,6 +627,11 @@ angular.module('myApp.services', [])
 			UpdateLastPosition: function (Position) {
 				LastPosition.Time = new Date();
 				LastPosition.Position = Position;
+			},
+			SelectVehicle: function(VehicleID) {
+				Vehicles[SelectedVehicleID].Selected = false;
+				SelectedVehicleID = VehicleID;
+				Vehicles[VehicleID].Selected = true;
 			}
 
 		}
