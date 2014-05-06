@@ -47,7 +47,7 @@ angular.module('myApp.services', [])
 					}
 				}
 			},
-			Messages: [],
+			Messages: {},
 			ClearConfig: function () {
 				this.User = undefined;
 				$rootScope.$broadcast("ConfigChanged", serviceInstance);

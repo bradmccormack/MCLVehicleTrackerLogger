@@ -181,6 +181,14 @@ div#Mainmapcontrols .btn-group
 	height: 100%;
 }
 
+div#SystemMessages ul#Messages{
+    font-size: 12px;
+    list-style-type: none;
+}
+
+
+
+
 /* For any panels (e.g any divs that are a result of clicking on the navs on the left) */
 div.div-panel
 {
