@@ -34,7 +34,7 @@
 
 <div id="initializing-panel">
     <h1 class="text-error"><i class="icon-ban-circle"></i>  Connection to the server failed</h1>
-    <h3 class="text-error">Please try refreshing your browser or contact myClublink support</h3>
+    <h3 class="text-error">Please wait, connection being re-established</h3>
     <img id="fail" src="img/fail3.jpg">
 </div>
 
@@ -187,13 +187,17 @@
 			<!--summary -->
 
 			<div id="Mainlegend" class="span6 pull-right">
-				<h5>Legend</h5>
+				<h5>Tracking</h5>
 
 				<div id="Vehiclelegend">
 					<span ng-hide="VehicleCount" class="text-error"><i class="icon-signal"> </i> No vehicles currently connected to the system</span>
 					<ul ng-show="VehicleCount">
-						<li ng-repeat="Vehicle in Vehicles"><span style="color:#{{Vehicle.Color}}"><i
-							class="icon icon-truck"> {{Vehicle.Ref}}</i></span></li>
+						<li ng-repeat="Vehicle in Vehicles">
+
+                            <button ng-click="SelectVehicle(Vehicle)" style="color:#{{Vehicle.Color}}; width: 100px"
+                                    ng-class="{ btn: true, 'btn-mini': true, 'btn-success' : Vehicle.Selected}"> <i class="icon icon-truck"></i> {{Vehicle.Ref}}</button>
+
+                         </li>
 					</ul>
 				</div>
 

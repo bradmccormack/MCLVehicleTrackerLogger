@@ -712,7 +712,7 @@ func createDb() {
 
 		/*This crap needs moving out of here */
         "INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('myClubLink' , 1, '2100-01-20 12:00:00', 'img/mcl_logo.png');",
-		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2014-06-6 12:00:00', 'img/sussex_logo.PNG');",
+		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2015-06-6 12:00:00', 'img/sussex_logo.PNG');",
 
 		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
 		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
@@ -754,7 +754,7 @@ func createDb() {
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
-	
+	fmt.Printf("\n In Handlewebsocketinit \n")	
 	session, _ := store.Get(r, "data")
 	var user User = session.Values["User"].(User)
 	
@@ -783,7 +783,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	buffer.WriteString(ip)
 	buffer.WriteString(user.Firstname)
 	buffer.WriteString(user.Lastname)
-	//fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
+	fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
 
 	var hash = sha256.Sum256(buffer.Bytes())
 	//fmt.Printf("The hash in web socket is %b\n", hash)
