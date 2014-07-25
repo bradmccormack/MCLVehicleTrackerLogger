@@ -1,5 +1,9 @@
 angular.module('myApp.controllers').controller("trackingController", ['$scope', '$http', 'shellService', 'mapService', function($scope, $http, shellService, mapService){
 
+
+	$scope.VehicleData = {};
+	var mapLoaded = false;
+
    function Init() {
        updateLiveInformation();
 
@@ -68,7 +72,6 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
 
     $scope.Print = function() {
-        //var elm = $("#MapCanvas");
         var elm = document.getElementById('MapCanvas');
         var width = elm.Width;
         var height = elm.Height;
@@ -117,6 +120,7 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 						return;
 					}
 
+					//this needs to be rewrittent to build up a path object then just splat it over the otherside... it won't ever "replay" like originally intended
 					while(true) {
 						for(var i = 0; i < vl; i++) {
 							var currentvehicle = Object.keys(vehicles)[i];
@@ -147,6 +151,20 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 			});
 	}
 
+	$scope.$on("mapLoaded", function(Event, Data) {
+		mapLoaded = true;
+	});
+
+	//something has changed (perhaps the camera snap so rebind panning event
+	$scope.$on("ConfigChanged", function (Event, Data) {
+		if(mapLoaded) {
+			//bind panning event
+			mapService.Map.PanMap(Data.Settings.Map.Marker.FollowVehicleTrigger);
+		}
+
+	});
+
+
 	$scope.SystemMessages = function(){
 		return shellService.Messages;
 	}
@@ -175,13 +193,20 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 
     //We want to watch for changes on the model that the service will initiate via $broadcast
     $scope.$on('positionChange', function(Event, Data){
-        //1)Update LastPosition received information
-		mapService.UpdateLastPosition({Latitude: Data.Latitude, Longitude: Data.Longitude});
-	    // 2) Update Marker and if there is no marker already set then add to the legend , generate colour etc
-	    mapService.Map.SetMarker(Data.ID, Data.Latitude, Data.Longitude);
 
+        if(mapLoaded) {
 
-         //5) Draw line if Draw line functionality is set
+			$scope.VehicleData[Data.ID] = {
+				Data: Data
+			}
+
+			//1)Update LastPosition received information
+			mapService.UpdateLastPosition({Latitude: Data.Latitude, Longitude: Data.Longitude});
+			// 2) Update Marker and if there is no marker already set then add to the legend , generate colour etc
+			mapService.Map.SetMarker(Data.ID, Data.Latitude, Data.Longitude);
+		}
+
+         //) Draw line if Draw line functionality is set
     });
 
 

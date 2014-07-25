@@ -243,7 +243,7 @@ angular.module('myApp.services', [])
 					})
 
 				},
-				pan: function(Latitude, Longitude) {
+				panTo: function(Latitude, Longitude) {
 					//TODO
 				}
 			}
@@ -270,6 +270,9 @@ angular.module('myApp.services', [])
 				zoom = Zoom;
 				map = new google.maps.Map(document.getElementById(DivID || "map")
 					, mapProp);
+
+				$rootScope.$broadcast("mapLoaded", true);
+
 				directionsService = new google.maps.DirectionsService();
 
 			}
@@ -448,9 +451,6 @@ angular.module('myApp.services', [])
 						*/
 					}
 				},
-				pan: function(Latitude, Longitude) {
-					map.panTo(new google.maps.LatLng(Latitude, Longitude));
-				},
 				onClick: function (funct) {
 					map.on("click", function (e) {
 						funct({Location: e.latlng});
@@ -470,6 +470,7 @@ angular.module('myApp.services', [])
 		});
 
 		var CurrentMapAPI;
+
 		var Vendors = {
 			"Leaflet": Leaflet,
 			"GoogleMaps": GoogleMaps,
@@ -491,18 +492,18 @@ angular.module('myApp.services', [])
 
 		//System Messages
 		var Messages = [];
-
+		var PanTimeout;
 
 		var PanMap = function(Seconds) {
 			if(SelectedVehicleID && (SelectedVehicleID in Vehicles)) {
 				//get current lattitude and longitude of selected Vehicle
 				var CurrentVehicle = Vehicles[SelectedVehicleID];
-				CurrentMapAPI.pan(CurrentVehicle.Latitude, CurrentVehicle.Longitude);
+				CurrentMapAPI.panTo(CurrentVehicle.Latitude, CurrentVehicle.Longitude);
 			}
 
 			//rebind
-			setTimeout(function () {
-				PanMap(Seconds);
+			PanTimeout = setTimeout(function () {
+					PanMap(Seconds);
 			}, Seconds);
 		}
 
@@ -512,15 +513,6 @@ angular.module('myApp.services', [])
 			Map: {
 				PanMap: function(Seconds) {
 					PanMap(Seconds);
-				},
-				SetAPI: function (API) {
-					var matchingAPI = Vendors[API];
-					if (matchingAPI) {
-						if (CurrentMapAPI)
-							CurrentMapAPI = undefined;
-						CurrentMapAPI = new matchingAPI(defaultLocation.Latitude, defaultLocation.Longitude, defaultLocation.Zoom, "MapCanvas");
-					}
-
 				},
 				Refresh: function () {
 					CurrentMapAPI.refresh();
@@ -563,7 +555,11 @@ angular.module('myApp.services', [])
 						}
 						$rootScope.$broadcast("LegendChange", {Count: VehiclesCount, Vehicles: Vehicles});
 					}
-
+					else {
+						Vehicles[ID].Latitude = Latitude;
+						Vehicles[ID].Longitude = Longitude;
+						CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
+					}
 
 					//Note - SnaptoRoad chokes if you pound the system with updates (eg 20 per second versus 1 because of call stack - TODO block on vehicle updates if waiting for snap
 					//to road for this vehicle
@@ -586,7 +582,7 @@ angular.module('myApp.services', [])
 					 CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
 					 }
 					 */
-					CurrentMapAPI.setMarker(ID, Latitude, Longitude, Text, Vehicles[ID].Color);
+
 				},
 				AddtoRoute: function (Vehicle, Point) {
 					if (!(Vehicle in Vehicles)) {
@@ -629,9 +625,26 @@ angular.module('myApp.services', [])
 				LastPosition.Position = Position;
 			},
 			SelectVehicle: function(VehicleID) {
-				Vehicles[SelectedVehicleID].Selected = false;
-				SelectedVehicleID = VehicleID;
-				Vehicles[VehicleID].Selected = true;
+				//if same vehicle invert selection
+				if(SelectedVehicleID == VehicleID) {
+					Vehicles[SelectedVehicleID].Selected = !Vehicles[SelectedVehicleID].Selected;
+					if(Vehicles[SelectedVehicleID].Selected == false) {
+						SelectedVehicleID = null;
+						clearTimeout(PanTimeout);
+					}
+					else
+						PanMap(shellService.Settings.Map.Marker.FollowVehicleTrigger);
+				}
+				else {
+					//if one is selected then deslect it
+					if(SelectedVehicleID)
+						Vehicles[SelectedVehicleID].Selected = false;
+
+
+					SelectedVehicleID = VehicleID;
+					Vehicles[VehicleID].Selected = true;
+					PanMap(shellService.Settings.Map.Marker.FollowVehicleTrigger);
+				}
 			}
 
 		}
