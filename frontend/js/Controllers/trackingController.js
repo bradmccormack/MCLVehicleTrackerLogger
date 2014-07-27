@@ -1,12 +1,19 @@
 angular.module('myApp.controllers').controller("trackingController", ['$scope', '$http', 'shellService', 'mapService', function($scope, $http, shellService, mapService){
 
 
+	$scope.clock = {
+		interval: 1000,
+		time: ""
+	}
 
 	var mapLoaded = false;
 
    function Init() {
        updateLiveInformation();
 
+	   var timer = setInterval(function () {
+		   $scope.$apply(updateClock);
+	   }, $scope.clock.interval);
 
        //Set the time in Local time to be today
        var Dte = moment().local();

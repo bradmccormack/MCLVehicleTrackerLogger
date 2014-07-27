@@ -4,10 +4,6 @@
 angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).controller("headerController", ['$scope', 'shellService', '$location', '$http', 'networkService', '$cookieStore',
 	function ($scope, shellService, $location, $http, networkService, $cookieStore) {
 
-		$scope.clock = {
-			interval: 1000,
-			time: ""
-		}
 
 		$scope.Logout = function(){
             shellService.ClearConfig();
@@ -35,10 +31,6 @@ angular.module('myApp.controllers', ['http-auth-interceptor', 'ngCookies']).cont
         }
         else $scope.User = {};
 
-
-        var timer = setInterval(function () {
-            $scope.$apply(updateClock);
-        }, $scope.clock.interval);
 	});
 
     $scope.$on('event:server-lostContact', function() {
@@ -51,14 +43,6 @@ var edit = function () {
 
 }
 
-var updateClock = function () {
-    /*        $scope.IsLogged = (Data.User != undefined && Data.User != "" && ("data" in $.cookie()))
-
-     */
-
-    $scope.clock.time = moment().format("Do MMM YYYY, h:mm:ss a")
-
-}
 
 
 
