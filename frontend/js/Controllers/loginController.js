@@ -62,7 +62,6 @@ LoginCtrl.Login = function($q, $http, $location, shellService, networkService, $
     //The following needs refining. If a malicious user was to inject a cookie called data it would log in. It would be erroneous, but it would still try.
     //Instead we still need to hit the server with the Post login regardless to confirm the data cookie is valid
     if("data" in $cookies) {
-    //if ("data" in $.cookie()) {
 
         defer.reject("User logged in already");
 

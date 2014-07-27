@@ -401,3 +401,9 @@ div.div-panel
         page-break-after: avoid;
     }
 }
+
+.shadow {
+    -moz-box-shadow:    inset 0 0 10px #000000;
+    -webkit-box-shadow: inset 0 0 10px #000000;
+    box-shadow:         inset 0 0 10px #000000;
+}
