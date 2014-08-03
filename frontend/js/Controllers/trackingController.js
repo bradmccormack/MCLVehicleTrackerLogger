@@ -6,6 +6,11 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 		time: ""
 	}
 
+	var updateClock = function () {
+		$scope.clock.time = moment().format("Do MMM YYYY, h:mm:ss a")
+	}
+
+
 	var mapLoaded = false;
 
    function Init() {
