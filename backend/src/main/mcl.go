@@ -590,167 +590,7 @@ var views = map[string]interface{}{
 	},
 }
 
-func createDb() {
 
-	file, err := os.Open("./backend.db")
-	if err != nil {
-		fmt.Printf("./backend.db didn't exist. Creating it ! \n")
-	} else {
-		file.Close()
-		return
-	}
-
-	fHandle, err := os.Create("./backend.db")
-	if err != nil {
-		log.Fatal("Cannot create ./backend.db ! Bailing from running server\n")
-	}
-	fHandle.Close()
-
-	//TODO add indexes
-	statements := []string{
-
-		"BEGIN EXCLUSIVE TRANSACTION;",
-
-		//Use a string array of raw string literals
-
-		`CREATE TABLE GPSRecords (
-         id integer primary key autoincrement,
-         Message text,
-         Latitude text not null,
-         Longitude text not null,
-         Speed integer not null,
-         Heading float not null,
-         Fix integer not null,
-         DateTime date not null default current_timestamp,
-        BusID text not null);`,
-
-		`create table DiagnosticRecords (
-		id integer primary key autoincrement,
-		CPUTemperature REAL,
-		CPUVoltage REAL,
-		CPUFrequency REAL,
-		MemoryFree integer,
-		Date DateTime DEFAULT CURRENT_TIMESTAMP);`,
-
-		`CREATE TABLE Support (
-		SupportID integer primary key autoincrement,
-		UserID integer not null,
-		Subject text not null,
-		Body text not null,
-		DateTime date not null default current_timestamp,
-		FOREIGN KEY (UserID) REFERENCES User(ID)
-		);`,
-
-
-		`CREATE TABLE Errors (
-        id integer primary key autoincrement,
-        GPSRecordID integer not null,
-        Error text,
-        DateTime date not null default current_timestamp,
-        FOREIGN KEY (GPSRecordID) REFERENCES GPSrecords(id)
-		);`,
- 
-		`CREATE TABLE Network (
-        id integer primary key autoincrement,
-        GPSRecordID integer not null,
-        Acknowledge integer not null default 0,
-        FOREIGN KEY (GPSRecordID) REFERENCES GPSRecords(id)
-		);`,
-
-		`CREATE TABLE Company (
-        ID integer primary key autoincrement,
-        Name text not null,
-        Expiry date not null default current_timestamp,
-        MaxUsers integer not null default 0,
-		LogoPath text not null default ''
-		);`,
-
-		`CREATE TABLE User (
-        ID integer primary key autoincrement,
-        FirstName text not null,
-        LastName text not null,
-        CompanyID integer not null,
-        Password text not null,
-        AccessLevel integer not null default 0,
-		Email text not null,
-        FOREIGN KEY (CompanyID) REFERENCES Company(ID)
-		);`,
-
-		`CREATE TABLE Settings (
-        ID integer primary key autoincrement,
-        UserID integer not null,
-        MapAPI text not null default 'GoogleMaps',
-	    Interpolate integer not null default 1,
-	    SnaptoRoad integer not null default 1,
-	    CameraPanTrigger integer not null default 10,
-        FOREIGN KEY (UserID) REFERENCES User(ID)
-		);`,
-
-    	`CREATE TABLE CompanySettings (
-        ID integer primary key autoincrement,
-	    CompanyID integer not null,
-        RadioCommunication integer not null default 1,
-	    DataCommunication integer not null default 1,
-	    SecurityRemoteAdmin integer not null default 0,
-        SecurityConsoleAccess integer not null default 0,
-        SecurityAdminPasswordReset integer not null default 0,
-        MobileSmartPhoneAccess integer not null default 0,
-        MobileShowBusLocation integer not null default 0,
-	    MinZoom integer not null default 10,
-	    Maxzoom integer not null default 2,
-	    HistoricalmapsKmMin integer not null default 10,
-	    ClubBoundaryKM integer not null default 100,
-        FOREIGN KEY (CompanyID) REFERENCES Company(ID)
-		);`,
-
-
-		`CREATE TABLE ApplicationLogin (
-		UserID integer,
-		LoggedIn date NOT NULL default current_timestamp,
-		LoggedOut date, PRIMARY KEY(UserID, LoggedIN));`,
-
-
-		/*This crap needs moving out of here */
-        "INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('myClubLink' , 1, '2100-01-20 12:00:00', 'img/mcl_logo.png');",
-		"INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2015-06-6 12:00:00', 'img/sussex_logo.PNG');",
-
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');",
-		"INSERT INTO User (FirstName, LastNAme, CompanyID, Password, AccessLevel, Email) VALUES ('Craig', 'Smith', 2, 'craig', 10, 'craig@sussexinlet.com.au');",
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('Brad' , 'McCormack', 2, 'brad', 9, 'bradmccormack100@gmail.com');",
-		"INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email) VALUES ('Shane' , 'SorgSep', 2, 'shane', 9, 'shane@dapto.net');",
-
-		"INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (1, 'Google Maps', 0, 0, 10);",
-		"INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (2, 'Google Maps', 0, 0, 10);",
-		"INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (3, 'Google Maps', 0, 0, 10);",
-
-		//Note a company must have a company settings record
-		`INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
-		SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
-		VALUES
-		(1, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);`,
-
-		`INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
-		SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
-		VALUES
-		(2, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);`,
-
-		"COMMIT TRANSACTION;",
-		"PRAGMA foreign_keys = ON;",
-		"PRAGMA journal_mode=WAL;",
-		"PRAGMA foreign_keys=true;",
-	}
-	Db, err = sql.Open("sqlite3", "./backend.db")
-
-	for _, statement := range statements {
-		_, err := Db.Exec(statement)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	Db.Close()
-	fmt.Printf("Finished creating\n")
-}
 
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
@@ -871,12 +711,10 @@ func main() {
 
 	var err error
 
-	createDb()
-
 	Db, err = sql.Open("sqlite3", "./backend.db")
 	if err != nil {
 		fmt.Printf("Cannot open backend.db . Exiting")
-		//os.Exit(1)
+		os.Exit(1)
 	}
 	defer Db.Close()
 
