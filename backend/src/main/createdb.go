@@ -66,7 +66,7 @@ func main() {
 		},
 	}
 
-	//This needs to contain company and user details?
+	//A license.key file will contain company + user data and information about MCL such as versioning
 	LicenseDbSchema := []DbFunc{
 		func(Db *sql.DB) {
 			Db.Exec(`CREATE TABLE User (
@@ -140,7 +140,13 @@ func main() {
 			Db.Exec(`INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
 					SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
 					VALUES(2, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);`)
-
+		},
+		//there needs to be a command that grabs current git master sha and updates this table with Version and VersionDate
+		func(Db *sql.DB) {
+			Db.Exec(`CREATE TABLE MCL (
+				ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				Version TEXT NOT NULL,
+				VersionDate NOT NULL DEFAULT current_timestamp)`)
 		},
 	}
 
