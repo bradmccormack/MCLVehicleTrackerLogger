@@ -110,6 +110,7 @@ func main() {
            	Db.Exec("PRAGMA foreign_keys=ON;")
 		},
 		func(Db *sql.DB) {
+
 			//create a few users - note when I do salted hashing another function to update the passwords will be required
 			Db.Exec(`INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email)
 					 VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');`)
@@ -158,26 +159,30 @@ func main() {
 			}
     	}
 
-		var version string
-    	result := DbHandle.QueryRow("PRAGMA USER_VERSION").Scan(&version)
+		var user_version int
+    	result := DbHandle.QueryRow("PRAGMA USER_VERSION").Scan(&user_version)
     	if(result != nil) {
     		log.Fatal("Cannot get user version\n")
     	}
-    	user_version, _  := strconv.ParseInt(version, 10, 64)
 
-		DbHandle.Exec("BEGIN EXCLUSIVE TRANSACTION")
-		for i := int(user_version); i < len(DataBaseChanges)  ; i++ {
+		for i := user_version; i < len(DataBaseChanges)  ; i++ {
+			 defer func() {
+				if r := recover(); r != nil {
+				  fmt.Printf("Schema changes failed for version %d on database %s\n", i, k)
+				  DbHandle.Exec("ROLLBACK TRANSACTION")
+				}
+			 }()
+
+			DbHandle.Exec("BEGIN EXCLUSIVE TRANSACTION")
 			fmt.Printf("%s - executing schema version %d\n", k, i)
 			Fn := DataBaseChanges[i]
 			Fn(DbHandle)
+			DbHandle.Exec("COMMIT TRANSACTION")
+			user_version++;
 		}
-		//TODO figure out if an error or panic happens to rollback
-		DbHandle.Exec("COMMIT TRANSACTION")
-		fmt.Printf("%d\n", user_version +1)
-		PRAGMA USER_VERSION is not working wtf
-		DbHandle.Exec("PRAGMA USER_VERSION=?", user_version + 1)
-		DbHandle.Close()
 
+		DbHandle.Exec("PRAGMA USER_VERSION=" + strconv.Itoa(user_version))
+		DbHandle.Close()
 
 	}
 }
