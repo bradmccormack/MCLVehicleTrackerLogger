@@ -131,7 +131,7 @@ var actions = map[string]interface{}{
 		var user User = session.Values["User"].(User)
 
 		//Update DB
-		Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+		Db.Exec("UPDATE License.ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
 	
 
 		//Close WebSocket
@@ -180,10 +180,10 @@ var actions = map[string]interface{}{
 			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, C.LogoPath, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
 			CS.RadioCommunication, CS.DataCommunication, CS.SecurityRemoteAdmin, CS.SecurityConsoleAccess, CS.SecurityAdminPasswordReset, CS.MobileSmartPhoneAccess, CS.MobileShowBusLocation,
 			CS.MinZoom, CS.MaxZoom, CS.ClubBoundaryKM
-			FROM User U
-			LEFT JOIN COMPANY AS C on C.ID = U.CompanyID
-			LEFT JOIN Settings AS S on S.UserID = U.ID
-		    LEFT JOIN CompanySettings AS CS on CS.CompanyID = C.ID
+			FROM License.User U
+			LEFT JOIN License.COMPANY AS C on C.ID = U.CompanyID
+			LEFT JOIN License.Settings AS S on S.UserID = U.ID
+		    LEFT JOIN License.CompanySettings AS CS on CS.CompanyID = C.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
 			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
@@ -202,7 +202,7 @@ var actions = map[string]interface{}{
             var LoggedInCount int
 
             var result error
-            result = Db.QueryRow("SELECT COUNT(1) FROM ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
+            result = Db.QueryRow("SELECT COUNT(1) FROM License.ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
             if(result != nil) {
                 log.Fatal(result)
             }
@@ -222,7 +222,7 @@ var actions = map[string]interface{}{
             }
 
             if(len(Errors) == 0) {
-                Db.Exec("INSERT INTO ApplicationLogin (UserID) VALUES ( ?)", user.ID)
+                Db.Exec("INSERT INTO License.ApplicationLogin (UserID) VALUES ( ?)", user.ID)
                 session, _ := store.Get(r, "data")
                 session.Values["User"] = user
                 session.Values["Company"] = company
@@ -260,14 +260,14 @@ var actions = map[string]interface{}{
         }
 		var password string
 
-		_ = Db.QueryRow("SELECT Password FROM User WHERE ID = ?", user.ID).Scan(&password)
+		_ = Db.QueryRow("SELECT Password FROM License.User WHERE ID = ?", user.ID).Scan(&password)
 		if(password == f["passwordold"]) {
 				//If only Allow admins to reset password is NOT set then update the users password
         		if(settings.SecurityAdminPasswordReset == 0) {
-        			Db.Exec("UPDATE User SET Password = ? WHERE ID = ?", f["password"], user.ID)
+        			Db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", f["password"], user.ID)
         		} else {
         			if(user.Accesslevel == 10) {
-        				Db.Exec("UPDATE User SET Password = ? WHERE ID = ?", user.ID)
+        				Db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", user.ID)
         			}
         		}
 
@@ -298,7 +298,7 @@ var actions = map[string]interface{}{
         }
 
         Db.Exec("BEGIN EXCLUSIVE TRANSACTION");
-        Db.Exec(`UPDATE Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ? WHERE UserID = ? `,
+        Db.Exec(`UPDATE License.Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ? WHERE UserID = ? `,
         f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"], user.ID)
 
 
@@ -306,9 +306,9 @@ var actions = map[string]interface{}{
 
         if( user.Accesslevel == 10) {
 
-        	Db.Exec(`UPDATE CompanySettings SET RadioCommunication = ?, DataCommunication = ?,
+        	Db.Exec(`UPDATE License.CompanySettings SET RadioCommunication = ?, DataCommunication = ?,
                              SecurityRemoteAdmin = ?, SecurityConsoleAccess = ?, SecurityAdminPasswordReset = ?,
-                             MobileSmartPhoneAccess = ?, MobileShowBusLocation = ?, MinZoom = ?, MaxZoom = ?, ClubBoundaryKM = ? WHERE CompanyID = (SELECT CompanyID FROM User WHERE ID = ?)`,
+                             MobileSmartPhoneAccess = ?, MobileShowBusLocation = ?, MinZoom = ?, MaxZoom = ?, ClubBoundaryKM = ? WHERE CompanyID = (SELECT CompanyID FROM License.User WHERE ID = ?)`,
                                       f["RadioCommunication"], f["DataCommunication"],
                                       f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
                                       f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], f["MinZoom"], f["MaxZoom"], f["ClubBoundaryKM"], user.ID)
@@ -466,8 +466,7 @@ var views = map[string]interface{}{
 		t.Execute(w, session.Values)
 	},
 	"ViewReport": func(w http.ResponseWriter, r *http.Request) {
-		//TODO redirect to root if not logged in
-
+		//TODO redirect to root if not logged in - USE middleware for this later
 		w.Header().Add("Content-Type", "application/json")
 
 		//session, _ := store.Get(r, "session")
@@ -519,7 +518,7 @@ var views = map[string]interface{}{
 	},
 
 	"ViewMap": func(w http.ResponseWriter, r *http.Request) {
-		//TODO redirect to root if not logged in
+		//TODO redirect to root if not logged in - USE middleware for this later
 		w.Header().Add("Content-Type", "text/html")
 
 		session, _ := store.Get(r, "session")
@@ -535,7 +534,7 @@ var views = map[string]interface{}{
 	},
 
 	"ViewLicense": func(w http.ResponseWriter, r *http.Request) {
-		//TODO redirect to root if not logged in
+		//TODO redirect to root if not logged in - USE middleware for this later
 		w.Header().Add("Content-Type", "text/html")
 
 		session, _ := store.Get(r, "session")
@@ -550,7 +549,7 @@ var views = map[string]interface{}{
 	},
 
 	"ViewSettings": func(w http.ResponseWriter, r *http.Request) {
-		//TODO redirect to root if not logged in
+		//TODO redirect to root if not logged in - USE middleware for this later
 		w.Header().Add("Content-Type", "text/html")
 
 		session, _ := store.Get(r, "session")
@@ -561,7 +560,7 @@ var views = map[string]interface{}{
 
 		result := Db.QueryRow(`
                         SELECT S.MapAPI, S.Interpolate, S.SnaptoRoad
-                        FROM Settings S, User U
+                        FROM License.Settings S, License.User U
 			WHERE S.UserID = U.ID 
 			AND U.ID = ?`, user.ID).Scan(&mapAPI, &interpolate, &snaptoroad)
 
@@ -585,7 +584,6 @@ var views = map[string]interface{}{
 			log.Fatal("\nFailed to parse the template file for settings. Fix it")
 		}
 
-		/*TODO change accesslevel to text, Guest/Admin etc so it is more friendly */
 		t.Execute(w, session.Values)
 	},
 }
@@ -657,7 +655,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//TODO look at implementing trinity mvc framework
+
 func handleHTTP() {
 	Router := mux.NewRouter()
 
@@ -711,11 +709,32 @@ func main() {
 
 	var err error
 
-	Db, err = sql.Open("sqlite3", "./backend.db")
-	if err != nil {
-		fmt.Printf("Cannot open backend.db . Exiting")
+	if _, err := os.Stat("backend.db"); err != nil {
+		fmt.Printf("Cannot find backend.db . Exiting\n")
 		os.Exit(1)
 	}
+
+	if _, err := os.Stat("license.key"); err != nil {
+    		fmt.Printf("Cannot find license.key . Exiting\n")
+    		os.Exit(1)
+    	}
+
+	Db, err = sql.Open("sqlite3", "backend.db")
+	if err != nil {
+		fmt.Printf("Cannot open database backend.db . Exiting\n")
+		os.Exit(1)
+	}
+
+	//try to attach the license.key if it opens then close it and attach
+	LDb, err := sql.Open("sqlite3", "license.key")
+	if err != nil {
+		fmt.Printf("Cannot open database license.key . Exiting\n")
+		os.Exit(1)
+	}
+
+	LDb.Close()
+	Db.Exec("ATTACH DATABASE ./license.key AS License")
+    fmt.Printf("Database has been attached")
 	defer Db.Close()
 
 	//handle web requests in a seperate go-routine
@@ -801,7 +820,7 @@ func logEntry(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 }
 
 //palm off reading and writing to a go routine
-//TODO palm of all the parsing to go routine too and handle panics with recover and use channels between goroutines
+//TODO use channels between goroutines
 func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
 	//defer anonymous func to handle panics - most likely panicking from garbage tha was tried to be parsed.
@@ -810,7 +829,6 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
                 fmt.Println("Recovered from a panic \n", r)
             }
     }()
-
 
 	var buff = make([]byte, 512)
 	var incomingpacket Packet
@@ -858,15 +876,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			continue
 		}
 
-
         diagnostic.CPUTemp, _ = strconv.ParseFloat(diagnosticfields[0][2:],32)
         diagnostic.CPUVolt, _ = strconv.ParseFloat(diagnosticfields[1][2:],32)
         diagnostic.CPUFreq, _ = strconv.ParseFloat(diagnosticfields[2][2:],32)
         diagnostic.MemFree, _ = strconv.ParseUint(diagnosticfields[3][2:], 10, 64)
-
-
-		//TODO move this function into a goroutine in case it chokes on parsing the data
-
 
 		entry.Message = gpsfields[0][1:]
 		entry.Latitude = gpsfields[0][2:]

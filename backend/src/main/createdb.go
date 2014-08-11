@@ -66,7 +66,6 @@ func main() {
 		},
 	}
 
-	//A license.key file will contain company + user data and information about MCL such as versioning
 	LicenseDbSchema := []DbFunc{
 		func(Db *sql.DB) {
 			Db.Exec(`CREATE TABLE User (
@@ -111,7 +110,7 @@ func main() {
 		},
 		func(Db *sql.DB) {
 
-			//create a few users - note when I do salted hashing another function to update the passwords will be required
+			//create a few users - note when I do salted hashing another function to update the passwords will be required LOL this is fucked
 			Db.Exec(`INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email)
 					 VALUES ('guest','user', 1, 'guest', 0, 'guest@myclublink.com.au');`)
 			Db.Exec(`INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email)
