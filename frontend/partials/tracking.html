@@ -1,57 +1,62 @@
 
 <div class="row-fluid">
-	<div id="Mainmapcontrols" class="btn-toolbar" >
-		<div class="btn-group">
-			<button id="mapRefresh" ng-click="MapRefresh()" data-toggle="tooltip" title="Refresh Map" class="btn" >
-				<i class="icon-refresh" data-original-title="Tooltip on top"> </i>
-			</button>
-			<button id="mapZoomIn" ng-click="MapZoomIn()" data-toggle="tooltip" title="Zoom in" class="btn">
-				<i class="icon-zoom-in"> </i>
-			</button>
-			<button id="mapZoomOut" ng-click="MapZoomOut()" data-toggle="tooltip" title="Zoom Out" class="btn">
-				<i class="icon-zoom-out"> </i>
-			</button>
-		</div>
+    <div id="Mainmapcontrols" class="btn-toolbar" >
+        <div class="btn-group">
+            <button id="mapRefresh" ng-click="MapRefresh()" data-toggle="tooltip" title="Refresh Map" class="btn" >
+                <i class="icon-refresh" data-original-title="Tooltip on top"> </i>
+            </button>
+            <button id="mapZoomIn" ng-click="MapZoomIn()" data-toggle="tooltip" title="Zoom in" class="btn">
+                <i class="icon-zoom-in"> </i>
+            </button>
+            <button id="mapZoomOut" ng-click="MapZoomOut()" data-toggle="tooltip" title="Zoom Out" class="btn">
+                <i class="icon-zoom-out"> </i>
+            </button>
+        </div>
 
-		<div class="btn-group">
-			<button id="mapFollow" data-toggle="tooltip" title="Follow Vehicle" class="btn">
-				<i class="icon-location-arrow"> </i>
-			</button>
-			
-			<button id="mapMarker" data-toggle="tooltip" title="Custom Marker" class="btn">
-				<i class="icon-map-marker"> </i>
-			</button>
-			
-			<button id="mapRoute" data-toggle="tooltip" title="Draw lines for selected vehicles" class="btn">
-				<i class="icon-road"> </i>
-			</button>
-		</div>
+        <div class="btn-group">
+            <button id="mapFollow" data-toggle="tooltip" title="Follow Vehicle" class="btn">
+                <i class="icon-location-arrow"> </i>
+            </button>
 
-		<div class="btn-group">
-			<button id="mapPrint" ng-click="Print()" data-toggle="tooltip" title="Print Map Contents" class="btn">
-				<i class="icon-print"> </i>
-			</button>
-		</div>
+            <button id="mapMarker" data-toggle="tooltip" title="Custom Marker" class="btn">
+                <i class="icon-map-marker"> </i>
+            </button>
 
-	</div>
+            <button id="mapRoute" data-toggle="tooltip" title="Draw lines for selected vehicles" class="btn">
+                <i class="icon-road"> </i>
+            </button>
+        </div>
+
+        <div class="btn-group">
+            <button id="mapPrint" ng-click="Print()" data-toggle="tooltip" title="Print Map Contents" class="btn">
+                <i class="icon-print"> </i>
+            </button>
+        </div>
+
+    </div>
 </div>
 
 
 
-
 <div class="container-fluid div-panel">
-	<div id="MapCanvas" class="span9 div-panel" ng-init="MapReload()" ></div>
+    <div id="MapCanvas" class="span9 div-panel" ng-init="MapReload()"></div>
 
-	<div class="span3">
-
+    <div class="span3">
+        <!-- &copy; 2014  move this to about page-->
+        <span id="clock"><i class="icon-time"></i> {{clock.time}}</span>
         <div class="accordion">
+
+
 
             <div class="accordion-group" id="accordionsystemmessages">
                 <div class="accordion-heading">
-                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionsystemmessages" href="#collapsemessages">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionsystemmessages"
+                       href="#collapsemessages">
                         <i class="icon-comments"> </i>
-                            <span class="badge badge-important" ng-show="SystemMessageCount()">{{SystemMessageCount()}}</span>
-                                System Messages
+
+                        <span class="badge badge-important"
+                              ng-show="SystemMessageCount()">{{SystemMessageCount()}}</span>
+                        System Messages
                     </a>
                 </div>
 
@@ -62,7 +67,9 @@
                                 <ul id="Messages">
                                     <li ng-show="!SystemMessage.Read" ng-repeat="SystemMessage in SystemMessages()">
                                         <span ng-class="{ 'text-success' : SystemMessage.Information, 'text-error': SystemMessage.Warning}">
-                                            <button ng-click="MarkSystemMessageRead(SystemMessage.MsgDateTime)" class="btn btn-mini"><i class="icon-trash"></i> Mark read</button>
+                                            <button ng-click="MarkSystemMessageRead(SystemMessage.MsgDateTime)"
+                                                    class="btn btn-mini"><i class="icon-trash"></i> Mark read
+                                            </button>
                                             <span>{{SystemMessage.Text}} {{SystemMessage.MsgDateTime}}</span>
                                         </span>
                                     </li>
@@ -71,81 +78,85 @@
                         </div>
                     </div>
 
-
                 </div>
 
             </div>
 
         </div>
 
-        <!-- TODO set max height for Message display when it is expanded there is still room for the live/historical -->
-		<!--
 
-		-->
+    </div>
 
-	</div>
+    <div id="ViewMode" class="span3 well">
+        <div class="tabbable">
 
-	<div id="ViewMode" class="span3 well">
-		<div class="tabbable">
+            <ul class="nav nav-pills">
+                <li class="active">
+                    <a href="#displayLive" data-toggle="pill" ng-click="LiveMode(true)"> Live</a>
+                </li>
+                <li>
+                    <a href="#displayHistorical" data-toggle="pill" ng-click="LiveMode(false)"> Historical</a>
+                </li>
+            </ul>
 
-			<ul class="nav nav-pills">
-				<li class="active">
-					<a href="#displayLive" data-toggle="pill" ng-click="LiveMode(true)"> Live</a>
-				</li>
-				<li>
-					<a href="#displayHistorical" data-toggle="pill" ng-click="LiveMode(false)"> Historical</a>
-				</li>
-			</ul>
+            <div class="tab-content">
 
-			<div class="tab-content">
+                <div class="tab-pane active" id="displayLive">
+                    <p>
+                        myClubLink is currently showing real-time vehicle positions.
+                    </p>
 
-				<div class="tab-pane active" id="displayLive">
-					<p>
-						myClubLink is currently showing real-time vehicle positions.
-					</p>
-					<p>
-						<span id="trackVehicleCount" ng-class="{ badge: true, 'badge-success': VehiclesCount}">{{VehiclesCount}}</span> Vehicles currently being tracked
-					</p>
-					<p class="text-info">
-						Last position received {{LastUpdate}} ago
-					</p>
-				</div>
+                    <p>
+                        <span id="trackVehicleCount" ng-class="{ badge: true, 'badge-success': VehiclesCount}">{{VehiclesCount}}</span>
+                        Vehicles currently being tracked
+                    </p>
 
-				<div class="tab-pane centerit" id="displayHistorical">
-					
-						<span>Select settings below to show historical routes</span>
+                    <p class="text-info">
+                        Last position received {{LastUpdate}} ago
+                    </p>
+                </div>
 
-						<div class="container-fluid">
+                <div class="tab-pane centerit" id="displayHistorical">
 
-							<div class="control-group">
-								<label class="control-label" for="inputIcon">From</label>
-								<div class="controls">
-									<div id="routeDateFrom" class="input-append date">
-										<span class="add-on"> <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> </span>
-										<input data-format="dd/MM/yyyy hh:mm:ss" type="text" ng-model="routeDateFrom">
-									</div>
-								</div>
-							</div>
+                    <span>Select settings below to show historical routes</span>
 
-							<div class="control-group">
-								<label class="control-label" for="inputIcon">To</label>
-								<div class="controls">
+                    <div class="container-fluid">
 
-									<div id="routeDateTo" class="input-append date">
-										<span class="add-on"> <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> </span>
-										<input data-format="dd/MM/yyyy hh:mm:ss" type="text" ng-model="routeDateTo">
-									</div>
-								</div>
-							</div>
+                        <div class="control-group">
+                            <label class="control-label" for="inputIcon">From</label>
 
-						
-						</div>
+                            <div class="controls">
+                                <div id="routeDateFrom" class="input-append date">
+                                    <span class="add-on"> <i data-time-icon="icon-time"
+                                                             data-date-icon="icon-calendar"></i> </span>
+                                    <input data-format="dd/MM/yyyy hh:mm:ss" type="text" ng-model="routeDateFrom">
+                                </div>
+                            </div>
+                        </div>
 
-						<button id="showRoute" class="btn btn-primary" ng-click="ShowRoute()"><i class="icon-road"></i> Show Route</button>
+                        <div class="control-group">
+                            <label class="control-label" for="inputIcon">To</label>
 
-				</div>
-			</div>
-		</div>
-	</div>
+                            <div class="controls">
+
+                                <div id="routeDateTo" class="input-append date">
+                                    <span class="add-on"> <i data-time-icon="icon-time"
+                                                             data-date-icon="icon-calendar"></i> </span>
+                                    <input data-format="dd/MM/yyyy hh:mm:ss" type="text" ng-model="routeDateTo">
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <button id="showRoute" class="btn btn-primary" ng-click="ShowRoute()"><i class="icon-road"></i> Show
+                        Route
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 

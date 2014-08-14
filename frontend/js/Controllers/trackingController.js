@@ -1,12 +1,24 @@
 angular.module('myApp.controllers').controller("trackingController", ['$scope', '$http', 'shellService', 'mapService', function($scope, $http, shellService, mapService){
 
 
-	$scope.VehicleData = {};
+	$scope.clock = {
+		interval: 1000,
+		time: ""
+	}
+
+	var updateClock = function () {
+		$scope.clock.time = moment().format("Do MMM YYYY, h:mm:ss a")
+	}
+
+
 	var mapLoaded = false;
 
    function Init() {
        updateLiveInformation();
 
+	   var timer = setInterval(function () {
+		   $scope.$apply(updateClock);
+	   }, $scope.clock.interval);
 
        //Set the time in Local time to be today
        var Dte = moment().local();
@@ -191,23 +203,6 @@ angular.module('myApp.controllers').controller("trackingController", ['$scope', 
 		shellService.Messages[Message.MsgDateTime] = Message;
 	});
 
-    //We want to watch for changes on the model that the service will initiate via $broadcast
-    $scope.$on('positionChange', function(Event, Data){
-
-        if(mapLoaded) {
-
-			$scope.VehicleData[Data.ID] = {
-				Data: Data
-			}
-
-			//1)Update LastPosition received information
-			mapService.UpdateLastPosition({Latitude: Data.Latitude, Longitude: Data.Longitude});
-			// 2) Update Marker and if there is no marker already set then add to the legend , generate colour etc
-			mapService.Map.SetMarker(Data.ID, Data.Latitude, Data.Longitude);
-		}
-
-         //) Draw line if Draw line functionality is set
-    });
 
 
    Init();

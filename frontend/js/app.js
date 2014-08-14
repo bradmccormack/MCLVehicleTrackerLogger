@@ -20,8 +20,6 @@ config(['$routeProvider', function($routeProvider) {
       });
 
 
-
-
   $routeProvider.when('/settings', {templateUrl: 'partials/settings.html', controller: 'settingsController'})
   $routeProvider.when('/support', {templateUrl: 'partials/support.html', controller: 'supportController'})
   $routeProvider.when('/license', {templateUrl: 'partials/license.html', controller: 'licenseController'})

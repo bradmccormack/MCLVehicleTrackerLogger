@@ -4,6 +4,8 @@ mcl
 *shm
 *wal
 *.db*
+*.db
+*.key
 
 
 .trashinfo

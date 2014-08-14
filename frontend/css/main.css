@@ -102,21 +102,23 @@ html, body
 
 div#Mainheader
 {
-	height: 75px;
+    height: 50px;
 	background-color: #050505;
 	color: white;
 }
 
-div#Mainlogo,div#Mainuser
-{
-    height:75px;
+div#Mainuser {
+    width: auto;
+    height: 25px;
+    margin-right: 20px;
+    margin-top: 10px;
 }
+
 img#logo
 {
-    height: 75px;
-    position: absolute;
-    left: 0px;
-    top: 0px;
+    height: 50px;
+
+
 }
 
 
@@ -188,6 +190,7 @@ div#SystemMessages ul#Messages{
 
 div#Vehiclelegend ul{
     list-style-type: none;
+    margin: 0px 0px 0px 0px;
 }
 
 
@@ -400,4 +403,15 @@ div.div-panel
     h3 {
         page-break-after: avoid;
     }
+}
+
+.shadow {
+    -moz-box-shadow:    inset 0 0 10px #000000;
+    -webkit-box-shadow: inset 0 0 10px #000000;
+    box-shadow:         inset 0 0 10px #000000;
+}
+
+span#clock {
+    text-align: center;
+    margin-bottom: 10px;
 }
