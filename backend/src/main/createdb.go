@@ -100,11 +100,28 @@ func main() {
 					 Expiry date NOT NULL DEFAULT current_timestamp,
 					 MaxUsers INTEGER NOT NULL DEFAULT 0,
 					 LogoPath TEXT NOT NULL DEFAULT '');`)
-            					
-           	Db.Exec(`CREATE TABLE Version (
-           			ID TEXT PRIMARY KEY, //
-           			SHA1 TEXT NOT NULL UNIQUE.
-           			ReleaseDate date NOT NULL DEFAULT current_timestamp);`)
+
+			Db.Exec(`CREATE TABLE CompanySettings (
+					ID integer primary key autoincrement,
+					CompanyID integer not null,
+					RadioCommunication integer not null default 1,
+					DataCommunication integer not null default 1,
+					SecurityRemoteAdmin integer not null default 0,
+					SecurityConsoleAccess integer not null default 0,
+					SecurityAdminPasswordReset integer not null default 0,
+					MobileSmartPhoneAccess integer not null default 0,
+					MobileShowBusLocation integer not null default 0,
+					MinZoom integer not null default 10,
+					Maxzoom integer not null default 2,
+					HistoricalmapsKmMin integer not null default 10,
+					ClubBoundaryKM integer not null default 100,
+					FOREIGN KEY (CompanyID) REFERENCES Company(ID));`)
+
+			//there needs to be a command that grabs current git master sha and updates this table with Version and VersionDate
+			Db.Exec(`CREATE TABLE Version (
+					ID TEXT PRIMARY KEY,
+					SHA1 TEXT NOT NULL UNIQUE,
+					ReleaseDate date NOT NULL DEFAULT current_timestamp);`)
 
            	Db.Exec("PRAGMA foreign_keys=ON;")
 		},
@@ -139,13 +156,6 @@ func main() {
 			Db.Exec(`INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
 					SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
 					VALUES(2, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);`)
-		},
-		//there needs to be a command that grabs current git master sha and updates this table with Version and VersionDate
-		func(Db *sql.DB) {
-			Db.Exec(`CREATE TABLE MCL (
-				ID INTEGER PRIMARY KEY AUTOINCREMENT,
-				Version TEXT NOT NULL,
-				VersionDate NOT NULL DEFAULT current_timestamp)`)
 		},
 	}
 

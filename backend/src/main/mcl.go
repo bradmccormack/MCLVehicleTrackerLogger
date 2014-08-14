@@ -131,7 +131,7 @@ var actions = map[string]interface{}{
 		var user User = session.Values["User"].(User)
 
 		//Update DB
-		Db.Exec("UPDATE License.ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+		Db.Exec("UPDATE LApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
 	
 
 		//Close WebSocket
@@ -180,10 +180,10 @@ var actions = map[string]interface{}{
 			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, C.LogoPath, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
 			CS.RadioCommunication, CS.DataCommunication, CS.SecurityRemoteAdmin, CS.SecurityConsoleAccess, CS.SecurityAdminPasswordReset, CS.MobileSmartPhoneAccess, CS.MobileShowBusLocation,
 			CS.MinZoom, CS.MaxZoom, CS.ClubBoundaryKM
-			FROM License.User U
-			LEFT JOIN License.COMPANY AS C on C.ID = U.CompanyID
-			LEFT JOIN License.Settings AS S on S.UserID = U.ID
-		    LEFT JOIN License.CompanySettings AS CS on CS.CompanyID = C.ID
+			FROM User U
+			LEFT JOIN COMPANY AS C on C.ID = U.CompanyID
+			LEFT JOIN Settings AS S on S.UserID = U.ID
+		    LEFT JOIN CompanySettings AS CS on CS.CompanyID = C.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
 			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
 			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
@@ -202,7 +202,7 @@ var actions = map[string]interface{}{
             var LoggedInCount int
 
             var result error
-            result = Db.QueryRow("SELECT COUNT(1) FROM License.ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
+            result = Db.QueryRow("SELECT COUNT(1) FROM L.ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
             if(result != nil) {
                 log.Fatal(result)
             }
@@ -222,7 +222,7 @@ var actions = map[string]interface{}{
             }
 
             if(len(Errors) == 0) {
-                Db.Exec("INSERT INTO License.ApplicationLogin (UserID) VALUES ( ?)", user.ID)
+                Db.Exec("INSERT INTO L.ApplicationLogin (UserID) VALUES ( ?)", user.ID)
                 session, _ := store.Get(r, "data")
                 session.Values["User"] = user
                 session.Values["Company"] = company
@@ -594,6 +594,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("\n In Handlewebsocketinit \n")	
 	session, _ := store.Get(r, "data")
+
 	var user User = session.Values["User"].(User)
 	
 	//fmt.Printf("Username is %s %s\n", user.Firstname, user.Lastname)
@@ -725,15 +726,25 @@ func main() {
 		os.Exit(1)
 	}
 
+/*
 	//try to attach the license.key if it opens then close it and attach
 	LDb, err := sql.Open("sqlite3", "license.key")
 	if err != nil {
 		fmt.Printf("Cannot open database license.key . Exiting\n")
 		os.Exit(1)
+	} else {
+		fmt.Printf("\n License.key opened correctly")
 	}
 
+    //_, fpath, _, _ := runtime.Caller(1)
+    //lpath, err := os.Open(path.Join(path.Dir(fpath), "license.key"))
+
+
 	LDb.Close()
-	Db.Exec("ATTACH DATABASE ./license.key AS License")
+*/
+
+
+	Db.Exec("ATTACH DATABASE 'license.key' AS L")
     fmt.Printf("Database has been attached")
 	defer Db.Close()
 
