@@ -574,7 +574,6 @@ func main() {
 	var recreateConnection bool = true
 	var tcpcon net.Conn
 
-	//wait around for tcp requests and handle them when they come in
 	for {
 		if recreateConnection {
 			lnk, err := net.Listen("tcp", *service)
@@ -593,6 +592,7 @@ func main() {
 			}
 			go handleClient(Db, tcpcon.(*net.TCPConn), &recreateConnection)
 			if recreateConnection {
+				socket.Monitor()
 				lnk.Close()
 			}
 
@@ -624,7 +624,6 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 		fmt.Printf("Failed to insert row %s", err)
 	}
 
-	//daytime := time.Now().String()
 }
 
 //TODO use channels between goroutines
@@ -639,8 +638,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
 	var buff = make([]byte, 512)
 	var incomingpacket types.Packet
-	var entry types.GPSRecord
-	var diagnostic types.DiagnosticRecord
+
+	var R types.Record
+	R.GPS = new(types.GPSRecord)
+	R.Diagnostic = new(types.DiagnosticRecord)
 
 	//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 	//conn.SetReadBuffer(512)
@@ -664,8 +665,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			fmt.Printf("Failed to decode the JSON bytes -%s\n", err.Error())
 		}
 
-		fmt.Printf("Sentence was %s\n", string(incomingpacket["sentence"]))
-		fmt.Printf("Diagnostic data was %s\n", string(incomingpacket["diagnostics"]))
+		/*
+			fmt.Printf("Sentence was %s\n", string(incomingpacket["sentence"]))
+			fmt.Printf("Diagnostic data was %s\n", string(incomingpacket["diagnostics"]))
+		*/
 
 		diagnosticfields := strings.Split(string(incomingpacket["diagnostics"]), ",")
 		if len(diagnosticfields) != 4 {
@@ -681,43 +684,48 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			continue
 		}
 
-		diagnostic.CPUTemp, _ = strconv.ParseFloat(diagnosticfields[0][2:], 32)
-		diagnostic.CPUVolt, _ = strconv.ParseFloat(diagnosticfields[1][2:], 32)
-		diagnostic.CPUFreq, _ = strconv.ParseFloat(diagnosticfields[2][2:], 32)
-		diagnostic.MemFree, _ = strconv.ParseUint(diagnosticfields[3][2:], 10, 64)
+		R.Diagnostic.CPUTemp, _ = strconv.ParseFloat(diagnosticfields[0][2:], 32)
+		R.Diagnostic.CPUVolt, _ = strconv.ParseFloat(diagnosticfields[1][2:], 32)
+		R.Diagnostic.CPUFreq, _ = strconv.ParseFloat(diagnosticfields[2][2:], 32)
+		R.Diagnostic.MemFree, _ = strconv.ParseUint(diagnosticfields[3][2:], 10, 64)
 
-		entry.Message = gpsfields[0][1:]
-		entry.Latitude = gpsfields[0][2:]
-		entry.Longitude = gpsfields[1]
-		entry.Speed, _ = strconv.ParseFloat(gpsfields[2][1:], 32)
-		entry.Heading, _ = strconv.ParseFloat(gpsfields[3][1:], 32)
-		entry.Date, _ = time.Parse(time.RFC3339, gpsfields[4][1:])
-		entry.Fix = gpsfields[5][1:] == "true"
-		entry.ID = gpsfields[6][1:]
+		R.GPS.Message = gpsfields[0][1:]
+		R.GPS.Latitude = gpsfields[0][2:]
+		R.GPS.Longitude = gpsfields[1]
+		R.GPS.Speed, _ = strconv.ParseFloat(gpsfields[2][1:], 32)
+		R.GPS.Heading, _ = strconv.ParseFloat(gpsfields[3][1:], 32)
+		R.GPS.Date, _ = time.Parse(time.RFC3339, gpsfields[4][1:])
+		R.GPS.Fix = gpsfields[5][1:] == "true"
+		R.GPS.ID = gpsfields[6][1:]
 
-		fmt.Printf("Temp %d, Voltage %d, Frequency %d, MemoryFree %d",
-			diagnostic.CPUTemp,
-			diagnostic.CPUVolt,
-			diagnostic.CPUFreq,
-			diagnostic.MemFree)
+		/*
+			fmt.Printf("Temp %d, Voltage %d, Frequency %d, MemoryFree %d",
+				R.Diagnostic.CPUTemp,
+				R.Diagnostic.CPUVolt,
+				R.Diagnostic.CPUFreq,
+				R.Diagnostic.MemFree)
 
-		fmt.Printf("Message %s Lat %s Long %s speed %f heading %f fix %t date %s id %s\n",
-			entry.Message,
-			entry.Latitude,
-			entry.Longitude,
-			entry.Speed,
-			entry.Heading,
-			entry.Fix,
-			entry.Date,
-			entry.ID)
+			fmt.Printf("Message %s Lat %s Long %s speed %f heading %f fix %t date %s id %s\n",
+				R.GPS.Message,
+				R.GPS.Latitude,
+				R.GPS.Longitude,
+				R.GPS.Speed,
+				R.GPS.Heading,
+				R.GPS.Fix,
+				R.GPS.Date,
+				R.GPS.ID)
+		*/
 
 		if string(incomingpacket["sentence"][0:1]) != "T" {
-			go logEntry(&entry, &diagnostic) //save to database
-		} else {
-			fmt.Printf("Replayed packets. Not saving to DB\n")
+			go logEntry(R.GPS, R.Diagnostic)
 		}
-
-		socket.UpdateClient(&entry, &diagnostic) //notify any HTTP observers //make this a goroutine later
+		/*
+			else {
+				fmt.Printf("\nReplayed packets. Not saving to DB\n")
+			}
+		*/
+		//send record to notify in socket via channel
+		socket.VehicleChannel <- R
 
 		conn.Write([]byte("OK\n"))
 	}

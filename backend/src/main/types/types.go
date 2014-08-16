@@ -26,6 +26,11 @@ type DiagnosticRecord struct {
 	MemFree uint64
 }
 
+type Record struct {
+	GPS        *GPSRecord
+	Diagnostic *DiagnosticRecord
+}
+
 type Company struct {
 	Name     string
 	Maxusers int
