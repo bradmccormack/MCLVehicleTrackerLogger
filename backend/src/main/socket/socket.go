@@ -26,26 +26,15 @@ func init() {
 
 func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.CookieStore) {
 
-	fmt.Printf("\n In Handlewebsocketinit \n")
 	session, _ := cookiejar.Get(r, "data")
 
 	var user types.User = session.Values["User"].(types.User)
-
-	//fmt.Printf("Username is %s %s\n", user.Firstname, user.Lastname)
-	//fmt.Printf("Web socket requested from %s\n", utility.GetIpAddress(r))
 
 	if r.Method != "GET" {
 		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-
-	/* TODO fix this
-		if r.Header.Get("Origin") + *addr != "http://" + r.Host {
-	    		http.Error(w, "Origin not allowed", 403)
-	    		return
-	    	}
-	*/
 
 	var ip string = utility.GetIpAddress(r)
 
@@ -54,16 +43,11 @@ func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.C
 	buffer.WriteString(ip)
 	buffer.WriteString(user.FirstName)
 	buffer.WriteString(user.LastName)
-	fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user.FirstName)
 
 	var hash = sha256.Sum256(buffer.Bytes())
-	//fmt.Printf("The hash in web socket is %b\n", hash)
 
 	if _, exists := connections[hash]; exists {
-		fmt.Printf("Connection existed .. closing \n")
 		connections[hash].Websocket.Close()
-	} else {
-		fmt.Printf("New connection created")
 	}
 
 	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
@@ -72,7 +56,6 @@ func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.C
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
-		fmt.Printf("Something bad happened - %s", err)
 		log.Println(err)
 		return
 	}
@@ -80,14 +63,14 @@ func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.C
 	//create new connection ready to go
 	connections[hash] = new(types.ClientSocket)
 
-	fmt.Printf("About to set the connection\n")
 	connections[hash].Websocket = connection
-	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
+	fmt.Printf("\nAmount of web socket connections is %d\n", len(connections))
 }
 func WebSocketClose(hash [32]byte) {
 	if connections[hash] != nil {
 		connections[hash].Websocket.Close()
 	}
+	delete(connections, hash)
 
 }
 

@@ -55,8 +55,8 @@ angular.module('myApp.services', [])
 			LoadConfig: function (data) {
 				//Note ternary expressions are to turn any "truthy" value into explicit true/false for checkboxes
 				this.User = {
-					First: data.user.Firstname,
-					Last: data.user.Lastname,
+					First: data.user.FirstName,
+					Last: data.user.LastName,
 					Password: data.user.Password, //TODO encrypt serverside
 					Access: data.user.Accesslevel,
 					Email: data.user.Email,

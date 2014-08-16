@@ -39,7 +39,7 @@ var actions = map[string]interface{}{
 		http.Error(w, "Invalid Action", 403)
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("Logging out")
+
 		w.Header().Add("Content-Type", "application/json")
 
 		if Db == nil {
@@ -72,7 +72,7 @@ var actions = map[string]interface{}{
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
-		//fmt.Printf("\nActionLogin -> RemoteAddr is %s\n", utility.GetIpAddress(r))
+		Db.Exec("ATTACH DATABASE 'license.key' AS L")
 
 		var user types.User
 		var company types.Company
@@ -517,11 +517,11 @@ func handleHTTP() {
 	//Use the router
 	http.Handle("/", Router)
 
-	fmt.Printf("Listening for HTTP on %s\n", *addr)
+	fmt.Printf("\nListening for HTTP on %s\n", *addr)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
-		fmt.Printf("Failed to listen for http on %s", *addr)
-		log.Fatal("ListenAndServe: ", err)
+		fmt.Printf("\nFailed to listen for http on %s", *addr)
+		log.Fatal("\nError: ", err)
 	}
 
 }
@@ -539,13 +539,11 @@ func main() {
 	var err error
 
 	if _, err := os.Stat("backend.db"); err != nil {
-		fmt.Printf("Cannot find backend.db . Exiting\n")
-		os.Exit(1)
+		log.Fatal("\nError: ", err)
 	}
 
 	if _, err := os.Stat("license.key"); err != nil {
-		fmt.Printf("Cannot find license.key . Exiting\n")
-		os.Exit(1)
+		log.Fatal("\nError: ", err)
 	}
 
 	Db, err = sql.Open("sqlite3", "backend.db")
@@ -565,7 +563,6 @@ func main() {
 
 	LDb.Close()
 
-	Db.Exec("ATTACH DATABASE 'license.key' AS L")
 	defer Db.Close()
 
 	//handle web requests in a seperate go-routine
@@ -581,7 +578,7 @@ func main() {
 				fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
 				os.Exit(1)
 			}
-			fmt.Printf("\nListening on TCP Port %s\n", *service)
+			fmt.Printf("\nListening on TCP Port %s", *service)
 
 			tcpcon, err = lnk.Accept()
 
@@ -626,7 +623,6 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 }
 
-//TODO use channels between goroutines
 func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
 	//defer anonymous func to handle panics - most likely panicking from garbage tha was tried to be parsed.
@@ -643,8 +639,6 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 	R.GPS = new(types.GPSRecord)
 	R.Diagnostic = new(types.DiagnosticRecord)
 
-	//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
-	//conn.SetReadBuffer(512)
 	var n int
 	var err error
 	var data bool = true
