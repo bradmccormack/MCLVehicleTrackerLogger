@@ -1,6 +1,8 @@
 package utility
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"net/http"
 	"strings"
 )
@@ -32,4 +34,15 @@ func GetIpAddress(r *http.Request) string {
 		return parts[0]
 	}
 	return hdrRealIp
+}
+
+func GetSocketHash(r *http.Request, FirstName, LastName string) [32]byte {
+	var buffer bytes.Buffer
+
+	//hash the incoming ip and username
+	ip := GetIpAddress(r)
+	buffer.WriteString(ip)
+	buffer.WriteString(FirstName)
+	buffer.WriteString(LastName)
+	return sha256.Sum256(buffer.Bytes())
 }

@@ -35,8 +35,8 @@ type Company struct {
 
 type User struct {
 	ID          int
-	Firstname   string
-	Lastname    string
+	FirstName   string
+	LastName    string
 	Password    string
 	Accesslevel int
 	Email       string

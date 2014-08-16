@@ -1,22 +1,18 @@
 package main
 
 import (
+	"./socket"
 	"./types"
 	"./utility"
-	"bytes"
-	"crypto/sha256"
 	"database/sql"
 	"encoding/gob"
-
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 	"html/template"
-	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -31,9 +27,6 @@ import (
 var domain string = "dev.myclublink.com.au"
 var service = flag.String("service", ":6969", "tcp port to bind to")
 var addr = flag.String("addr", ":8080", "http(s) service address")
-
-//the string key will be a hash of the username and ip
-var connections map[[32]byte]*types.ClientSocket
 
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
@@ -58,19 +51,10 @@ var actions = map[string]interface{}{
 		var user types.User = session.Values["User"].(types.User)
 
 		//Update DB
-		Db.Exec("UPDATE LApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+		Db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
 
-		//Close WebSocket
-		ip := utility.GetIpAddress(r)
-		//hash the incoming ip and username
-		var buffer bytes.Buffer
-		buffer.WriteString(ip)
-		buffer.WriteString(user.Firstname)
-		buffer.WriteString(user.Lastname)
-		var hash = sha256.Sum256(buffer.Bytes())
-		if connections[hash] != nil {
-			connections[hash].Websocket.Close()
-		}
+		var hash = utility.GetSocketHash(r, user.FirstName, user.LastName)
+		socket.WebSocketClose(hash)
 
 		//clear cookie
 		session.Values["User"] = ""
@@ -110,7 +94,7 @@ var actions = map[string]interface{}{
 			LEFT JOIN Settings AS S on S.UserID = U.ID
 		    LEFT JOIN CompanySettings AS CS on CS.CompanyID = C.ID
 			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
-			strings.ToUpper(name), password).Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
+			strings.ToUpper(name), password).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
 			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
 			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation, &settings.MinZoom, &settings.MaxZoom, &settings.ClubBoundaryKM)
 
@@ -500,66 +484,8 @@ var views = map[string]interface{}{
 	},
 }
 
-func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Printf("\n In Handlewebsocketinit \n")
-	session, _ := store.Get(r, "data")
-
-	var user types.User = session.Values["User"].(types.User)
-
-	//fmt.Printf("Username is %s %s\n", user.Firstname, user.Lastname)
-	//fmt.Printf("Web socket requested from %s\n", utility.GetIpAddress(r))
-
-	if r.Method != "GET" {
-		fmt.Printf("GET method request for socket. Not allowed\n")
-		http.Error(w, "Method not allowed", 405)
-		return
-	}
-
-	/*
-			if r.Header.Get("Origin") + *addr != "http://" + r.Host {
-		    		http.Error(w, "Origin not allowed", 403)
-		    		return
-		    	}
-	*/
-
-	var ip string = utility.GetIpAddress(r)
-
-	//hash the incoming ip and username
-	var buffer bytes.Buffer
-	buffer.WriteString(ip)
-	buffer.WriteString(user.Firstname)
-	buffer.WriteString(user.Lastname)
-	fmt.Printf("WebSocket -> the ip is %s the user is %s\n", ip, user)
-
-	var hash = sha256.Sum256(buffer.Bytes())
-	//fmt.Printf("The hash in web socket is %b\n", hash)
-
-	if _, exists := connections[hash]; exists {
-		fmt.Printf("Connection existed .. closing \n")
-		connections[hash].Websocket.Close()
-	} else {
-		fmt.Printf("New connection created")
-	}
-
-	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
-	if _, ok := err.(websocket.HandshakeError); ok {
-		fmt.Printf("Not a websocket handshake \n")
-		http.Error(w, "Not a websocket handshake", 400)
-		return
-	} else if err != nil {
-		fmt.Printf("Something bad happened - %s", err)
-		log.Println(err)
-		return
-	}
-
-	//create new connection ready to go
-	connections[hash] = new(types.ClientSocket)
-
-	fmt.Printf("About to set the connection\n")
-	connections[hash].Websocket = connection
-	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
-
+func socketInit(w http.ResponseWriter, r *http.Request) {
+	socket.WebSocketInit(w, r, store)
 }
 
 func handleHTTP() {
@@ -569,9 +495,7 @@ func handleHTTP() {
 	actionRouter := Router.Methods("POST").Subrouter()
 
 	//Handle web socket traffic specially
-	Router.HandleFunc("/ws", handleWebSocketInit)
-
-	//TODO - Look at moving non-websocket traffic to fastcgi protocol
+	Router.HandleFunc("/ws", socketInit)
 
 	//View Routes
 	viewRouter.HandleFunc("/system/settings", views["ViewSettings"].(func(http.ResponseWriter, *http.Request)))
@@ -611,7 +535,6 @@ func init() {
 func main() {
 
 	flag.Parse()
-	connections = make(map[[32]byte]*types.ClientSocket)
 
 	var err error
 
@@ -631,25 +554,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	/*
-	   	//try to attach the license.key if it opens then close it and attach
-	   	LDb, err := sql.Open("sqlite3", "license.key")
-	   	if err != nil {
-	   		fmt.Printf("Cannot open database license.key . Exiting\n")
-	   		os.Exit(1)
-	   	} else {
-	   		fmt.Printf("\n License.key opened correctly")
-	   	}
+	//try to attach the license.key if it opens then close it and attach
+	LDb, err := sql.Open("sqlite3", "license.key")
+	if err != nil {
+		fmt.Printf("\nCannot open database license.key . Exiting\n")
+		os.Exit(1)
+	} else {
+		fmt.Printf("\nLicense.key opened correctly")
+	}
 
-	       //_, fpath, _, _ := runtime.Caller(1)
-	       //lpath, err := os.Open(path.Join(path.Dir(fpath), "license.key"))
-
-
-	   	LDb.Close()
-	*/
+	LDb.Close()
 
 	Db.Exec("ATTACH DATABASE 'license.key' AS L")
-	fmt.Printf("Database has been attached")
 	defer Db.Close()
 
 	//handle web requests in a seperate go-routine
@@ -663,16 +579,16 @@ func main() {
 		if recreateConnection {
 			lnk, err := net.Listen("tcp", *service)
 			if err != nil {
-				fmt.Printf("Failed to get tcp listener - %s", err.Error())
+				fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
 				os.Exit(1)
 			}
-			fmt.Printf("Listening on TCP Port %s\n", *service)
+			fmt.Printf("\nListening on TCP Port %s\n", *service)
 
 			tcpcon, err = lnk.Accept()
 
-			fmt.Printf("Link Accepted\n")
+			fmt.Printf("\nLink Accepted\n")
 			if err != nil {
-				fmt.Printf("Failed to create tcp connection - %s", err)
+				fmt.Printf("\nFailed to create tcp connection - %s", err)
 				os.Exit(1)
 			}
 			go handleClient(Db, tcpcon.(*net.TCPConn), &recreateConnection)
@@ -681,29 +597,6 @@ func main() {
 			}
 
 		}
-	}
-}
-
-func updateClient(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
-
-	if connections == nil {
-		//fmt.Printf("No clients listening.. not reporting\n")
-		return
-	}
-
-	//fmt.Printf("Responding to %d listening clients\n", len(connections))
-	for _, client := range connections {
-		//get a websocket writer
-
-		wswriter, _ := client.Websocket.NextWriter(websocket.TextMessage)
-
-		if wswriter != nil {
-			io.WriteString(wswriter, types.JSONResponse{"Entry": entry, "Diagnostic": diagnostic}.String())
-		} else {
-			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
-			client.Websocket.Close()
-		}
-
 	}
 }
 
@@ -734,7 +627,6 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 	//daytime := time.Now().String()
 }
 
-//palm off reading and writing to a go routine
 //TODO use channels between goroutines
 func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
@@ -825,7 +717,7 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			fmt.Printf("Replayed packets. Not saving to DB\n")
 		}
 
-		updateClient(&entry, &diagnostic) //notify any HTTP observers //make this a goroutine later
+		socket.UpdateClient(&entry, &diagnostic) //notify any HTTP observers //make this a goroutine later
 
 		conn.Write([]byte("OK\n"))
 	}
