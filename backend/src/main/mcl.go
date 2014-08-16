@@ -1,14 +1,18 @@
 package main
 
 import (
+	"./types"
+	"./utility"
+	"bytes"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"io"
@@ -20,89 +24,19 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"crypto/sha256"
-	"bytes"
-	"./utility"
 )
-
-type GPSRecord struct {
-	Latitude  string
-	Longitude string
-	Message   string
-	Speed     float64
-	Heading   float64
-	Fix       bool
-	Date      time.Time
-	ID        string
-}
-
-type DiagnosticRecord struct {
-	CPUTemp	float64
-	CPUVolt float64
-	CPUFreq float64
-	MemFree	uint64
-}
-
-type Company struct {
-	Name     string
-	Maxusers int
-	Expiry   string
-	LogoPath string
-}
-
-type User struct {
-	ID          int
-	Firstname   string
-	Lastname    string
-	Password    string
-	Accesslevel int
-	Email	    string
-}
-
-
-type Settings struct {
-	MapAPI 	    string
-	Interpolate	int
-	SnaptoRoad	int
-	CameraPanTrigger int
-	RadioCommunication int
-	DataCommunication int
-	SecurityRemoteAdmin int
-	SecurityConsoleAccess int
-	SecurityAdminPasswordReset int
-	MobileSmartPhoneAccess int
-	MobileShowBusLocation int
-	MinZoom int
-	MaxZoom int
-	HistoricalmapsKmMin int
-	ClubBoundaryKM int
-}
-
-type ClientSocket struct {
-	websocket *websocket.Conn
-	ip, username string
-}
-
-
-
-type Packet map[string]string
-type Response map[string]interface{}
-
 
 //set the domain based upon the path the executable was run from
 var domain string = "dev.myclublink.com.au"
-
 var service = flag.String("service", ":6969", "tcp port to bind to")
-
 var addr = flag.String("addr", ":8080", "http(s) service address")
 
 //the string key will be a hash of the username and ip
-var connections map[[32]byte]*ClientSocket
+var connections map[[32]byte]*types.ClientSocket
 
 var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new random with unix time nano seconds as seed
 //Session information
-var store = sessions.NewCookieStore([]byte("emtec789"))
-var Db *sql.DB
+var store = sessions.NewCookieStore([]byte("emtec789")) //this needs to be randomized something from /dev/random
 
 func (r Response) String() (s string) {
 	b, err := json.Marshal(r)
@@ -119,12 +53,12 @@ var actions = map[string]interface{}{
 		http.Error(w, "Invalid Action", 403)
 	},
 	"ActionLogout": func(w http.ResponseWriter, r *http.Request) {
-        	fmt.Printf("Logging out")
+		fmt.Printf("Logging out")
 		w.Header().Add("Content-Type", "application/json")
 
-        	if Db == nil {
-        		log.Fatal(Db)
-        	}
+		if Db == nil {
+			log.Fatal(Db)
+		}
 
 		session, _ := store.Get(r, "data")
 
@@ -132,17 +66,16 @@ var actions = map[string]interface{}{
 
 		//Update DB
 		Db.Exec("UPDATE LApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
-	
 
 		//Close WebSocket
 		ip := utility.GetIpAddress(r)
-		//hash the incoming ip and username	
+		//hash the incoming ip and username
 		var buffer bytes.Buffer
 		buffer.WriteString(ip)
 		buffer.WriteString(user.Firstname)
 		buffer.WriteString(user.Lastname)
 		var hash = sha256.Sum256(buffer.Bytes())
-		if(connections[hash] != nil) {
+		if connections[hash] != nil {
 			connections[hash].websocket.Close()
 		}
 
@@ -150,19 +83,18 @@ var actions = map[string]interface{}{
 		session.Values["User"] = ""
 		session.Values["Company"] = ""
 		session.Values["Settings"] = ""
-		
+
 		if err := session.Save(r, w); err != nil {
 			fmt.Printf("Can't save session data (%s)\n", err.Error())
 		}
-		
+
 		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
-			
+
 	},
 
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		
-		
+
 		//fmt.Printf("\nActionLogin -> RemoteAddr is %s\n", utility.GetIpAddress(r))
 
 		var user User
@@ -191,203 +123,194 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "errors": []string { "Incorrect User/Password specified" }})
+			fmt.Fprint(w, Response{"success": false, "errors": []string{"Incorrect User/Password specified"}})
 
 		case result != nil:
 			log.Fatal(result)
 		default:
-            var Errors []string
+			var Errors []string
 
+			var LoggedInCount int
 
-            var LoggedInCount int
+			var result error
+			result = Db.QueryRow("SELECT COUNT(1) FROM L.ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
+			if result != nil {
+				log.Fatal(result)
+			}
 
-            var result error
-            result = Db.QueryRow("SELECT COUNT(1) FROM L.ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
-            if(result != nil) {
-                log.Fatal(result)
-            }
+			if LoggedInCount == company.Maxusers {
+				Errors = append(Errors, "Amount of users logged in ("+strconv.Itoa(LoggedInCount)+") matches your license limit ("+strconv.Itoa(company.Maxusers)+")")
+			}
 
-            if(LoggedInCount == company.Maxusers) {
-                Errors = append(Errors, "Amount of users logged in (" + strconv.Itoa(LoggedInCount) + ") matches your license limit (" + strconv.Itoa(company.Maxusers) + ")")
-            }
+			var ExpiryDate time.Time
 
-            var ExpiryDate time.Time
-        	    
-            const layout = "2006-01-2 15:4:5" //http://golang.org/src/pkg/time/format.go
-            ExpiryDate, _ = time.Parse(layout, company.Expiry)
+			const layout = "2006-01-2 15:4:5" //http://golang.org/src/pkg/time/format.go
+			ExpiryDate, _ = time.Parse(layout, company.Expiry)
 
-	    
-	    if(ExpiryDate.Unix() < time.Now().Unix()) {
-                Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
-            }
+			if ExpiryDate.Unix() < time.Now().Unix() {
+				Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
+			}
 
-            if(len(Errors) == 0) {
-                Db.Exec("INSERT INTO L.ApplicationLogin (UserID) VALUES ( ?)", user.ID)
-                session, _ := store.Get(r, "data")
-                session.Values["User"] = user
-                session.Values["Company"] = company
-                session.Values["Settings"] = settings
-                session.Options = &sessions.Options{
-                    Path:   "/",
-                    MaxAge: 86400, //1 day
-                }
+			if len(Errors) == 0 {
+				Db.Exec("INSERT INTO L.ApplicationLogin (UserID) VALUES ( ?)", user.ID)
+				session, _ := store.Get(r, "data")
+				session.Values["User"] = user
+				session.Values["Company"] = company
+				session.Values["Settings"] = settings
+				session.Options = &sessions.Options{
+					Path:   "/",
+					MaxAge: 86400, //1 day
+				}
 
-                if err := session.Save(r, w); err != nil {
-                    fmt.Printf("Can't save session data (%s)\n", err.Error())
-                }
+				if err := session.Save(r, w); err != nil {
+					fmt.Printf("Can't save session data (%s)\n", err.Error())
+				}
 
-                fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings" : settings})
-            } else {
-                fmt.Fprint(w, Response{"success" : false, "message": "Login failed", "errors" : Errors})
-            }
-
-			
+				fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
+			} else {
+				fmt.Fprint(w, Response{"success": false, "message": "Login failed", "errors": Errors})
+			}
 
 		}
 	},
 
-	"ActionSettingsPassword" : func(w http.ResponseWriter, r *http.Request) {
+	"ActionSettingsPassword": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		session, _ := store.Get(r, "data")
 		var user User = session.Values["User"].(User)
 		var settings Settings = session.Values["Settings"].(Settings)
 
-    	var f map[string]interface{}
-        decoder := json.NewDecoder(r.Body)
-        err := decoder.Decode(&f)
-        if err != nil {
-                log.Fatal(err)
-        }
+		var f map[string]interface{}
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&f)
+		if err != nil {
+			log.Fatal(err)
+		}
 		var password string
 
 		_ = Db.QueryRow("SELECT Password FROM License.User WHERE ID = ?", user.ID).Scan(&password)
-		if(password == f["passwordold"]) {
-				//If only Allow admins to reset password is NOT set then update the users password
-        		if(settings.SecurityAdminPasswordReset == 0) {
-        			Db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", f["password"], user.ID)
-        		} else {
-        			if(user.Accesslevel == 10) {
-        				Db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", user.ID)
-        			}
-        		}
-
-        		user.Password = f["password"].(string)
-			    session.Values["User"] = user
-				if err := session.Save(r, w); err != nil {
-					fmt.Printf("Can't save session data (%s)\n", err.Error())
+		if password == f["passwordold"] {
+			//If only Allow admins to reset password is NOT set then update the users password
+			if settings.SecurityAdminPasswordReset == 0 {
+				Db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", f["password"], user.ID)
+			} else {
+				if user.Accesslevel == 10 {
+					Db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", user.ID)
 				}
-				fmt.Fprint(w, Response{"success" : "Password Updated"})
+			}
+
+			user.Password = f["password"].(string)
+			session.Values["User"] = user
+			if err := session.Save(r, w); err != nil {
+				fmt.Printf("Can't save session data (%s)\n", err.Error())
+			}
+			fmt.Fprint(w, Response{"success": "Password Updated"})
 
 		} else {
-       		fmt.Fprint(w, Response{"error": "Old Password incorrect"})
+			fmt.Fprint(w, Response{"error": "Old Password incorrect"})
 		}
 	},
 	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
+		session, _ := store.Get(r, "data")
+		var user User = session.Values["User"].(User)
+		var settings Settings = session.Values["Settings"].(Settings)
 
-        session, _ := store.Get(r, "data")
-        var user User = session.Values["User"].(User)
-        var settings Settings = session.Values["Settings"].(Settings)
+		var f map[string]interface{}
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&f)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        var f map[string]interface{}
-        decoder := json.NewDecoder(r.Body)
-        err := decoder.Decode(&f)
-        if err != nil {
-                log.Fatal(err)
-        }
-
-        Db.Exec("BEGIN EXCLUSIVE TRANSACTION");
-        Db.Exec(`UPDATE License.Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ? WHERE UserID = ? `,
-        f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"], user.ID)
-
+		Db.Exec("BEGIN EXCLUSIVE TRANSACTION")
+		Db.Exec(`UPDATE License.Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ? WHERE UserID = ? `,
+			f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"], user.ID)
 
 		//If the user is an admin then allow update of admin level fields
 
-        if( user.Accesslevel == 10) {
+		if user.Accesslevel == 10 {
 
-        	Db.Exec(`UPDATE License.CompanySettings SET RadioCommunication = ?, DataCommunication = ?,
+			Db.Exec(`UPDATE License.CompanySettings SET RadioCommunication = ?, DataCommunication = ?,
                              SecurityRemoteAdmin = ?, SecurityConsoleAccess = ?, SecurityAdminPasswordReset = ?,
                              MobileSmartPhoneAccess = ?, MobileShowBusLocation = ?, MinZoom = ?, MaxZoom = ?, ClubBoundaryKM = ? WHERE CompanyID = (SELECT CompanyID FROM License.User WHERE ID = ?)`,
-                                      f["RadioCommunication"], f["DataCommunication"],
-                                      f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
-                                      f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], f["MinZoom"], f["MaxZoom"], f["ClubBoundaryKM"], user.ID)
+				f["RadioCommunication"], f["DataCommunication"],
+				f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
+				f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], f["MinZoom"], f["MaxZoom"], f["ClubBoundaryKM"], user.ID)
 
-        }
+		}
 
-        Db.Exec("COMMIT TRANSACTION")
+		Db.Exec("COMMIT TRANSACTION")
 
-        //Update the cookie too
-        settings.MapAPI = f["MapAPI"].(string)
+		//Update the cookie too
+		settings.MapAPI = f["MapAPI"].(string)
 
-        //TODO see if I can improve this verbose crappy code
-        if(f["Interpolate"].(bool)) {
-            settings.Interpolate = 1
-        } else {
-            settings.Interpolate = 0
-        }
+		//TODO see if I can improve this verbose crappy code
+		if f["Interpolate"].(bool) {
+			settings.Interpolate = 1
+		} else {
+			settings.Interpolate = 0
+		}
 
-        if(f["SnaptoRoad"].(bool)) {
-            settings.SnaptoRoad = 1
-        } else {
-            settings.SnaptoRoad = 0
-        }
+		if f["SnaptoRoad"].(bool) {
+			settings.SnaptoRoad = 1
+		} else {
+			settings.SnaptoRoad = 0
+		}
 
-        settings.CameraPanTrigger = int(f["CameraPanTrigger"].(float64))
-        settings.MinZoom = int(f["MinZoom"].(float64))
-        settings.MaxZoom = int(f["MaxZoom"].(float64))
+		settings.CameraPanTrigger = int(f["CameraPanTrigger"].(float64))
+		settings.MinZoom = int(f["MinZoom"].(float64))
+		settings.MaxZoom = int(f["MaxZoom"].(float64))
 		settings.ClubBoundaryKM = int(f["ClubBoundaryKM"].(float64))
 
-        if(f["RadioCommunication"].(bool)) {
-            settings.RadioCommunication = 1
-        } else {
-            settings.RadioCommunication = 0
-        }
+		if f["RadioCommunication"].(bool) {
+			settings.RadioCommunication = 1
+		} else {
+			settings.RadioCommunication = 0
+		}
 
-        if(f["DataCommunication"].(bool)) {
-            settings.DataCommunication = 1
-        } else {
-            settings.DataCommunication = 0
-        }
+		if f["DataCommunication"].(bool) {
+			settings.DataCommunication = 1
+		} else {
+			settings.DataCommunication = 0
+		}
 
-        if(f["SecurityRemoteAdmin"].(bool)) {
-            settings.SecurityRemoteAdmin = 1
-        } else {
-            settings.SecurityRemoteAdmin = 0
-        }
+		if f["SecurityRemoteAdmin"].(bool) {
+			settings.SecurityRemoteAdmin = 1
+		} else {
+			settings.SecurityRemoteAdmin = 0
+		}
 
-        if(f["SecurityConsoleAccess"].(bool)) {
-            settings.SecurityConsoleAccess = 1
-        } else {
-            settings.SecurityConsoleAccess = 0
-        }
+		if f["SecurityConsoleAccess"].(bool) {
+			settings.SecurityConsoleAccess = 1
+		} else {
+			settings.SecurityConsoleAccess = 0
+		}
 
-        if(f["SecurityAdminPasswordReset"].(bool)) {
-            settings.SecurityAdminPasswordReset = 1
-        } else {
-            settings.SecurityAdminPasswordReset = 0
-        }
+		if f["SecurityAdminPasswordReset"].(bool) {
+			settings.SecurityAdminPasswordReset = 1
+		} else {
+			settings.SecurityAdminPasswordReset = 0
+		}
 
-        if(f["MobileSmartPhoneAccess"].(bool)) {
-            settings.MobileSmartPhoneAccess = 1
-        } else {
-            settings.MobileSmartPhoneAccess = 0
-        }
+		if f["MobileSmartPhoneAccess"].(bool) {
+			settings.MobileSmartPhoneAccess = 1
+		} else {
+			settings.MobileSmartPhoneAccess = 0
+		}
 
-        if(f["MobileShowBusLocation"].(bool)) {
-            settings.MobileShowBusLocation = 1
-        } else {
-            settings.MobileShowBusLocation = 0
-        }
+		if f["MobileShowBusLocation"].(bool) {
+			settings.MobileShowBusLocation = 1
+		} else {
+			settings.MobileShowBusLocation = 0
+		}
 
-
-
-
-        session.Values["Settings"] = settings
-        if err := session.Save(r, w); err != nil {
-            fmt.Printf("Can't save session data (%s)\n", err.Error())
-        }
-        fmt.Fprint(w, Response{"success": true})
+		session.Values["Settings"] = settings
+		if err := session.Save(r, w); err != nil {
+			fmt.Printf("Can't save session data (%s)\n", err.Error())
+		}
+		fmt.Fprint(w, Response{"success": true})
 
 	},
 	"ActionHistorialRoute": func(w http.ResponseWriter, r *http.Request) {
@@ -399,8 +322,7 @@ var actions = map[string]interface{}{
 		dateFrom := r.FormValue("dateFrom")
 		dateTo := r.FormValue("dateTo")
 
-
-        fmt.Printf("DateFrom is %s, DateTo is %s", dateFrom, dateTo)
+		fmt.Printf("DateFrom is %s, DateTo is %s", dateFrom, dateTo)
 
 		rows, err := Db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? AND Fix AND SPEED > 10 GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
 		if err != nil {
@@ -435,17 +357,17 @@ var views = map[string]interface{}{
 	"ViewLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		session, _ := store.Get(r, "data")
-		if (session == nil) {
+		if session == nil {
 			http.Error(w, "Unauthorized", 401)
 		} else {
-		var user User
-		var company Company
-		var settings Settings
-		user = session.Values["User"].(User)
+			var user User
+			var company Company
+			var settings Settings
+			user = session.Values["User"].(User)
 
-		company = session.Values["Company"].(Company)
-		settings = session.Values["Settings"].(Settings)
-		fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings" : settings})
+			company = session.Values["Company"].(Company)
+			settings = session.Values["Settings"].(Settings)
+			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings": settings})
 		}
 
 	},
@@ -483,7 +405,6 @@ var views = map[string]interface{}{
 		var distance float64
 		var weekday int
 
-		
 		//init all days to 0
 		var kmPerDay [7]float64
 		for i := 0; i < 7; i++ {
@@ -498,19 +419,17 @@ var views = map[string]interface{}{
 			WHERE GPSR1.ID = GPSR2.ID -1
 			AND GPSR1.Fix = 1
 			GROUP BY Weekday`)
-		
 
 		if err != nil {
 			log.Fatal(err)
 		}
-
 
 		for rows.Next() {
 			if err := rows.Scan(&weekday, &distance); err != nil {
 				log.Fatal(err)
 			}
 			kmPerDay[weekday] = distance
-			
+
 		}
 
 		fmt.Fprint(w, Response{"Availability": availability, "KMPerDay": kmPerDay})
@@ -588,36 +507,32 @@ var views = map[string]interface{}{
 	},
 }
 
-
-
 func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Printf("\n In Handlewebsocketinit \n")	
+	fmt.Printf("\n In Handlewebsocketinit \n")
 	session, _ := store.Get(r, "data")
 
-	var user User = session.Values["User"].(User)
-	
+	var user types.User = session.Values["User"].(types.User)
+
 	//fmt.Printf("Username is %s %s\n", user.Firstname, user.Lastname)
 	//fmt.Printf("Web socket requested from %s\n", utility.GetIpAddress(r))
 
-	
 	if r.Method != "GET" {
 		fmt.Printf("GET method request for socket. Not allowed\n")
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	
-	/*
-	if r.Header.Get("Origin") + *addr != "http://" + r.Host {
-    		http.Error(w, "Origin not allowed", 403)
-    		return
-    	}
-	*/
 
+	/*
+			if r.Header.Get("Origin") + *addr != "http://" + r.Host {
+		    		http.Error(w, "Origin not allowed", 403)
+		    		return
+		    	}
+	*/
 
 	var ip string = utility.GetIpAddress(r)
 
-	//hash the incoming ip and username	
+	//hash the incoming ip and username
 	var buffer bytes.Buffer
 	buffer.WriteString(ip)
 	buffer.WriteString(user.Firstname)
@@ -629,9 +544,9 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 
 	if _, exists := connections[hash]; exists {
 		fmt.Printf("Connection existed .. closing \n")
-		connections[hash].websocket.Close()
-        } else {
-		fmt.Printf("New connection created");
+		connections[hash].Websocket.Close()
+	} else {
+		fmt.Printf("New connection created")
 	}
 
 	connection, err := websocket.Upgrade(w, r, nil, 1024, 1024)
@@ -644,18 +559,15 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	
-	
-	//create new connection ready to go	
-	connections[hash] = new(ClientSocket)
 
+	//create new connection ready to go
+	connections[hash] = new(types.ClientSocket)
 
 	fmt.Printf("About to set the connection\n")
 	connections[hash].websocket = connection
 	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
 
 }
-
 
 func handleHTTP() {
 	Router := mux.NewRouter()
@@ -698,15 +610,15 @@ func handleHTTP() {
 }
 
 func init() {
-	gob.Register(User{})
-	gob.Register(Company{})
-	gob.Register(Settings{})
+	gob.Register(types.User{})
+	gob.Register(types.Company{})
+	gob.Register(types.Settings{})
 }
 
 func main() {
 
 	flag.Parse()
- 	connections = make(map[[32]byte] *ClientSocket)
+	connections = make(map[[32]byte]*types.ClientSocket)
 
 	var err error
 
@@ -716,9 +628,9 @@ func main() {
 	}
 
 	if _, err := os.Stat("license.key"); err != nil {
-    		fmt.Printf("Cannot find license.key . Exiting\n")
-    		os.Exit(1)
-    	}
+		fmt.Printf("Cannot find license.key . Exiting\n")
+		os.Exit(1)
+	}
 
 	Db, err = sql.Open("sqlite3", "backend.db")
 	if err != nil {
@@ -726,26 +638,25 @@ func main() {
 		os.Exit(1)
 	}
 
-/*
-	//try to attach the license.key if it opens then close it and attach
-	LDb, err := sql.Open("sqlite3", "license.key")
-	if err != nil {
-		fmt.Printf("Cannot open database license.key . Exiting\n")
-		os.Exit(1)
-	} else {
-		fmt.Printf("\n License.key opened correctly")
-	}
+	/*
+	   	//try to attach the license.key if it opens then close it and attach
+	   	LDb, err := sql.Open("sqlite3", "license.key")
+	   	if err != nil {
+	   		fmt.Printf("Cannot open database license.key . Exiting\n")
+	   		os.Exit(1)
+	   	} else {
+	   		fmt.Printf("\n License.key opened correctly")
+	   	}
 
-    //_, fpath, _, _ := runtime.Caller(1)
-    //lpath, err := os.Open(path.Join(path.Dir(fpath), "license.key"))
+	       //_, fpath, _, _ := runtime.Caller(1)
+	       //lpath, err := os.Open(path.Join(path.Dir(fpath), "license.key"))
 
 
-	LDb.Close()
-*/
-
+	   	LDb.Close()
+	*/
 
 	Db.Exec("ATTACH DATABASE 'license.key' AS L")
-    fmt.Printf("Database has been attached")
+	fmt.Printf("Database has been attached")
 	defer Db.Close()
 
 	//handle web requests in a seperate go-routine
@@ -765,7 +676,7 @@ func main() {
 			fmt.Printf("Listening on TCP Port %s\n", *service)
 
 			tcpcon, err = lnk.Accept()
-				
+
 			fmt.Printf("Link Accepted\n")
 			if err != nil {
 				fmt.Printf("Failed to create tcp connection - %s", err)
@@ -780,7 +691,7 @@ func main() {
 	}
 }
 
-func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
+func updateClient(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 	if connections == nil {
 		//fmt.Printf("No clients listening.. not reporting\n")
@@ -791,19 +702,19 @@ func updateClient(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 	for _, client := range connections {
 		//get a websocket writer
 
-		wswriter, _ := client.websocket.NextWriter(websocket.TextMessage)
+		wswriter, _ := client.Websocket.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
-			io.WriteString(wswriter, Response{"Entry": entry, "Diagnostic" : diagnostic}.String())
+			io.WriteString(wswriter, types.Response{"Entry": entry, "Diagnostic": diagnostic}.String())
 		} else {
 			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
-			client.websocket.Close()
+			client.Websocket.Close()
 		}
 
 	}
 }
 
-func logEntry(entry *GPSRecord, diagnostic *DiagnosticRecord) {
+func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 	_, err := Db.Exec("BEGIN TRANSACTION")
 	_, err = Db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
@@ -818,9 +729,9 @@ func logEntry(entry *GPSRecord, diagnostic *DiagnosticRecord) {
 
 	_, err = Db.Exec("INSERT INTO DiagnosticRecords (CPUTemperature, CPUVoltage, CPUFrequency, MemoryFree) VALUES (?, ?, ?, ?)",
 		diagnostic.CPUTemp,
-        diagnostic.CPUVolt,
-        diagnostic.CPUFreq,
-        diagnostic.MemFree)
+		diagnostic.CPUVolt,
+		diagnostic.CPUFreq,
+		diagnostic.MemFree)
 
 	Db.Exec("COMMIT TRANSACTION")
 	if err != nil {
@@ -836,10 +747,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
 	//defer anonymous func to handle panics - most likely panicking from garbage tha was tried to be parsed.
 	defer func() {
-            if r := recover(); r != nil {
-                fmt.Println("Recovered from a panic \n", r)
-            }
-    }()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from a panic \n", r)
+		}
+	}()
 
 	var buff = make([]byte, 512)
 	var incomingpacket Packet
@@ -858,7 +769,7 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 		if err != nil {
 			fmt.Printf("Error occured - %s\n", err.Error())
 			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
-			*recreateConnection = true;
+			*recreateConnection = true
 			return
 		}
 
@@ -868,13 +779,11 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			fmt.Printf("Failed to decode the JSON bytes -%s\n", err.Error())
 		}
 
-
 		fmt.Printf("Sentence was %s\n", string(incomingpacket["sentence"]))
 		fmt.Printf("Diagnostic data was %s\n", string(incomingpacket["diagnostics"]))
 
-
 		diagnosticfields := strings.Split(string(incomingpacket["diagnostics"]), ",")
-		if len(diagnosticfields) !=4 {
+		if len(diagnosticfields) != 4 {
 			fmt.Printf("Error. Diagnostic fields length is incorrect. Is %d should be %d", len(diagnosticfields), 4)
 			fmt.Printf("The source string was %s\n", string(incomingpacket["diagnostics"]))
 		}
@@ -887,10 +796,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			continue
 		}
 
-        diagnostic.CPUTemp, _ = strconv.ParseFloat(diagnosticfields[0][2:],32)
-        diagnostic.CPUVolt, _ = strconv.ParseFloat(diagnosticfields[1][2:],32)
-        diagnostic.CPUFreq, _ = strconv.ParseFloat(diagnosticfields[2][2:],32)
-        diagnostic.MemFree, _ = strconv.ParseUint(diagnosticfields[3][2:], 10, 64)
+		diagnostic.CPUTemp, _ = strconv.ParseFloat(diagnosticfields[0][2:], 32)
+		diagnostic.CPUVolt, _ = strconv.ParseFloat(diagnosticfields[1][2:], 32)
+		diagnostic.CPUFreq, _ = strconv.ParseFloat(diagnosticfields[2][2:], 32)
+		diagnostic.MemFree, _ = strconv.ParseUint(diagnosticfields[3][2:], 10, 64)
 
 		entry.Message = gpsfields[0][1:]
 		entry.Latitude = gpsfields[0][2:]
@@ -902,10 +811,10 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 		entry.ID = gpsfields[6][1:]
 
 		fmt.Printf("Temp %d, Voltage %d, Frequency %d, MemoryFree %d",
-		 diagnostic.CPUTemp,
-		 diagnostic.CPUVolt,
-		 diagnostic.CPUFreq,
-		 diagnostic.MemFree)
+			diagnostic.CPUTemp,
+			diagnostic.CPUVolt,
+			diagnostic.CPUFreq,
+			diagnostic.MemFree)
 
 		fmt.Printf("Message %s Lat %s Long %s speed %f heading %f fix %t date %s id %s\n",
 			entry.Message,
@@ -916,7 +825,6 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			entry.Fix,
 			entry.Date,
 			entry.ID)
-
 
 		if string(incomingpacket["sentence"][0:1]) != "T" {
 			go logEntry(&entry, &diagnostic) //save to database
