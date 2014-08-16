@@ -1,12 +1,12 @@
 package types
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"time"
 )
 
 type Packet map[string]string
-type Response map[string]interface{}
 
 type GPSRecord struct {
 	Latitude  string
@@ -63,4 +63,16 @@ type Settings struct {
 type ClientSocket struct {
 	Websocket    *websocket.Conn
 	Ip, Username string
+}
+
+type JSONResponse map[string]interface{}
+
+func (r JSONResponse) String() (s string) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		s = ""
+		return
+	}
+	s = string(b)
+	return
 }

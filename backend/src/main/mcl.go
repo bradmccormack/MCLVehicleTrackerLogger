@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/gob"
+
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -38,15 +39,7 @@ var random *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) //new ra
 //Session information
 var store = sessions.NewCookieStore([]byte("emtec789")) //this needs to be randomized something from /dev/random
 
-func (r Response) String() (s string) {
-	b, err := json.Marshal(r)
-	if err != nil {
-		s = ""
-		return
-	}
-	s = string(b)
-	return
-}
+var Db *sql.DB
 
 var actions = map[string]interface{}{
 	"ActionInvalid": func(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +55,7 @@ var actions = map[string]interface{}{
 
 		session, _ := store.Get(r, "data")
 
-		var user User = session.Values["User"].(User)
+		var user types.User = session.Values["User"].(types.User)
 
 		//Update DB
 		Db.Exec("UPDATE LApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
@@ -76,7 +69,7 @@ var actions = map[string]interface{}{
 		buffer.WriteString(user.Lastname)
 		var hash = sha256.Sum256(buffer.Bytes())
 		if connections[hash] != nil {
-			connections[hash].websocket.Close()
+			connections[hash].Websocket.Close()
 		}
 
 		//clear cookie
@@ -88,7 +81,7 @@ var actions = map[string]interface{}{
 			fmt.Printf("Can't save session data (%s)\n", err.Error())
 		}
 
-		fmt.Fprint(w, Response{"success": true, "message": "Log out ok"})
+		fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Log out ok"})
 
 	},
 
@@ -97,9 +90,9 @@ var actions = map[string]interface{}{
 
 		//fmt.Printf("\nActionLogin -> RemoteAddr is %s\n", utility.GetIpAddress(r))
 
-		var user User
-		var company Company
-		var settings Settings
+		var user types.User
+		var company types.Company
+		var settings types.Settings
 
 		name := r.FormValue("name")
 		password := r.FormValue("password")
@@ -123,7 +116,7 @@ var actions = map[string]interface{}{
 
 		switch {
 		case result == sql.ErrNoRows:
-			fmt.Fprint(w, Response{"success": false, "errors": []string{"Incorrect User/Password specified"}})
+			fmt.Fprint(w, types.JSONResponse{"success": false, "errors": []string{"Incorrect User/Password specified"}})
 
 		case result != nil:
 			log.Fatal(result)
@@ -166,9 +159,9 @@ var actions = map[string]interface{}{
 					fmt.Printf("Can't save session data (%s)\n", err.Error())
 				}
 
-				fmt.Fprint(w, Response{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
+				fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
 			} else {
-				fmt.Fprint(w, Response{"success": false, "message": "Login failed", "errors": Errors})
+				fmt.Fprint(w, types.JSONResponse{"success": false, "message": "Login failed", "errors": Errors})
 			}
 
 		}
@@ -177,8 +170,8 @@ var actions = map[string]interface{}{
 	"ActionSettingsPassword": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		session, _ := store.Get(r, "data")
-		var user User = session.Values["User"].(User)
-		var settings Settings = session.Values["Settings"].(Settings)
+		var user types.User = session.Values["User"].(types.User)
+		var settings types.Settings = session.Values["Settings"].(types.Settings)
 
 		var f map[string]interface{}
 		decoder := json.NewDecoder(r.Body)
@@ -204,18 +197,18 @@ var actions = map[string]interface{}{
 			if err := session.Save(r, w); err != nil {
 				fmt.Printf("Can't save session data (%s)\n", err.Error())
 			}
-			fmt.Fprint(w, Response{"success": "Password Updated"})
+			fmt.Fprint(w, types.JSONResponse{"success": "Password Updated"})
 
 		} else {
-			fmt.Fprint(w, Response{"error": "Old Password incorrect"})
+			fmt.Fprint(w, types.JSONResponse{"error": "Old Password incorrect"})
 		}
 	},
 	"ActionSettings": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
 		session, _ := store.Get(r, "data")
-		var user User = session.Values["User"].(User)
-		var settings Settings = session.Values["Settings"].(Settings)
+		var user types.User = session.Values["User"].(types.User)
+		var settings types.Settings = session.Values["Settings"].(types.Settings)
 
 		var f map[string]interface{}
 		decoder := json.NewDecoder(r.Body)
@@ -310,7 +303,7 @@ var actions = map[string]interface{}{
 		if err := session.Save(r, w); err != nil {
 			fmt.Printf("Can't save session data (%s)\n", err.Error())
 		}
-		fmt.Fprint(w, Response{"success": true})
+		fmt.Fprint(w, types.JSONResponse{"success": true})
 
 	},
 	"ActionHistorialRoute": func(w http.ResponseWriter, r *http.Request) {
@@ -342,7 +335,7 @@ var actions = map[string]interface{}{
 			log.Fatal(err)
 		}
 
-		fmt.Fprint(w, Response{"success": true, "data": Route})
+		fmt.Fprint(w, types.JSONResponse{"success": true, "data": Route})
 
 	},
 }
@@ -360,14 +353,14 @@ var views = map[string]interface{}{
 		if session == nil {
 			http.Error(w, "Unauthorized", 401)
 		} else {
-			var user User
-			var company Company
-			var settings Settings
-			user = session.Values["User"].(User)
+			var user types.User
+			var company types.Company
+			var settings types.Settings
+			user = session.Values["User"].(types.User)
 
-			company = session.Values["Company"].(Company)
-			settings = session.Values["Settings"].(Settings)
-			fmt.Fprint(w, Response{"success": true, "message": "Login OK", "user": user, "company": company, "settings": settings})
+			company = session.Values["Company"].(types.Company)
+			settings = session.Values["Settings"].(types.Settings)
+			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login OK", "user": user, "company": company, "settings": settings})
 		}
 
 	},
@@ -432,7 +425,7 @@ var views = map[string]interface{}{
 
 		}
 
-		fmt.Fprint(w, Response{"Availability": availability, "KMPerDay": kmPerDay})
+		fmt.Fprint(w, types.JSONResponse{"Availability": availability, "KMPerDay": kmPerDay})
 
 	},
 
@@ -441,7 +434,7 @@ var views = map[string]interface{}{
 		w.Header().Add("Content-Type", "text/html")
 
 		session, _ := store.Get(r, "session")
-		fmt.Printf("Session is %s", Response{"session": session})
+		fmt.Printf("Session is %s", types.JSONResponse{"session": session})
 
 		var err error
 		t := template.New("Map")
@@ -475,7 +468,7 @@ var views = map[string]interface{}{
 
 		var mapAPI string
 		var interpolate, snaptoroad bool
-		var user User = session.Values["User"].(User)
+		var user types.User = session.Values["User"].(types.User)
 
 		result := Db.QueryRow(`
                         SELECT S.MapAPI, S.Interpolate, S.SnaptoRoad
@@ -564,7 +557,7 @@ func handleWebSocketInit(w http.ResponseWriter, r *http.Request) {
 	connections[hash] = new(types.ClientSocket)
 
 	fmt.Printf("About to set the connection\n")
-	connections[hash].websocket = connection
+	connections[hash].Websocket = connection
 	fmt.Printf("Amount of web socket connections is %d\n", len(connections))
 
 }
@@ -705,7 +698,7 @@ func updateClient(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 		wswriter, _ := client.Websocket.NextWriter(websocket.TextMessage)
 
 		if wswriter != nil {
-			io.WriteString(wswriter, types.Response{"Entry": entry, "Diagnostic": diagnostic}.String())
+			io.WriteString(wswriter, types.JSONResponse{"Entry": entry, "Diagnostic": diagnostic}.String())
 		} else {
 			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
 			client.Websocket.Close()
@@ -753,9 +746,9 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 	}()
 
 	var buff = make([]byte, 512)
-	var incomingpacket Packet
-	var entry GPSRecord
-	var diagnostic DiagnosticRecord
+	var incomingpacket types.Packet
+	var entry types.GPSRecord
+	var diagnostic types.DiagnosticRecord
 
 	//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 	//conn.SetReadBuffer(512)
