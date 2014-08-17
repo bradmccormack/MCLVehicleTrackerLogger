@@ -21,6 +21,11 @@ func init() {
 	connections = make(map[[32]byte]*types.ClientSocket)
 }
 
+func heartBeat(C *Conn) {
+	
+	//func (c *Conn) WriteControl(messageType int, data []byte, deadline time.Time) error
+}
+
 func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.CookieStore) {
 
 	session, _ := cookiejar.Get(r, "data")
@@ -56,11 +61,15 @@ func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.C
 		log.Println(err)
 		return
 	}
+	
+	
 
 	//create new connection ready to go
 	connections[hash] = new(types.ClientSocket)
 
 	connections[hash].Websocket = connection
+	go heartBeat(connection))
+	
 	fmt.Printf("\nAmount of web socket connections is %d\n", len(connections))
 }
 func WebSocketClose(hash [32]byte) {
