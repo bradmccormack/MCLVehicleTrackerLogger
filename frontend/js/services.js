@@ -650,7 +650,7 @@ angular.module('myApp.services', [])
 		}
 
 	}])
-	.factory("networkService", ['mapService', 'utilityService', '$rootScope', '$timeout', function (mapService, utilityService, $rootScope, $timeout) {
+	.factory("networkService", ['mapService', 'utilityService', '$rootScope', '$timeout', 'shellService', function (mapService, utilityService, $rootScope, $timeout, shellService) {
 
 		return (function () {
 			var Con;
@@ -689,7 +689,10 @@ angular.module('myApp.services', [])
 										}
 
 										isClosed = true;
-										$timeout(ConnectBackend, 5000);
+
+										//this should not be happening if they are at the login screen
+										if(shellService.User)
+											$timeout(ConnectBackend, 5000);
 
 									}
 									Con.onmessage = function (evt) {
