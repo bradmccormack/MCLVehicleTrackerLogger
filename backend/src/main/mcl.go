@@ -571,30 +571,53 @@ func main() {
 	var recreateConnection bool = true
 	var tcpcon net.Conn
 
-	for {
-		if recreateConnection {
-			lnk, err := net.Listen("tcp", *service)
-			if err != nil {
-				fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
-				os.Exit(1)
-			}
-			fmt.Printf("\nListening on TCP Port %s", *service)
+	//Socket related channels
+	WSDataChannel := make(chan types.Record, 100)
+	WSCommandChannel := make(chan int)
 
+	//
+	NetworkChannel := make(chan int, 1)
+	var msg int
+
+	go socket.Monitor(WSDataChannel, WSCommandChannel)
+	for {
+
+		lnk, err := net.Listen("tcp", *service)
+		if err != nil {
+			fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Printf("\nListening on TCP Port %s", *service)
+
+		for {
 			tcpcon, err = lnk.Accept()
 
-			fmt.Printf("\nLink Accepted\n")
+			fmt.Printf("\nLink Accepted - Receiving packets from Vehicle\n")
 			if err != nil {
 				fmt.Printf("\nFailed to create tcp connection - %s", err)
 				os.Exit(1)
 			}
 
-			handleClient(Db, tcpcon.(*net.TCPConn), &recreateConnection)
-			if recreateConnection {
-				fmt.Printf("\nRecreateConnection flag is true, entering monitor")
-				lnk.Close()
+			go handleClient(tcpcon.(*net.TCPConn), &recreateConnection, WSDataChannel, NetworkChannel)
+
+			//because I'm using default type it is a nonblocking select
+			select {
+			//if something bad happened  in the client it should  redo the connection in the outerloop so it needs to break this loop
+			case NetworkChannel <- msg:
+				fmt.Printf("Command received was %d", msg)
+				if msg == types.COMMAND_RECONNECT {
+					fmt.Printf("\nRecieved a reconnect command!")
+					break
+				}
+			default:
+				fmt.Println("no message sent")
 			}
 
 		}
+		fmt.Printf("\nBroke out of the loop")
+		WSCommandChannel <- types.COMMAND_QUIT
+		lnk.Close()
 	}
 }
 
@@ -624,13 +647,9 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 }
 
-func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
+func handleClient(conn *net.TCPConn, recreateConnection *bool, WSDataChannel chan<- types.Record, NetworkChannel chan<- int) {
 
-	DataChannel := make(chan types.Record, 100)
-	CommandChannel := make(chan int)
-	go socket.Monitor(DataChannel, CommandChannel)
-
-	//defer anonymous func to handle panics - most likely panicking from garbage tha was tried to be parsed.
+	//defer anonymous func to handle panics - most likely panicking from garbage that was to be parsed.
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from a panic \n", r)
@@ -652,8 +671,9 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 		if err != nil {
 			fmt.Printf("\nError occured - %s", err.Error())
 			fmt.Printf("\nError reading from TCP - Will recreate the connection \n")
-			*recreateConnection = true
-			CommandChannel <- types.Command_Quit
+			fmt.Printf("About to send COMMAND_RECONNECT")
+			NetworkChannel <- types.COMMAND_RECONNECT
+			fmt.Printf("Sent COMMAND_RECONNECT")
 			return
 		}
 
@@ -716,11 +736,8 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			go logEntry(R.GPS, R.Diagnostic)
 		}
 
-		DataChannel <- R
+		WSDataChannel <- R
 		conn.Write([]byte("OK\n"))
 	}
-	fmt.Printf("\nGot here")
-	*recreateConnection = false
-	CommandChannel <- types.Command_Quit
 	return
 }

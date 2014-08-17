@@ -97,19 +97,18 @@ func WebSocketClose(hash [32]byte) {
 func Monitor(DataChannel <-chan types.Record, CommandChanel <-chan int) {
 
 	for {
-
 		starttime := time.Now()
-
 		for time.Since(starttime) < time.Second {
 
-			//select from first available channel ipc
+			//select from first available channel ipc - note this blocks until there is data in one of the channels
 			select {
 			//keep slurping records from the bufered channel and farm them out to UpdateClient as a goroutine
 			case data := <-DataChannel:
 				go UpdateClient(data.GPS, data.Diagnostic)
 			case command := <-CommandChanel:
 				switch command {
-				case (types.Command_Quit):
+				case (types.COMMAND_QUIT):
+					fmt.Printf("\nQuit command this monitor should be exiting")
 					return
 
 				}

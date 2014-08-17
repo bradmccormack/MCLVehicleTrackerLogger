@@ -7,7 +7,9 @@ import (
 )
 
 const (
-	Command_Quit int = 0
+	COMMAND_OK        int = 0
+	COMMAND_QUIT      int = 1
+	COMMAND_RECONNECT int = 2
 )
 
 type Packet map[string]string
