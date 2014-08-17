@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	Command_Quit int = 0
+)
+
 type Packet map[string]string
 
 type GPSRecord struct {

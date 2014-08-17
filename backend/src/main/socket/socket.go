@@ -17,9 +17,6 @@ import (
 //the string key will be a hash of the username and ip
 var connections map[[32]byte]*types.ClientSocket
 
-//exported
-var VehicleChannel = make(chan types.Record, 100)
-
 func init() {
 	connections = make(map[[32]byte]*types.ClientSocket)
 }
@@ -76,22 +73,27 @@ func WebSocketClose(hash [32]byte) {
 
 //this should have a buffered channel that will block the sender when it is full every 1 second it will read from the channels and send off shit to the webservers
 //when it sends shit off it should do so using goroutines so they don't block
-func Monitor() {
-	fmt.Printf("\nin Monitor")
+func Monitor(DataChannel <-chan types.Record, CommandChanel <-chan int) {
 
 	for {
-		fmt.Printf("\n Sleeping in Monitor")
+		fmt.Printf("\nSleeping in Monitor")
 
 		starttime := time.Now()
 
 		for time.Since(starttime) < time.Second {
-			if len(connections) == 0 {
-				fmt.Printf("\nNo webclients listening via websocket.. not reporting")
-			} else {
-				R := <-VehicleChannel
-				go UpdateClient(R.GPS, R.Diagnostic)
+
+			//select from first available channel ipc
+			select {
+			case data := <-DataChannel:
+				go UpdateClient(data.GPS, data.Diagnostic)
+			case command := <-CommandChanel:
+				switch command {
+				case (types.Command_Quit):
+					return
+
+				}
 			}
-			//read on the channel
+
 		}
 
 	}

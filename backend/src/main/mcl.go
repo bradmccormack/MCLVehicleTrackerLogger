@@ -587,9 +587,10 @@ func main() {
 				fmt.Printf("\nFailed to create tcp connection - %s", err)
 				os.Exit(1)
 			}
-			go handleClient(Db, tcpcon.(*net.TCPConn), &recreateConnection)
+
+			handleClient(Db, tcpcon.(*net.TCPConn), &recreateConnection)
 			if recreateConnection {
-				socket.Monitor()
+				fmt.Printf("\nRecreateConnection flag is true, entering monitor")
 				lnk.Close()
 			}
 
@@ -625,6 +626,10 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
+	DataChannel := make(chan types.Record)
+	CommandChannel := make(chan int)
+	go socket.Monitor(DataChannel, CommandChannel)
+
 	//defer anonymous func to handle panics - most likely panicking from garbage tha was tried to be parsed.
 	defer func() {
 		if r := recover(); r != nil {
@@ -641,15 +646,14 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
 	var n int
 	var err error
-	var data bool = true
-	for data {
+	for {
 		n, err = conn.Read(buff)
-		//conn.SetDeadline(time.Now().Add(time.Second + time.Second + time.Second + time.Second))
 
 		if err != nil {
-			fmt.Printf("Error occured - %s\n", err.Error())
-			fmt.Printf("Error reading from TCP - Will recreate the connection \n")
+			fmt.Printf("\nError occured - %s", err.Error())
+			fmt.Printf("\nError reading from TCP - Will recreate the connection \n")
 			*recreateConnection = true
+			CommandChannel <- types.Command_Quit
 			return
 		}
 
@@ -659,10 +663,8 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 			fmt.Printf("Failed to decode the JSON bytes -%s\n", err.Error())
 		}
 
-		/*
-			fmt.Printf("Sentence was %s\n", string(incomingpacket["sentence"]))
-			fmt.Printf("Diagnostic data was %s\n", string(incomingpacket["diagnostics"]))
-		*/
+		//fmt.Printf("\nSentence was %s", string(incomingpacket["sentence"]))
+		//fmt.Printf("\nDiagnostic data was %s", string(incomingpacket["diagnostics"]))
 
 		diagnosticfields := strings.Split(string(incomingpacket["diagnostics"]), ",")
 		if len(diagnosticfields) != 4 {
@@ -713,16 +715,12 @@ func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 		if string(incomingpacket["sentence"][0:1]) != "T" {
 			go logEntry(R.GPS, R.Diagnostic)
 		}
-		/*
-			else {
-				fmt.Printf("\nReplayed packets. Not saving to DB\n")
-			}
-		*/
-		//send record to notify in socket via channel
-		socket.VehicleChannel <- R
 
+		DataChannel <- R
 		conn.Write([]byte("OK\n"))
 	}
+	fmt.Printf("\nGot here")
 	*recreateConnection = false
+	CommandChannel <- types.Command_Quit
 	return
 }

@@ -687,12 +687,9 @@ angular.module('myApp.services', [])
 											//no error happened. Logout occurred, don't try to reconnect
 											$rootScope.$broadcast("systemMessage", { message: "Server connection closed", warning: true});
 										}
-										else {
-											//an error happened try to reconnect
-											$timeout(ConnectBackend, 5000);
-										}
 
 										isClosed = true;
+										$timeout(ConnectBackend, 5000);
 
 									}
 									Con.onmessage = function (evt) {
