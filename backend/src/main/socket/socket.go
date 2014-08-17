@@ -121,7 +121,6 @@ func Monitor(DataChannel <-chan types.Record, CommandChannel <-chan int32) {
 
 func UpdateClient(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
-	//fmt.Printf("Responding to %d listening clients\n", len(connections))
 	for _, client := range connections {
 		//get a websocket writer
 
@@ -130,7 +129,6 @@ func UpdateClient(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 		if wswriter != nil {
 			io.WriteString(wswriter, types.JSONResponse{"Entry": entry, "Diagnostic": diagnostic}.String())
 		} else {
-			fmt.Printf("No ws writer available\n") //this web socket was abruptly closed so we need to close that client
 			client.Websocket.Close()
 		}
 
