@@ -55,8 +55,8 @@ angular.module('myApp.services', [])
 			LoadConfig: function (data) {
 				//Note ternary expressions are to turn any "truthy" value into explicit true/false for checkboxes
 				this.User = {
-					First: data.user.Firstname,
-					Last: data.user.Lastname,
+					First: data.user.FirstName,
+					Last: data.user.LastName,
 					Password: data.user.Password, //TODO encrypt serverside
 					Access: data.user.Accesslevel,
 					Email: data.user.Email,
@@ -650,7 +650,7 @@ angular.module('myApp.services', [])
 		}
 
 	}])
-	.factory("networkService", ['mapService', 'utilityService', '$rootScope', '$timeout', function (mapService, utilityService, $rootScope, $timeout) {
+	.factory("networkService", ['mapService', 'utilityService', '$rootScope', '$timeout', 'shellService', function (mapService, utilityService, $rootScope, $timeout, shellService) {
 
 		return (function () {
 			var Con;
@@ -687,12 +687,12 @@ angular.module('myApp.services', [])
 											//no error happened. Logout occurred, don't try to reconnect
 											$rootScope.$broadcast("systemMessage", { message: "Server connection closed", warning: true});
 										}
-										else {
-											//an error happened try to reconnect
-											$timeout(ConnectBackend, 5000);
-										}
 
 										isClosed = true;
+
+										//this should not be happening if they are at the login screen
+										if(shellService.User)
+											$timeout(ConnectBackend, 5000);
 
 									}
 									Con.onmessage = function (evt) {
