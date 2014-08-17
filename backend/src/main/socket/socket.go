@@ -94,7 +94,7 @@ func WebSocketClose(hash [32]byte) {
 }
 
 //read only channels,
-func Monitor(DataChannel <-chan types.Record, CommandChanel <-chan int) {
+func Monitor(DataChannel <-chan types.Record, CommandChannel <-chan int32) {
 
 	for {
 		starttime := time.Now()
@@ -105,7 +105,7 @@ func Monitor(DataChannel <-chan types.Record, CommandChanel <-chan int) {
 			//keep slurping records from the bufered channel and farm them out to UpdateClient as a goroutine
 			case data := <-DataChannel:
 				go UpdateClient(data.GPS, data.Diagnostic)
-			case command := <-CommandChanel:
+			case command := <-CommandChannel:
 				switch command {
 				case (types.COMMAND_QUIT):
 					fmt.Printf("\nQuit command this monitor should be exiting")

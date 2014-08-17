@@ -568,56 +568,54 @@ func main() {
 	//handle web requests in a seperate go-routine
 	go handleHTTP()
 
-	var recreateConnection bool = true
-	var tcpcon net.Conn
-
 	//Socket related channels
 	WSDataChannel := make(chan types.Record, 100)
-	WSCommandChannel := make(chan int)
+	WSCommandChannel := make(chan int32)
 
 	//
-	NetworkChannel := make(chan int, 1)
-	var msg int
+	NetworkChannel := make(chan int32, 1)
 
 	go socket.Monitor(WSDataChannel, WSCommandChannel)
-	for {
+	go connectionManager(NetworkChannel, WSCommandChannel, WSDataChannel)
 
-		lnk, err := net.Listen("tcp", *service)
-		if err != nil {
-			fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
-			os.Exit(1)
-		}
+	<-NetworkChannel
 
-		fmt.Printf("\nListening on TCP Port %s", *service)
+}
 
-		for {
-			tcpcon, err = lnk.Accept()
+func connectionManager(NetworkChannel chan int32, WSCommandChannel chan<- int32, WSDataChannel chan<- types.Record) {
 
-			fmt.Printf("\nLink Accepted - Receiving packets from Vehicle\n")
+	//select from first available channel ipc - note this blocks until there is data in one of the channels
+	select {
+	//keep slurping records from the bufered channel and farm them out to UpdateClient as a goroutine
+	case msg := <-NetworkChannel:
+		switch msg {
+		case types.COMMAND_RECONNECT:
+			WSCommandChannel <- types.COMMAND_QUIT
+
+			//lnk.Close()
+
+			lnk, err := net.Listen("tcp", *service)
 			if err != nil {
-				fmt.Printf("\nFailed to create tcp connection - %s", err)
+				fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
 				os.Exit(1)
 			}
+			for {
+				//this blocks until there is a connection
+				tcpcon, err := lnk.Accept()
 
-			go handleClient(tcpcon.(*net.TCPConn), &recreateConnection, WSDataChannel, NetworkChannel)
-
-			//because I'm using default type it is a nonblocking select
-			select {
-			//if something bad happened  in the client it should  redo the connection in the outerloop so it needs to break this loop
-			case NetworkChannel <- msg:
-				fmt.Printf("Command received was %d", msg)
-				if msg == types.COMMAND_RECONNECT {
-					fmt.Printf("\nRecieved a reconnect command!")
-					break
+				fmt.Printf("\nLink Accepted - Receiving packets from Vehicle\n")
+				if err != nil {
+					fmt.Printf("\nFailed to create tcp connection - %s", err)
+					os.Exit(1)
 				}
-			default:
-				fmt.Println("no message sent")
+				fmt.Printf("\nListening on TCP Port %s", *service)
+
+				go handleClient(tcpcon.(*net.TCPConn), WSDataChannel, NetworkChannel)
+
 			}
 
 		}
-		fmt.Printf("\nBroke out of the loop")
-		WSCommandChannel <- types.COMMAND_QUIT
-		lnk.Close()
+
 	}
 }
 
@@ -647,7 +645,7 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 }
 
-func handleClient(conn *net.TCPConn, recreateConnection *bool, WSDataChannel chan<- types.Record, NetworkChannel chan<- int) {
+func handleClient(conn *net.TCPConn, WSDataChannel chan<- types.Record, NetworkChannel chan<- int32) {
 
 	//defer anonymous func to handle panics - most likely panicking from garbage that was to be parsed.
 	defer func() {
