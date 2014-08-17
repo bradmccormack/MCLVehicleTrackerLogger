@@ -517,7 +517,7 @@ func handleHTTP() {
 	//Use the router
 	http.Handle("/", Router)
 
-	fmt.Printf("\nListening for HTTP on %s\n", *addr)
+	fmt.Printf("\nListening for HTTP on %s", *addr)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		fmt.Printf("\nFailed to listen for http on %s", *addr)
@@ -565,20 +565,20 @@ func main() {
 
 	defer Db.Close()
 
-	//handle web requests in a seperate go-routine
+	//Socket related channels
+	WSDataChannel := make(chan types.Record, 100) //buffered
+	WSCommandChannel := make(chan int32)
+	NetworkChannel := make(chan int32, 1) //buffered
+
+	go socket.Monitor(WSDataChannel, WSCommandChannel)                    //start a websocket dude to arbitrate websockets
+	go connectionManager(NetworkChannel, WSCommandChannel, WSDataChannel) //connection manager to handle (re)connects
 	go handleHTTP()
 
-	//Socket related channels
-	WSDataChannel := make(chan types.Record, 100)
-	WSCommandChannel := make(chan int32)
+	//kick off initial connection - send COMMAND_RECONNECT on the Network Channel
+	NetworkChannel <- types.COMMAND_RECONNECT
 
-	//
-	NetworkChannel := make(chan int32, 1)
-
-	go socket.Monitor(WSDataChannel, WSCommandChannel)
-	go connectionManager(NetworkChannel, WSCommandChannel, WSDataChannel)
-
-	<-NetworkChannel
+	//wait forever nicely
+	select {}
 
 }
 
@@ -590,32 +590,26 @@ func connectionManager(NetworkChannel chan int32, WSCommandChannel chan<- int32,
 	case msg := <-NetworkChannel:
 		switch msg {
 		case types.COMMAND_RECONNECT:
-			WSCommandChannel <- types.COMMAND_QUIT
-
-			//lnk.Close()
 
 			lnk, err := net.Listen("tcp", *service)
 			if err != nil {
 				fmt.Printf("\nFailed to get tcp listener - %s", err.Error())
 				os.Exit(1)
 			}
+			fmt.Printf("\nListening on TCP Port %s", *service)
+
 			for {
 				//this blocks until there is a connection
 				tcpcon, err := lnk.Accept()
 
-				fmt.Printf("\nLink Accepted - Receiving packets from Vehicle\n")
+				fmt.Printf("\nLink Accepted - Receiving packets from Vehicle")
 				if err != nil {
 					fmt.Printf("\nFailed to create tcp connection - %s", err)
 					os.Exit(1)
 				}
-				fmt.Printf("\nListening on TCP Port %s", *service)
-
 				go handleClient(tcpcon.(*net.TCPConn), WSDataChannel, NetworkChannel)
-
 			}
-
 		}
-
 	}
 }
 
@@ -667,11 +661,8 @@ func handleClient(conn *net.TCPConn, WSDataChannel chan<- types.Record, NetworkC
 		n, err = conn.Read(buff)
 
 		if err != nil {
-			fmt.Printf("\nError occured - %s", err.Error())
-			fmt.Printf("\nError reading from TCP - Will recreate the connection \n")
-			fmt.Printf("About to send COMMAND_RECONNECT")
+			fmt.Printf("\nError occured - %s, will recreate the connection.", err.Error())
 			NetworkChannel <- types.COMMAND_RECONNECT
-			fmt.Printf("Sent COMMAND_RECONNECT")
 			return
 		}
 
