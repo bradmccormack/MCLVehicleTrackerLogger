@@ -626,7 +626,7 @@ func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
 
 func handleClient(Db *sql.DB, conn *net.TCPConn, recreateConnection *bool) {
 
-	DataChannel := make(chan types.Record)
+	DataChannel := make(chan types.Record, 100)
 	CommandChannel := make(chan int)
 	go socket.Monitor(DataChannel, CommandChannel)
 

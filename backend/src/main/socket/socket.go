@@ -21,9 +21,23 @@ func init() {
 	connections = make(map[[32]byte]*types.ClientSocket)
 }
 
-func heartBeat(C *Conn) {
-	
-	//func (c *Conn) WriteControl(messageType int, data []byte, deadline time.Time) error
+//sends websocket pings to client so it doesn't close the session.. the built in ponghandler is left in place. I don't care
+func heartBeat(c *websocket.Conn) {
+
+	ticker := time.NewTicker(5 * time.Second)
+	defer func() {
+		ticker.Stop()
+		c.Close()
+	}()
+	for {
+		select {
+
+		case <-ticker.C:
+			_ = c.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second))
+
+		}
+
+	}
 }
 
 func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.CookieStore) {
@@ -61,17 +75,16 @@ func WebSocketInit(w http.ResponseWriter, r *http.Request, cookiejar *sessions.C
 		log.Println(err)
 		return
 	}
-	
-	
 
 	//create new connection ready to go
 	connections[hash] = new(types.ClientSocket)
 
 	connections[hash].Websocket = connection
-	go heartBeat(connection))
-	
+	go heartBeat(connection)
+
 	fmt.Printf("\nAmount of web socket connections is %d\n", len(connections))
 }
+
 func WebSocketClose(hash [32]byte) {
 	if connections[hash] != nil {
 		connections[hash].Websocket.Close()
@@ -80,12 +93,10 @@ func WebSocketClose(hash [32]byte) {
 
 }
 
-//this should have a buffered channel that will block the sender when it is full every 1 second it will read from the channels and send off shit to the webservers
-//when it sends shit off it should do so using goroutines so they don't block
+//read only channels,
 func Monitor(DataChannel <-chan types.Record, CommandChanel <-chan int) {
 
 	for {
-		fmt.Printf("\nSleeping in Monitor")
 
 		starttime := time.Now()
 
@@ -93,6 +104,7 @@ func Monitor(DataChannel <-chan types.Record, CommandChanel <-chan int) {
 
 			//select from first available channel ipc
 			select {
+			//keep slurping records from the bufered channel and farm them out to UpdateClient as a goroutine
 			case data := <-DataChannel:
 				go UpdateClient(data.GPS, data.Diagnostic)
 			case command := <-CommandChanel:
