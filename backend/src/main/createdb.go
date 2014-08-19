@@ -3,15 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"os"
-	"log"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
+	"os"
 	"strconv"
-
 )
 
 type DbFunc func(Db *sql.DB)
-
 
 //TODO add indexes
 func main() {
@@ -45,7 +43,6 @@ func main() {
 					DateTime date NOT NULL DEFAULT current_timestamp,
 					FOREIGN KEY (UserID) REFERENCES User(ID));`)
 
-
 			Db.Exec(`CREATE TABLE Errors (
 					ID INTEGER PRIMARY KEY AUTOINCREMENT,
 					GPSRecordID INTEGER NOT NULL,
@@ -58,7 +55,6 @@ func main() {
 					GPSRecordID INTEGER NOT NULL,
 					Acknowledge INTEGER NOT NULL DEFAULT 0,
 					FOREIGN KEY (GPSRecordID) REFERENCES GPSRecords(id));`)
-
 
 			Db.Exec("PRAGMA foreign_keys=ON;")
 			Db.Exec("PRAGMA journal_mode=WAL;")
@@ -93,7 +89,6 @@ func main() {
 					LoggedOut date,
 					PRIMARY KEY(UserID, LoggedIN));)`)
 
-
 			Db.Exec(`CREATE TABLE Company (
 					 ID INTEGER PRIMARY KEY AUTOINCREMENT,
 					 Name TEXT NOT NULL,
@@ -123,7 +118,7 @@ func main() {
 					SHA1 TEXT NOT NULL UNIQUE,
 					ReleaseDate date NOT NULL DEFAULT current_timestamp);`)
 
-           	Db.Exec("PRAGMA foreign_keys=ON;")
+			Db.Exec("PRAGMA foreign_keys=ON;")
 		},
 		func(Db *sql.DB) {
 
@@ -137,18 +132,16 @@ func main() {
 			Db.Exec(`INSERT INTO User (FirstName, LastName, CompanyID, Password, AccessLevel, Email)
 					 VALUES ('Shane' , 'SorgSep', 2, 'shane', 9, 'shane@dapto.net');`)
 
-
- 			//set up some default settings
+			//set up some default settings
 			Db.Exec("INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (1, 'Google Maps', 0, 0, 1);")
 			Db.Exec("INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (2, 'Google Maps', 0, 0, 1);")
 			Db.Exec("INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (3, 'Google Maps', 0, 0, 1);")
 			Db.Exec("INSERT INTO Settings (UserID, MapAPI, Interpolate, SnaptoRoad, CameraPanTrigger) VALUES (4, 'Google Maps', 0, 0, 1);")
 
-
 			Db.Exec("INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('myClubLink' , 1, '2100-01-20 12:00:00', 'img/mcl_logo.png');")
-            Db.Exec("INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2015-06-6 12:00:00', 'img/sussex_logo.PNG');")
+			Db.Exec("INSERT INTO Company (Name, MaxUsers, Expiry, LogoPath) VALUES ('Sussex Inlet RSL Group', 5, '2015-06-6 12:00:00', 'img/sussex_logo.PNG');")
 
-             //Note a company must have a company settings record
+			//Note a company must have a company settings record
 			Db.Exec(`INSERT INTO CompanySettings (CompanyID, RadioCommunication, DataCommunication, SecurityRemoteAdmin,
 					SecurityConsoleAccess, SecurityAdminPasswordReset, MobileSmartPhoneAccess, MinZoom, MaxZoom, HistoricalmapsKmMin, ClubBoundaryKM)
 					VALUES(1, 1, 1, 0, 0, 0, 0, 1, 10, 10, 100);`)
@@ -159,41 +152,58 @@ func main() {
 		},
 	}
 
-	DatabasesChanges := map[string] []DbFunc{
-		"backend.db" : BackendDbSchema,
-		"license.key" : LicenseDbSchema,
+	GeoDbSchema := []DbFunc{
+		func(Db *sql.DB) {
+
+			//point of interest such as street
+			Db.Exec(`CREATE TABLE POI (
+					ID integer primary key autoincrement,
+					Name TEXT NOT NULL);`)
+
+			Db.Exec(`CREATE TABLE LatLong (
+					 LAT TEXT NOT NULL,
+					 LONG TEXT NOT NULL);`)
+
+			Db.Exec("PRAGMA foreign_keys=ON;")
+		},
 	}
-	for k, DataBaseChanges  := range DatabasesChanges {
+
+	DatabasesChanges := map[string][]DbFunc{
+		"backend.db":  BackendDbSchema,
+		"license.key": LicenseDbSchema,
+		"geodata.db":  GeoDbSchema,
+	}
+	for k, DataBaseChanges := range DatabasesChanges {
 
 		DbHandle, err := sql.Open("sqlite3", k)
-    	if err != nil {
-    		fmt.Printf("%s didn't exist. will be created", k)
-    		_, err := os.Create("./backend.db")
+		if err != nil {
+			fmt.Printf("%s didn't exist. will be created", k)
+			_, err := os.Create("./backend.db")
 			if err != nil {
 				log.Fatal("Cannot create %s!\n", k)
 			}
-    	}
+		}
 
 		var user_version int
-    	result := DbHandle.QueryRow("PRAGMA USER_VERSION").Scan(&user_version)
-    	if(result != nil) {
-    		log.Fatal("Cannot get user version\n")
-    	}
+		result := DbHandle.QueryRow("PRAGMA USER_VERSION").Scan(&user_version)
+		if result != nil {
+			log.Fatal("Cannot get user version\n")
+		}
 
-		for i := user_version; i < len(DataBaseChanges)  ; i++ {
-			 defer func() {
+		for i := user_version; i < len(DataBaseChanges); i++ {
+			defer func() {
 				if r := recover(); r != nil {
-				  fmt.Printf("Schema changes failed for version %d on database %s\n", i, k)
-				  DbHandle.Exec("ROLLBACK TRANSACTION")
+					fmt.Printf("Schema changes failed for version %d on database %s\n", i, k)
+					DbHandle.Exec("ROLLBACK TRANSACTION")
 				}
-			 }()
+			}()
 
 			DbHandle.Exec("BEGIN EXCLUSIVE TRANSACTION")
 			fmt.Printf("%s - executing schema version %d\n", k, i)
 			Fn := DataBaseChanges[i]
 			Fn(DbHandle)
 			DbHandle.Exec("COMMIT TRANSACTION")
-			user_version++;
+			user_version++
 		}
 
 		DbHandle.Exec("PRAGMA USER_VERSION=" + strconv.Itoa(user_version))
@@ -201,4 +211,3 @@ func main() {
 
 	}
 }
-

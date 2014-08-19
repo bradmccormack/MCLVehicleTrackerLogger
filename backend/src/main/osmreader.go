@@ -121,4 +121,6 @@ func main() {
 	}
 	fmt.Printf("\n")
 
+	//TODO insert into database , drop current indexes and recreate them
+
 }
