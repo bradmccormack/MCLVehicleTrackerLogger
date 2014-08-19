@@ -1,9 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/xml"
 	"flag"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 	"os"
 )
 
@@ -30,9 +32,17 @@ func main() {
 	nodeMap := make(map[string]Node)
 	wayMap := make(map[string]Way)
 
-	//db := flag.String("database", "address.db", "Name of database to insert records into")
+	dbname := flag.String("database", "geodata.db", "Name of database to insert records into")
 	file := flag.String("input", "data.osm", "Name of osm(xml) file to import rows from")
 	flag.Parse()
+
+	var Db *sql.DB
+	var err error
+	Db, err = sql.Open("sqlite3", *dbname)
+	if err != nil {
+		fmt.Printf("Cannot open database backend.db . Exiting\n")
+		os.Exit(1)
+	}
 
 	fmt.Printf("\nReading %s ...\n", *file)
 
@@ -110,17 +120,22 @@ func main() {
 		}
 
 	}
-	fmt.Printf("\nNumber of nodes is %d", len(nodeMap))
-	WayTest := wayMap["283933425"]
-	fmt.Printf("\nId is %s", WayTest.Id)
-	fmt.Printf("\nName is %s", WayTest.Name) //failed
 
-	fmt.Printf("\n Amount of nodes are %d, Nodes belonging to this are\n", len(WayTest.NodeIds))
-	for _, v := range WayTest.NodeIds {
-		fmt.Printf("\nID is %s", v)
+	fmt.Printf("\nNumber of Places of Interest (streets etc) %d", len(wayMap))
+	fmt.Printf("\nNumber of Nodes %d\n", len(nodeMap))
+
+	Db.Exec("DROP INDEX IDX_latlng")
+
+	Db.Exec("BEGIN TRANSACTION")
+	for _, poi := range wayMap {
+		Db.Exec("INSERT INTO POI (ID, Name) VALUES(?, ?)", poi.Id, poi.Name)
+		for _, nodeID := range poi.NodeIds {
+			node := nodeMap[nodeID]
+
+			Db.Exec("INSERT INTO LatLong (ID, POIID, Name, Lat, Long) VALUES(?, ?, ?, ?, ?)", node.Id, poi.Id, node.Name, node.Lat, node.Lon)
+		}
 	}
-	fmt.Printf("\n")
-
-	//TODO insert into database , drop current indexes and recreate them
+	Db.Exec("CREATE INDEX IDX_latlng ON LatLong(Lat,Long, POID")
+	Db.Exec("COMMIT TRANSACTION")
 
 }

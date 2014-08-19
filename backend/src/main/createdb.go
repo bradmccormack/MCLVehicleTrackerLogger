@@ -157,12 +157,15 @@ func main() {
 
 			//point of interest such as street
 			Db.Exec(`CREATE TABLE POI (
-					ID integer primary key autoincrement,
+					ID INTEGER NOT NULL PRIMARY KEY,
 					Name TEXT NOT NULL);`)
 
 			Db.Exec(`CREATE TABLE LatLong (
+					 ID INTEGER NOT NULL PRIMARY KEY,
+					 POIID INTEGER NOT NULL,
 					 LAT TEXT NOT NULL,
-					 LONG TEXT NOT NULL);`)
+					 LONG TEXT NOT NULL,
+					 Name TEXT);`)
 
 			Db.Exec("PRAGMA foreign_keys=ON;")
 		},
