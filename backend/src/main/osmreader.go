@@ -89,13 +89,14 @@ func main() {
 				//wayMap[ParentID].NodeIds = append(wayMap[ParentID].NodeIds, nodeRef) //is illegal https://code.google.com/p/go/issues/detail?id=3117
 
 			case "tag":
-				//this seems fucked
 				if se.Attr[0].Value == "name" {
 					if ParentType == NODE {
 						NodeParent := nodeMap[ParentID]
 						NodeParent.Name = se.Attr[1].Value
 						nodeMap[ParentID] = NodeParent //rare but I can see intstances such as   <tag k="name" v="Nowra Community Hospital"/>
 					} else if ParentType == WAY {
+						fmt.Printf("\n Looking at a tag element, value is %s, wayparentid is %s\n", se.Attr[1].Value, ParentID)
+
 						WayParent := wayMap[ParentID]
 						WayParent.Name = se.Attr[1].Value
 						wayMap[ParentID] = WayParent //common looks like   <tag k="name" v="Kinghorne Street"/>
