@@ -7,37 +7,30 @@ import (
 	"os"
 )
 
-type Dictionary struct {
-	XMLName xml.Name `xml:  "osm"`
-	Nodes   []node   `xml: "osm>node`
+type Node struct {
+	Id   string `xml : "attr"`
+	Lat  string `xml : "attr"`
+	Lon  string `xml : "attr"`
+	Name string
 }
 
-type node struct {
-	Id        int    `xml : "id,attr"`
-	Visible   string `xml : "visible,attr"`
-	Version   int    `xml : "version,attr"`
-	Changeset string `xml : "changeset,attr"`
-	Timestamp string `xml : "timestamp, attr"`
-	User      string `xml : "user,attr"`
-	Uid       string `xml : "uid,attr"`
-	Lat       string `xml : "lat,attr"`
-	Lon       string `xml : "lon,attr"`
+type Way struct {
+	Id      string `xml : "id,attr"`
+	Name    string
+	NodeIds []string `xml: "nd>ref"`
 }
 
-/*
-type way struct {
-	id     string   `xml : "id,attr"`
-	nodeid []string `xml: "nd>ref"`
-}
-*/
+const (
+	NODE int32 = 0
+	WAY  int32 = 0
+)
 
 func main() {
 
-	nodeMap := make(map[int]node)
-	//wayMap := make(map[string]way)
+	nodeMap := make(map[string]Node)
+	wayMap := make(map[string]Way)
 
 	//db := flag.String("database", "address.db", "Name of database to insert records into")
-
 	file := flag.String("input", "data.osm", "Name of osm(xml) file to import rows from")
 	flag.Parse()
 
@@ -51,51 +44,79 @@ func main() {
 	defer xmlFile.Close()
 
 	decoder := xml.NewDecoder(xmlFile)
-	var inElement string
-	var i int = 0
+	var elm string
+	var ParentID string
+	var ParentType int32
+
 	for {
-		// Read tokens from the XML document in a stream.
 		t, _ := decoder.Token()
 		if t == nil {
 			break
 		}
-		// Inspect the type of the token just read.
+
 		switch se := t.(type) {
 		case xml.StartElement:
-			// If we just read a StartElement token
-			inElement = se.Name.Local
+			elm = se.Name.Local
 
-			switch inElement {
+			switch elm {
 			case "node":
-				var n node
-				decoder.DecodeElement(&n, &se)
-				if i == 0 {
-					fmt.Printf("ID is %d", n.Id)
-					i++
+				//no need to use DecodeElement for now.. this is likely probably faster !
+				n := Node{
+					Id:  se.Attr[0].Value,
+					Lat: se.Attr[7].Value,
+					Lon: se.Attr[8].Value,
+				}
+				ParentID = n.Id
+				ParentType = NODE
+				nodeMap[n.Id] = n
+
+			case "way":
+				w := Way{
+					Id:      se.Attr[0].Value,
+					NodeIds: make([]string, 100), //slice of strings .. not sure about 100 here..
 				}
 
-				/*
-					if i == 0 {
-						for k, v := range se.Attr {
-							fmt.Printf("\nAttr is %s value is %s", k, v)
-						}
-						i++
-					}
-				*/
+				ParentID = w.Id
+				ParentType = WAY
+				wayMap[w.Id] = w
 
-				nodeMap[n.Id] = n
-				/*
-					case "way":
-						var w way
-						decoder.DecodeElement(&w, &se)
-						wayMap[w.id] = w
-				*/
+			case "nd":
+				//find all node refs and add them to NodeIds
+				nodeRef := se.Attr[0].Value
+				WayParent := wayMap[ParentID]
+				WayParent.NodeIds = append(WayParent.NodeIds, nodeRef)
+				wayMap[ParentID] = WayParent
+				//wayMap[ParentID].NodeIds = append(wayMap[ParentID].NodeIds, nodeRef) //is illegal https://code.google.com/p/go/issues/detail?id=3117
+
+			case "tag":
+				//this seems fucked
+				if se.Attr[0].Value == "name" {
+					if ParentType == NODE {
+						NodeParent := nodeMap[ParentID]
+						NodeParent.Name = se.Attr[1].Value
+						nodeMap[ParentID] = NodeParent //rare but I can see intstances such as   <tag k="name" v="Nowra Community Hospital"/>
+					} else if ParentType == WAY {
+						WayParent := wayMap[ParentID]
+						WayParent.Name = se.Attr[1].Value
+						wayMap[ParentID] = WayParent //common looks like   <tag k="name" v="Kinghorne Street"/>
+					}
+
+				}
 			}
 
 		default:
 		}
 
 	}
-	//fmt.Printf("\nNumber of waynodes is %d", len(wayMap))
 	fmt.Printf("\nNumber of nodes is %d", len(nodeMap))
+	WayTest := wayMap["283933425"]
+	fmt.Printf("\nId is %s", WayTest.Id)
+	fmt.Printf("\nName is %s", WayTest.Name) //failed
+
+	fmt.Printf("Nodes belonging to this are\n")
+	for _, v := range WayTest.NodeIds {
+		fmt.Printf("\nID is %s", v)
+	}
+	fmt.Printf("\n")
+
 }
