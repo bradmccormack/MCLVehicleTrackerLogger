@@ -73,7 +73,7 @@ func main() {
 			case "way":
 				w := Way{
 					Id:      se.Attr[0].Value,
-					NodeIds: make([]string, 100), //slice of strings .. not sure about 100 here..
+					NodeIds: make([]string, 0), //slice of strings
 				}
 
 				ParentID = w.Id
@@ -83,25 +83,26 @@ func main() {
 			case "nd":
 				//find all node refs and add them to NodeIds
 				nodeRef := se.Attr[0].Value
+
 				WayParent := wayMap[ParentID]
 				WayParent.NodeIds = append(WayParent.NodeIds, nodeRef)
 				wayMap[ParentID] = WayParent
 				//wayMap[ParentID].NodeIds = append(wayMap[ParentID].NodeIds, nodeRef) //is illegal https://code.google.com/p/go/issues/detail?id=3117
 
 			case "tag":
+
 				if se.Attr[0].Value == "name" {
 					if ParentType == NODE {
 						NodeParent := nodeMap[ParentID]
 						NodeParent.Name = se.Attr[1].Value
 						nodeMap[ParentID] = NodeParent //rare but I can see intstances such as   <tag k="name" v="Nowra Community Hospital"/>
-					} else if ParentType == WAY {
-						fmt.Printf("\n Looking at a tag element, value is %s, wayparentid is %s\n", se.Attr[1].Value, ParentID)
+					}
+					if ParentType == WAY {
 
 						WayParent := wayMap[ParentID]
 						WayParent.Name = se.Attr[1].Value
 						wayMap[ParentID] = WayParent //common looks like   <tag k="name" v="Kinghorne Street"/>
 					}
-
 				}
 			}
 
@@ -114,7 +115,7 @@ func main() {
 	fmt.Printf("\nId is %s", WayTest.Id)
 	fmt.Printf("\nName is %s", WayTest.Name) //failed
 
-	fmt.Printf("Nodes belonging to this are\n")
+	fmt.Printf("\n Amount of nodes are %d, Nodes belonging to this are\n", len(WayTest.NodeIds))
 	for _, v := range WayTest.NodeIds {
 		fmt.Printf("\nID is %s", v)
 	}
