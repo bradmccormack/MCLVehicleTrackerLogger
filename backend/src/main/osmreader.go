@@ -10,9 +10,9 @@ import (
 )
 
 type Node struct {
-	Id   string `xml : "attr"`
-	Lat  string `xml : "attr"`
-	Lon  string `xml : "attr"`
+	Id   string `xml:"id,attr"`
+	Lat  string `xml:"lat,attr"`
+	Lon  string `xml:"lon,attr"`
 	Name string
 }
 
@@ -70,17 +70,16 @@ func main() {
 
 			switch elm {
 			case "node":
-				//no need to use DecodeElement for now.. this is likely probably faster !
-				n := Node{
-					Id:  se.Attr[0].Value,
-					Lat: se.Attr[7].Value,
-					Lon: se.Attr[8].Value,
-				}
+
+				var n Node
+				decoder.DecodeElement(&n, &se)
+
 				ParentID = n.Id
 				ParentType = NODE
 				nodeMap[n.Id] = n
 
 			case "way":
+
 				w := Way{
 					Id:      se.Attr[0].Value,
 					NodeIds: make([]string, 0), //slice of strings
@@ -100,7 +99,7 @@ func main() {
 				//wayMap[ParentID].NodeIds = append(wayMap[ParentID].NodeIds, nodeRef) //is illegal https://code.google.com/p/go/issues/detail?id=3117
 
 			case "tag":
-
+				//this needs checking... might need to use decodeElement
 				if se.Attr[0].Value == "name" {
 					if ParentType == NODE {
 						NodeParent := nodeMap[ParentID]
