@@ -1,15 +1,14 @@
 package main
 
 import (
+	"./dao"
 	"./http"
 	"./socket"
 	"./types"
-	"database/sql"
 	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net"
 	"os"
@@ -21,7 +20,6 @@ import (
 //set the domain based upon the path the executable was run from
 var domain string = "dev.myclublink.com.au"
 var service = flag.String("service", ":6969", "tcp port to bind to")
-var Db *sql.DB
 
 func init() {
 	gob.Register(types.User{})
@@ -44,23 +42,8 @@ func main() {
 		log.Fatal("\nError: ", err)
 	}
 
-	Db, err = sql.Open("sqlite3", "backend.db")
-	if err != nil {
-		fmt.Printf("Cannot open database backend.db . Exiting\n")
-		os.Exit(1)
-	}
-
-	//try to attach the license.key if it opens then close it and attach
-	LDb, err := sql.Open("sqlite3", "license.key")
-	if err != nil {
-		fmt.Printf("\nCannot open database license.key . Exiting\n")
-		os.Exit(1)
-	} else {
-		fmt.Printf("\nLicense.key opened correctly")
-	}
-	LDb.Close()
-
-	defer Db.Close()
+	dao.Open()
+	defer dao.Close()
 
 	//Socket related channels
 	WSDataChannel := make(chan types.Record, 100) //buffered
@@ -111,32 +94,6 @@ func connectionManager(NetworkChannel chan int32, WSCommandChannel chan<- int32,
 	}
 }
 
-func logEntry(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
-
-	_, err := Db.Exec("BEGIN TRANSACTION")
-	_, err = Db.Exec("INSERT INTO GPSRecords (Message, Latitude, Longitude, Speed, Heading, Fix, DateTime, BusID) VALUES ( ? , ?, ? , ? , ? ,? ,? , ?)",
-		entry.Message,
-		entry.Latitude,
-		entry.Longitude,
-		entry.Speed,
-		entry.Heading,
-		entry.Fix,
-		entry.Date,
-		entry.ID)
-
-	_, err = Db.Exec("INSERT INTO DiagnosticRecords (CPUTemperature, CPUVoltage, CPUFrequency, MemoryFree) VALUES (?, ?, ?, ?)",
-		diagnostic.CPUTemp,
-		diagnostic.CPUVolt,
-		diagnostic.CPUFreq,
-		diagnostic.MemFree)
-
-	Db.Exec("COMMIT TRANSACTION")
-	if err != nil {
-		fmt.Printf("Failed to insert row %s", err)
-	}
-
-}
-
 func handleClient(conn *net.TCPConn, WSDataChannel chan<- types.Record, NetworkChannel chan<- int32) {
 
 	//defer anonymous func to handle panics - most likely panicking from garbage that was to be parsed.
@@ -170,9 +127,6 @@ func handleClient(conn *net.TCPConn, WSDataChannel chan<- types.Record, NetworkC
 			fmt.Printf("Failed to decode the JSON bytes -%s\n", err.Error())
 		}
 
-		//fmt.Printf("\nSentence was %s", string(incomingpacket["sentence"]))
-		//fmt.Printf("\nDiagnostic data was %s", string(incomingpacket["diagnostics"]))
-
 		diagnosticfields := strings.Split(string(incomingpacket["diagnostics"]), ",")
 		if len(diagnosticfields) != 4 {
 			fmt.Printf("Error. Diagnostic fields length is incorrect. Is %d should be %d", len(diagnosticfields), 4)
@@ -201,26 +155,10 @@ func handleClient(conn *net.TCPConn, WSDataChannel chan<- types.Record, NetworkC
 		R.GPS.Fix = gpsfields[5][1:] == "true"
 		R.GPS.ID = gpsfields[6][1:]
 
-		/*
-			fmt.Printf("Temp %d, Voltage %d, Frequency %d, MemoryFree %d",
-				R.Diagnostic.CPUTemp,
-				R.Diagnostic.CPUVolt,
-				R.Diagnostic.CPUFreq,
-				R.Diagnostic.MemFree)
-
-			fmt.Printf("Message %s Lat %s Long %s speed %f heading %f fix %t date %s id %s\n",
-				R.GPS.Message,
-				R.GPS.Latitude,
-				R.GPS.Longitude,
-				R.GPS.Speed,
-				R.GPS.Heading,
-				R.GPS.Fix,
-				R.GPS.Date,
-				R.GPS.ID)
-		*/
-
 		if string(incomingpacket["sentence"][0:1]) != "T" {
-			go logEntry(R.GPS, R.Diagnostic)
+			go func() {
+				dao.SavePacket(R.GPS, R.Diagnostic)
+			}()
 		}
 
 		WSDataChannel <- R
