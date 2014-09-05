@@ -1,6 +1,7 @@
 package http
 
 import (
+	"../dao"
 	"../socket"
 	"../types"
 	"../utility"
@@ -19,12 +20,8 @@ import (
 	"time"
 )
 
-//not exported
-var db *sql.DB
+func HttpRouter(BindIP *string) {
 
-func HttpRouter(BindIP *string, Db *sql.DB) {
-
-	db = Db
 	Router := mux.NewRouter()
 
 	viewRouter := Router.Methods("GET").Subrouter()
@@ -87,7 +84,7 @@ var actions = map[string]interface{}{
 		var user types.User = session.Values["User"].(types.User)
 
 		//Update DB
-		db.Exec("UPDATE ApplicationLogin SET LoggedOut = CURRENT_TIMESTAMP WHERE UserID = ? AND LoggedOut IS NULL", user.ID)
+		dao.LogOutUser(user.ID)
 
 		var hash = utility.GetSocketHash(r, user.FirstName, user.LastName)
 		socket.WebSocketClose(hash)
