@@ -105,83 +105,34 @@ var actions = map[string]interface{}{
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
-		db.Exec("ATTACH DATABASE 'license.key' AS L")
 
-		var user types.User
-		var company types.Company
-		var settings types.Settings
 
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		if db == nil {
-			log.Fatal(db)
+		user, company, settings, errors := dao.Login(name, password)
+		
+		if(len(errors == 0) {
+			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
+			session, _ := store.Get(r, "data")
+			//TODO log out users who have been in too long
+			session.Values["User"] = user
+			session.Values["Company"] = company
+			session.Values["Settings"] = settings
+			session.Options = &sessions.Options{
+				Path:   "/",
+				MaxAge: 86400, //1 day
+			}
+
+			if err := session.Save(r, w); err != nil {
+				fmt.Printf("Can't save session data (%s)\n", err.Error())
+			}
+			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
+
+		} else {
+			fmt.Fprint(w, types.JSONResponse{"success": false, "message": "Login failed", "errors": Errors})
 		}
 
-		result := db.QueryRow(`	
-			SELECT U.ID, U.FirstName, U.LastName, U.Password, U.AccessLevel, U.Email, C.Name, C.MaxUsers, C.Expiry, C.LogoPath, S.MapAPI, S.Interpolate, S.SnaptoRoad, S.CameraPanTrigger,
-			CS.RadioCommunication, CS.DataCommunication, CS.SecurityRemoteAdmin, CS.SecurityConsoleAccess, CS.SecurityAdminPasswordReset, CS.MobileSmartPhoneAccess, CS.MobileShowBusLocation,
-			CS.MinZoom, CS.MaxZoom, CS.ClubBoundaryKM
-			FROM User U
-			LEFT JOIN COMPANY AS C on C.ID = U.CompanyID
-			LEFT JOIN Settings AS S on S.UserID = U.ID
-		    LEFT JOIN CompanySettings AS CS on CS.CompanyID = C.ID
-			WHERE UPPER(U.FirstName) = ? AND U.Password = ?`,
-			strings.ToUpper(name), password).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Password, &user.Accesslevel, &user.Email, &company.Name, &company.Maxusers, &company.Expiry,
-			&company.LogoPath, &settings.MapAPI, &settings.Interpolate, &settings.SnaptoRoad, &settings.CameraPanTrigger, &settings.RadioCommunication, &settings.DataCommunication, &settings.SecurityRemoteAdmin,
-			&settings.SecurityConsoleAccess, &settings.SecurityAdminPasswordReset, &settings.MobileSmartPhoneAccess, &settings.MobileShowBusLocation, &settings.MinZoom, &settings.MaxZoom, &settings.ClubBoundaryKM)
-
-		switch {
-		case result == sql.ErrNoRows:
-			fmt.Fprint(w, types.JSONResponse{"success": false, "errors": []string{"Incorrect User/Password specified"}})
-
-		case result != nil:
-			log.Fatal(result)
-		default:
-			var Errors []string
-
-			var LoggedInCount int
-
-			var result error
-			result = db.QueryRow("SELECT COUNT(1) FROM L.ApplicationLogin WHERE LoggedOut IS NULL AND UserID = ?", user.ID).Scan(&LoggedInCount)
-			if result != nil {
-				log.Fatal(result)
-			}
-
-			if LoggedInCount == company.Maxusers {
-				Errors = append(Errors, "Amount of users logged in ("+strconv.Itoa(LoggedInCount)+") matches your license limit ("+strconv.Itoa(company.Maxusers)+")")
-			}
-
-			var ExpiryDate time.Time
-
-			const layout = "2006-01-2 15:4:5" //http://golang.org/src/pkg/time/format.go
-			ExpiryDate, _ = time.Parse(layout, company.Expiry)
-
-			if ExpiryDate.Unix() < time.Now().Unix() {
-				Errors = append(Errors, "Your license has expired. Please contact myClublink support to renew your License")
-			}
-
-			if len(Errors) == 0 {
-				db.Exec("INSERT INTO L.ApplicationLogin (UserID) VALUES ( ?)", user.ID)
-				session, _ := store.Get(r, "data")
-				session.Values["User"] = user
-				session.Values["Company"] = company
-				session.Values["Settings"] = settings
-				session.Options = &sessions.Options{
-					Path:   "/",
-					MaxAge: 86400, //1 day
-				}
-
-				if err := session.Save(r, w); err != nil {
-					fmt.Printf("Can't save session data (%s)\n", err.Error())
-				}
-
-				fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
-			} else {
-				fmt.Fprint(w, types.JSONResponse{"success": false, "message": "Login failed", "errors": Errors})
-			}
-
-		}
 	},
 
 	"ActionSettingsPassword": func(w http.ResponseWriter, r *http.Request) {
