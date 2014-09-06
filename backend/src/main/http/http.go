@@ -104,7 +104,7 @@ var actions = map[string]interface{}{
 		user, company, settings, errors := dao.LoginUser(name, password)
 
 		if len(errors) == 0 {
-			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
+
 			session, _ := store.Get(r, "data")
 
 			//TODO if this user is currently logged in then log them out
