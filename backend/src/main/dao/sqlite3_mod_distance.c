@@ -1,5 +1,9 @@
 #define DEG2RAD(degrees) (degrees * 0.01745327) // degrees * pi over 180
+#include <stdio.h>
 #include <sqlite3ext.h>
+#include <math.h>
+
+
 
 SQLITE_EXTENSION_INIT1
 static void distanceFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
