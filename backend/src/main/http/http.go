@@ -105,8 +105,6 @@ var actions = map[string]interface{}{
 	"ActionLogin": func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 
-
-
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
@@ -115,7 +113,10 @@ var actions = map[string]interface{}{
 		if(len(errors == 0) {
 			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
 			session, _ := store.Get(r, "data")
-			//TODO log out users who have been in too long
+			
+			//TODO if this user is currently logged in then log them out
+			//TODO log out old users who have been logged in more than 24 hours 
+			
 			session.Values["User"] = user
 			session.Values["Company"] = company
 			session.Values["Settings"] = settings
@@ -149,14 +150,15 @@ var actions = map[string]interface{}{
 		}
 		var password string
 
-		_ = db.QueryRow("SELECT Password FROM License.User WHERE ID = ?", user.ID).Scan(&password)
+		password := dao.GetPassword(user.ID)
+	
 		if password == f["passwordold"] {
 			//If only Allow admins to reset password is NOT set then update the users password
 			if settings.SecurityAdminPasswordReset == 0 {
-				db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", f["password"], user.ID)
+				dao.SetPassword(user.ID, f["password"])
 			} else {
 				if user.Accesslevel == 10 {
-					db.Exec("UPDATE License.User SET Password = ? WHERE ID = ?", user.ID)
+					dao.SetPassword(user.ID, f["password"])
 				}
 			}
 
@@ -178,32 +180,15 @@ var actions = map[string]interface{}{
 		var user types.User = session.Values["User"].(types.User)
 		var settings types.Settings = session.Values["Settings"].(types.Settings)
 
-		var f map[string]interface{}
+		var settings map[string]interface{}
 		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&f)
+		err := decoder.Decode(&settings)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		db.Exec("BEGIN EXCLUSIVE TRANSACTION")
-		db.Exec(`UPDATE License.Settings SET MapAPI = ?, Interpolate = ?, SnaptoRoad = ?, CameraPanTrigger = ? WHERE UserID = ? `,
-			f["MapAPI"], f["Interpolate"], f["SnaptoRoad"], f["CameraPanTrigger"], user.ID)
-
-		//If the user is an admin then allow update of admin level fields
-
-		if user.Accesslevel == 10 {
-
-			db.Exec(`UPDATE License.CompanySettings SET RadioCommunication = ?, DataCommunication = ?,
-                             SecurityRemoteAdmin = ?, SecurityConsoleAccess = ?, SecurityAdminPasswordReset = ?,
-                             MobileSmartPhoneAccess = ?, MobileShowBusLocation = ?, MinZoom = ?, MaxZoom = ?, ClubBoundaryKM = ? WHERE CompanyID = (SELECT CompanyID FROM License.User WHERE ID = ?)`,
-				f["RadioCommunication"], f["DataCommunication"],
-				f["SecurityRemoteAdmin"], f["SecurityConsoleAccess"], f["SecurityAdminPasswordReset"],
-				f["MobileSmartPhoneAccess"], f["MobileShowBusLocation"], f["MinZoom"], f["MaxZoom"], f["ClubBoundaryKM"], user.ID)
-
-		}
-
-		db.Exec("COMMIT TRANSACTION")
-
+		dao.SetSettings(&settings)
+		
 		//Update the cookie too
 		settings.MapAPI = f["MapAPI"].(string)
 
