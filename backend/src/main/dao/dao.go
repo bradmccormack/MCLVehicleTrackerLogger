@@ -22,7 +22,14 @@ func init() {
 func Open() {
 	var err error
 
-	db, err = sql.Open("sqlite3", "backend.db")
+	sql.Register("sqlite3_with_extensions",
+		&sqlite3.SQLiteDriver{
+			Extensions: []string{
+				"./sqlite3_mod_distance",
+			},
+		})
+
+	db, err = sql.Open("sqlite3_with_extensions", "backend.db")
 	if err != nil {
 		fmt.Printf("Cannot open database backend.db . Exiting\n")
 		os.Exit(1)
@@ -270,13 +277,6 @@ func GetStreetName(Latitude, Longitude string) string {
 
 	//TODO move this later
 	db.Exec("ATTACH DATABASE 'geodata.db' AS Geo")
-
-	sql.Register("sqlite3_with_extensions",
-		&sqlite3.SQLiteDriver{
-			Extensions: []string{
-				"sqlite3_mod_distance.so",
-			},
-		})
 
 	//SELECT * FROM Locations ORDER BY distance(Latitude, Longitude, 51.503357, -0.1199)
 	var Name, Lat, Long string
