@@ -357,27 +357,16 @@ var views = map[string]interface{}{
 
 		session, _ := store.Get(r, "session")
 
-		var mapAPI string
-		var interpolate, snaptoroad bool
 		var user types.User = session.Values["User"].(types.User)
+		mapAPI, interpolate, snaptoroad := dao.GetSettings(&user)
 
-		result := db.QueryRow(`
-                        SELECT S.MapAPI, S.Interpolate, S.SnaptoRoad
-                        FROM License.Settings S, License.User U
-			WHERE S.UserID = U.ID 
-			AND U.ID = ?`, user.ID).Scan(&mapAPI, &interpolate, &snaptoroad)
-
-		switch {
-		case result != nil:
-			log.Fatal(result)
-		default:
-			session.Values["Settings"] = map[string]interface{}{
-				"MapAPI":      mapAPI,
-				"Interpolate": interpolate,
-				"SnaptoRoad":  snaptoroad,
-			}
-			session.Save(r, w)
+		session.Values["Settings"] = map[string]interface{}{
+			"MapAPI":      mapAPI,
+			"Interpolate": interpolate,
+			"SnaptoRoad":  snaptoroad,
 		}
+
+		session.Save(r, w)
 
 		var err error
 		t := template.New("Settings")

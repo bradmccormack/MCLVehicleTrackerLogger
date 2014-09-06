@@ -32,8 +32,6 @@ func main() {
 	var addr = flag.String("addr", ":8080", "http(s) service address")
 	flag.Parse()
 
-	var err error
-
 	if _, err := os.Stat("backend.db"); err != nil {
 		log.Fatal("\nError: ", err)
 	}
@@ -53,7 +51,7 @@ func main() {
 
 	go socket.Monitor(WSDataChannel, WSCommandChannel)                    //start a websocket dude to arbitrate websockets
 	go connectionManager(NetworkChannel, WSCommandChannel, WSDataChannel) //connection manager to handle (re)connects
-	go http.HttpRouter(addr, Db)
+	go http.HttpRouter(addr)
 
 	//kick off initial connection - send COMMAND_RECONNECT on the Network Channel
 	NetworkChannel <- types.COMMAND_RECONNECT
