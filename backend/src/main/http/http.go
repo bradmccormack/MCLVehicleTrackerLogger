@@ -255,31 +255,10 @@ var actions = map[string]interface{}{
 
 		w.Header().Add("Content-Type", "application/json")
 		//map with string key and slice of string slices
-		var Route = make(map[string][][]string)
 
 		dateFrom := r.FormValue("dateFrom")
 		dateTo := r.FormValue("dateTo")
-
-		fmt.Printf("DateFrom is %s, DateTo is %s", dateFrom, dateTo)
-
-		rows, err := db.Query("SELECT BusID, Latitude, Longitude, Speed, Heading, Fix, DateTime FROM GPSRecords WHERE datetime >=? AND datetime <=? AND Fix AND SPEED > 10 GROUP BY id ORDER BY datetime asc", dateFrom, dateTo)
-		if err != nil {
-			log.Fatal(err)
-		}
-		var ID, Lat, Long, Speed, Fix, Heading, Date string
-
-		//build up the map here
-		for rows.Next() {
-			if err := rows.Scan(&ID, &Lat, &Long, &Speed, &Heading, &Fix, &Date); err != nil {
-				log.Fatal(err)
-			}
-			Route[ID] = append(Route[ID], []string{Lat, Long, Speed, Fix, Heading, Date})
-		}
-
-		if err := rows.Err(); err != nil {
-			log.Fatal(err)
-		}
-
+		Route := dao.GetHistoricalRoute(dateFrom, dateTo)
 		fmt.Fprint(w, types.JSONResponse{"success": true, "data": Route})
 
 	},
