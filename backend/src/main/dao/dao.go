@@ -270,6 +270,18 @@ func GetKMReport() [7]float64 {
 	return kmPerDay
 }
 
+func GetStreetName(Latitude, Longitude string) string {
+
+	//SELECT * FROM Locations ORDER BY distance(Latitude, Longitude, 51.503357, -0.1199)
+	var street string
+	_ = db.QueryRow(`SELECT P.Name, L.Lat,L.Long 
+					 FROM LatLong AS L
+					 JOIN POI AS P ON P.Id = L.POIID
+					 ORDER BY distance(L.Lat, L.Lon, ?, ?)
+					 LIMIT 1`, Latitude, Longitude).Scan(&street)
+	return street
+}
+
 func Close() {
 	db.Close()
 }
