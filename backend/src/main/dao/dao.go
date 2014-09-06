@@ -4,7 +4,8 @@ import (
 	"../types"
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
+	//_ "github.com/mattn/go-sqlite3" underscore must be scope/visibility of the package
+	"github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 	"strconv"
