@@ -25,7 +25,7 @@ func Open() {
 	sql.Register("sqlite3_with_extensions",
 		&sqlite3.SQLiteDriver{
 			Extensions: []string{
-				"./sqlite3_mod_distance",
+				"./sqlite3_mod_distance.so",
 			},
 		})
 
@@ -280,17 +280,19 @@ func GetStreetName(Latitude, Longitude string) string {
 
 	//SELECT * FROM Locations ORDER BY distance(Latitude, Longitude, 51.503357, -0.1199)
 	var Name, Lat, Long string
+	var Distance string
 
-	err := db.QueryRow(`SELECT P.Name, L.Lat,L.Long
+	err := db.QueryRow(`SELECT P.Name, L.Lat,L.Long, distance(L.Lat, L.Long, ?, ?) AS Distance
 						 FROM Geo.LatLong AS L
 						 JOIN Geo.POI AS P ON P.Id = L.POIID
-						 ORDER BY distance(L.Lat, L.Long, ?, ?)
-						 LIMIT 1`, Latitude, Longitude).Scan(&Name, &Lat, &Long)
+						 WHERE Distance < 0.01
+						 ORDER BY Distance
+						 LIMIT 1`, Latitude, Longitude).Scan(&Name, &Lat, &Long, &Distance)
 
 	if err != nil {
 		fmt.Printf("Error happened %s\n", err)
 	} else {
-		fmt.Printf("\nName = %s, Lat = %s, Long = %s", Name, Lat, Long)
+		fmt.Printf("\nName = %s, Lat = %s, Long = %s, dist = %s", Name, Lat, Long, Distance)
 	}
 
 	return Name
