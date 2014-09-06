@@ -16,12 +16,7 @@ import (
 var db *sql.DB
 
 func init() {
-	sql.Register("backend.db",
-		&sqlite3.SQLiteDriver{
-			Extensions: []string{
-				"sqlite3_mod_distance",
-			},
-		})
+
 }
 
 func Open() {
@@ -42,6 +37,7 @@ func Open() {
 		fmt.Printf("\nLicense.key opened correctly")
 	}
 	LDb.Close()
+
 }
 
 func SavePacket(entry *types.GPSRecord, diagnostic *types.DiagnosticRecord) {
@@ -272,14 +268,32 @@ func GetKMReport() [7]float64 {
 
 func GetStreetName(Latitude, Longitude string) string {
 
+	//TODO move this later
+	db.Exec("ATTACH DATABASE 'geodata.db' AS Geo")
+
+	sql.Register("sqlite3_with_extensions",
+		&sqlite3.SQLiteDriver{
+			Extensions: []string{
+				"sqlite3_mod_distance.so",
+			},
+		})
+
 	//SELECT * FROM Locations ORDER BY distance(Latitude, Longitude, 51.503357, -0.1199)
-	var street string
-	_ = db.QueryRow(`SELECT P.Name, L.Lat,L.Long 
-					 FROM LatLong AS L
-					 JOIN POI AS P ON P.Id = L.POIID
-					 ORDER BY distance(L.Lat, L.Lon, ?, ?)
-					 LIMIT 1`, Latitude, Longitude).Scan(&street)
-	return street
+	var Name, Lat, Long string
+
+	err := db.QueryRow(`SELECT P.Name, L.Lat,L.Long
+						 FROM Geo.LatLong AS L
+						 JOIN Geo.POI AS P ON P.Id = L.POIID
+						 ORDER BY distance(L.Lat, L.Long, ?, ?)
+						 LIMIT 1`, Latitude, Longitude).Scan(&Name, &Lat, &Long)
+
+	if err != nil {
+		fmt.Printf("Error happened %s\n", err)
+	} else {
+		fmt.Printf("\nName = %s, Lat = %s, Long = %s", Name, Lat, Long)
+	}
+
+	return Name
 }
 
 func Close() {

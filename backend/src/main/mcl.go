@@ -35,13 +35,6 @@ func main() {
 	var addr = flag.String("addr", ":8080", "http(s) service address")
 	flag.Parse()
 
-	//TODO remove this shit.. its just testing street name stuff
-	if *lat != "" && *lon != "" {
-		street := dao.GetStreetName(*lat, *lon)
-		fmt.Printf("Street is %s", street)
-		os.Exit(0)
-	}
-
 	if _, err := os.Stat("backend.db"); err != nil {
 		log.Fatal("\nError: ", err)
 	}
@@ -51,6 +44,14 @@ func main() {
 	}
 
 	dao.Open()
+
+	//TODO remove this shit.. its just testing street name stuff
+	if *lat != "" && *lon != "" {
+		street := dao.GetStreetName(*lat, *lon)
+		fmt.Printf("\nStreet is %s\n", street)
+		os.Exit(0)
+	}
+
 	defer dao.Close()
 
 	//Socket related channels
