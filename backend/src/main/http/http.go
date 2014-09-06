@@ -5,7 +5,6 @@ import (
 	"../socket"
 	"../types"
 	"../utility"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -15,8 +14,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -75,10 +72,6 @@ var actions = map[string]interface{}{
 
 		w.Header().Add("Content-Type", "application/json")
 
-		if db == nil {
-			log.Fatal(db)
-		}
-
 		session, _ := store.Get(r, "data")
 
 		var user types.User = session.Values["User"].(types.User)
@@ -108,15 +101,15 @@ var actions = map[string]interface{}{
 		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		user, company, settings, errors := dao.Login(name, password)
-		
-		if(len(errors == 0) {
+		user, company, settings, errors := dao.LoginUser(name, password)
+
+		if len(errors) == 0 {
 			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
 			session, _ := store.Get(r, "data")
-			
+
 			//TODO if this user is currently logged in then log them out
-			//TODO log out old users who have been logged in more than 24 hours 
-			
+			//TODO log out old users who have been logged in more than 24 hours
+
 			session.Values["User"] = user
 			session.Values["Company"] = company
 			session.Values["Settings"] = settings
@@ -131,7 +124,7 @@ var actions = map[string]interface{}{
 			fmt.Fprint(w, types.JSONResponse{"success": true, "message": "Login ok", "user": user, "company": company, "settings": settings})
 
 		} else {
-			fmt.Fprint(w, types.JSONResponse{"success": false, "message": "Login failed", "errors": Errors})
+			fmt.Fprint(w, types.JSONResponse{"success": false, "message": "Login failed", "errors": errors})
 		}
 
 	},
@@ -148,17 +141,16 @@ var actions = map[string]interface{}{
 		if err != nil {
 			log.Fatal(err)
 		}
-		var password string
 
 		password := dao.GetPassword(user.ID)
-	
+
 		if password == f["passwordold"] {
 			//If only Allow admins to reset password is NOT set then update the users password
 			if settings.SecurityAdminPasswordReset == 0 {
-				dao.SetPassword(user.ID, f["password"])
+				dao.SetPassword(user.ID, f["password"].(string))
 			} else {
 				if user.Accesslevel == 10 {
-					dao.SetPassword(user.ID, f["password"])
+					dao.SetPassword(user.ID, f["password"].(string))
 				}
 			}
 
@@ -188,7 +180,7 @@ var actions = map[string]interface{}{
 		}
 
 		dao.SetSettings(&settings)
-		
+
 		//Update the cookie too
 		settings.MapAPI = f["MapAPI"].(string)
 
