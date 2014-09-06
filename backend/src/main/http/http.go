@@ -172,14 +172,14 @@ var actions = map[string]interface{}{
 		var user types.User = session.Values["User"].(types.User)
 		var settings types.Settings = session.Values["Settings"].(types.Settings)
 
-		var settings map[string]interface{}
+		var f map[string]interface{}
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&settings)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		dao.SetSettings(&settings)
+		dao.SetSettings(&user, &f)
 
 		//Update the cookie too
 		settings.MapAPI = f["MapAPI"].(string)
