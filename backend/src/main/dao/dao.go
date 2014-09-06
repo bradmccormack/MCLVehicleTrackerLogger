@@ -15,7 +15,12 @@ import (
 var db *sql.DB
 
 func init() {
-
+	sql.Register("backend.db",
+		&sqlite3.SQLiteDriver{
+			Extensions: []string{
+				"sqlite3_mod_distance",
+			},
+		})
 }
 
 func Open() {
