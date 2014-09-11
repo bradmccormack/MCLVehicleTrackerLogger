@@ -282,7 +282,6 @@ func GetStreetName(Latitude, Longitude string) string {
 	_ = db.QueryRow(`SELECT P.Name, L.Lat,L.Long, distance(L.Lat, L.Long, ?, ?) AS Distance
 						 FROM Geo.LatLong AS L
 						 JOIN Geo.POI AS P ON P.Id = L.POIID
-						 WHERE Distance < 0.01
 						 ORDER BY Distance
 						 LIMIT 1`, Latitude, Longitude).Scan(&Name, &Lat, &Long, &Distance)
 
