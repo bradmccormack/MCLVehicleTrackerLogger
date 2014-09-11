@@ -16,18 +16,17 @@ import (
 var db *sql.DB
 
 func init() {
-
-}
-
-func Open() {
-	var err error
-
 	sql.Register("sqlite3_with_extensions",
 		&sqlite3.SQLiteDriver{
 			Extensions: []string{
 				"./sqlite3_mod_distance.so",
 			},
 		})
+
+}
+
+func Open() {
+	var err error
 
 	db, err = sql.Open("sqlite3_with_extensions", "backend.db")
 	if err != nil {
@@ -40,8 +39,6 @@ func Open() {
 	if err != nil {
 		fmt.Printf("\nCannot open database license.key . Exiting\n")
 		os.Exit(1)
-	} else {
-		fmt.Printf("\nLicense.key opened correctly")
 	}
 	LDb.Close()
 
@@ -282,19 +279,20 @@ func GetStreetName(Latitude, Longitude string) string {
 	var Name, Lat, Long string
 	var Distance string
 
-	err := db.QueryRow(`SELECT P.Name, L.Lat,L.Long, distance(L.Lat, L.Long, ?, ?) AS Distance
+	_ = db.QueryRow(`SELECT P.Name, L.Lat,L.Long, distance(L.Lat, L.Long, ?, ?) AS Distance
 						 FROM Geo.LatLong AS L
 						 JOIN Geo.POI AS P ON P.Id = L.POIID
 						 WHERE Distance < 0.01
 						 ORDER BY Distance
 						 LIMIT 1`, Latitude, Longitude).Scan(&Name, &Lat, &Long, &Distance)
 
-	if err != nil {
-		fmt.Printf("Error happened %s\n", err)
-	} else {
-		fmt.Printf("\nName = %s, Lat = %s, Long = %s, dist = %s", Name, Lat, Long, Distance)
-	}
-
+	/*
+		if err != nil {
+			fmt.Printf("Error happened %s\n", err)
+		} else {
+			fmt.Printf("\nName = %s, Lat = %s, Long = %s, dist = %s", Name, Lat, Long, Distance)
+		}
+	*/
 	return Name
 }
 
