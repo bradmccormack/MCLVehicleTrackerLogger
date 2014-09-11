@@ -40,6 +40,7 @@ func Open() {
 		fmt.Printf("\nCannot open database license.key . Exiting\n")
 		os.Exit(1)
 	}
+	db.Exec("ATTACH DATABASE 'geodata.db' AS Geo")
 	LDb.Close()
 
 }
@@ -273,12 +274,12 @@ func GetKMReport() [7]float64 {
 func GetStreetName(Latitude, Longitude string) string {
 
 	//TODO move this later
-	db.Exec("ATTACH DATABASE 'geodata.db' AS Geo")
 
 	//SELECT * FROM Locations ORDER BY distance(Latitude, Longitude, 51.503357, -0.1199)
 	var Name, Lat, Long string
 	var Distance string
 
+	//indexes are not being used
 	_ = db.QueryRow(`SELECT P.Name, L.Lat,L.Long, distance(L.Lat, L.Long, ?, ?) AS Distance
 						 FROM Geo.LatLong AS L
 						 JOIN Geo.POI AS P ON P.Id = L.POIID

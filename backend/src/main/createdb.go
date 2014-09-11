@@ -169,6 +169,9 @@ func main() {
 
 			Db.Exec("PRAGMA foreign_keys=ON;")
 		},
+		func(Db *sql.DB) {
+			Db.Exec("CREATE Index IDX_LATLNG ON LatLong(Lat , Long)")
+		}
 	}
 
 	DatabasesChanges := map[string][]DbFunc{
