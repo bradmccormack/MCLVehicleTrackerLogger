@@ -1,0 +1,250 @@
+<div id="settings" class="container div-panel">
+<h4><i class="icon-cog"></i> Settings </h4>
+
+<div class="accordion" id="accordionuser">
+
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionuser" href="#collapseOne">
+                <i class="icon-user"></i> User
+            </a>
+        </div>
+
+        <div id="collapseOne" class="accordion-body collapse in">
+            <div class="accordion-inner">
+                <div class="well">
+                    <label><strong>Current User</strong> {{User.First}} {{User.Last}}</label>
+                    <label><strong>Access Level</strong> {{User.Access}} <span class="badge">{{User.AccessWord}}</span></label>
+
+                    <div class="control-group">
+                        <div class="controls">
+                            <div class="input-prepend">
+                                <Span>{{Settings}}</span>
+                                <button id="settingsReset" ng-Hide="Password.Hidden" ng-click="Password.ToggleResetWidget()" class="btn"> Reset
+                                    Password
+                                </button>
+
+                                <div ng-hide="Password.WidgetHidden">
+
+                                    <input type="password" placeholder="Old Password ..." ng-model="Password.Old">
+                                    <input type="password" placeholder="New Password ..." ng-model="Password.New">
+                                    <input type="password" placeholder="Confirm New Password ..."
+                                           ng-model="Password.NewConfirm">
+                                    <button class="btn btn-primary" ng-click="Password.Update()"><i
+                                            class="icon-pencil"> </i> Update
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                        <span class="text-error" ng-show="Password.Error"><i class="icon-thumbs-down-alt"></i> {{Password.Error}}</span>
+                        <span class="text-success" ng-show="Password.Note"><i class="icon-thumbs-up-alt"></i> {{Password.Note}}</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-group" id="accordionmap">
+        <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionmap" href="#collapseTwo">
+                <i class="icon-globe"> </i> Map
+            </a>
+        </div>
+
+        <div id="collapseTwo" class="accordion-body collapse out">
+            <div class="accordion-inner">
+                <div class="well">
+                    <strong style="margin-right: 10px">Map API </strong>
+
+
+
+                    <div class="btn-group" ng-show="User.Access > 0">
+                        <a class="btn" href="#"><i class="icon-compass icon-white"> </i> {{Settings.Map.API}}</a>
+                        <a class="btn dropdown-toggle" data-toggle="dropdown"
+                           href="#" >
+                            <span class="caret"> </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href=""><i class="icon-globe"> </i> Google Maps</a></li>
+                            <li><a href=""><i class="icon-globe"> </i> Leaflet<strong class="text-error"> Coming
+                                Soon</strong></a></li>
+                            <li><a href=""><i class="icon-globe"> </i> Bing Maps<strong class="text-error"> Coming
+                                Soon</strong></a></li>
+                            <li><a href=""><i class="icon-globe"> </i> Map Quest<strong class="text-error"> Coming
+                                Soon</strong></a></li>
+                        </ul>
+                    </div>
+
+                    <div ng-show="User.Access == 0">
+                        <span> <i class="icon-globe"></i> {{Settings.Map.API}} </span>
+                    </div>
+                    <hr>
+
+
+                    <div class="row-fluid">
+                        <div class="span4" ng-show="User.Access >= 5">
+
+                            <div class="control-group">
+                                <strong>Communication</strong>
+
+                                <div class="controls">
+                                    <label class="text"> <input type="checkbox" ng-model="Settings.Network.EnableRF">
+                                        Allow
+                                        communication from Radio Frequencies </label>
+                                    <label class="text"> <input type="checkbox" ng-model="Settings.Network.Enable3G">
+                                        Allow
+                                        communication from 3G </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="span4" ng-show="User.Access >= 5">
+                            <div class="control-group">
+                                <strong>Boundaries</strong>
+
+                                <div class="controls">
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.MinZoom">
+                                        Minimum zoom level</label>
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.MaxZoom">
+                                        Maximum zoom level</label>
+                                    <label class="text"> <input class="input_number" type="number" ng-model="Settings.Map.Boundary.ClubBoundaryKM"> KM
+                                        Boundary around the club</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="span4">
+                            <div class="control-group">
+                                <strong>Movement</strong>
+
+                                <div class="controls">
+                                    <label class="text"> <input type="checkbox" ng-model="Settings.Map.Marker.Smooth"  ng-disabled="User.Access == 0">
+                                        Smooth
+                                        Movement
+                                    </label>
+                                    <label class="text"> <input type="checkbox" ng-model="Settings.Map.Marker.SnaptoRoad" disabled> Snap to
+                                        Road</label>
+                                    <span>Update camera every </span><label class="text"> <input type="number" ng-model="Settings.Map.Marker.FollowVehicleTrigger"  ng-disabled="User.Access == 0">
+                                    seconds</label>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+
+
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <div class="accordion-group" id="accordionsecurity" ng-show="User.Access == 10">
+        <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionsecurity"
+               href="#collapseThree">
+                <i class="icon-lock icon-white"></i> Security
+            </a>
+        </div>
+
+
+        <div id="collapseThree" class="accordion-body collapse out">
+            <div class="accordion-inner">
+
+                <div class="well">
+                    <div class="control-group">
+                        <div class="controls">
+                            <label class="text"> <input type="checkbox" ng-model="Settings.Security.RemoteSupport">
+                                Allow
+                                support to remotely administer my system </label>
+                            <label class="text"> <input type="checkbox"
+                                                        ng-model="Settings.Security.SystemConsoleAccess"> Allow
+                                system console access </label>
+                            <label class="text"> <input type="checkbox"
+                                                        ng-model="Settings.Security.AdminPasswordResetOnly" ng-click="Password.ToggleResetHidden()">
+                                Only allow admins to change user passwords </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="accordion-group" id="accordionmobile">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionmobile"
+                   href="#collapseFource">
+                    <i class="icon-mobile-phone icon-white"></i> Mobile
+                </a>
+            </div>
+
+
+            <div id="collapseFource" class="accordion-body collapse out">
+                <div class="accordion-inner">
+                    <div class="well">
+                        <form id="mobileOptions">
+                            <div class="control-group">
+                                <div class="controls">
+                                    <label class="text"> <input type="checkbox"
+                                                                ng-model="Settings.Mobile.AllowSmartPhone">
+                                        Allow
+                                        myClubLink smartphone application system access</label>
+                                    <label class="text"> <input type="checkbox"
+                                                                ng-model="Settings.Mobile.ShowSmartPhoneLocation"> Show
+                                        exact bus location to smartphone users (not recommended) </label>
+
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-group" id="accordionreport">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionreport"
+                       href="#collapseFive">
+                        <i class="icon-bar-chart icon-white"></i> Reports / Data
+                    </a>
+                </div>
+
+
+                <div id="collapseFive" class="accordion-body collapse out">
+                    <div class="accordion-inner">
+                        <div class="well">
+                            <form id="ReportOptions">
+                                <div class="control-group">
+                                    <div class="controls">
+
+                                        <h5>Historical Maps</h5>
+                                        <label>Plot points on map where Bus speed is greater than </label>
+                                        <label class="text"> <input class="input_number"value=10 type="number"  max=10 min=10>
+                                            KM/H <i  data-toggle="tooltip" title="Coming soon - Editable" class="icon-question-sign text-warning icon-2x"></i></label>
+
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+        </div>
+    </div>
+</div>
+
+
+
+
