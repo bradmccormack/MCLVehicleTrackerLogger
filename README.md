@@ -46,6 +46,12 @@ Go (Backend)
 AngularJS
 Web Browsers (Anthing modern supporting CSS3 , HTML5 and web sockets)
 
+Contributors
+---------------
+
+Just plain old me - Brad McCormack
+
+
 Components
 ------------
 The backend/server
@@ -84,10 +90,7 @@ https://github.com/bradmccormack/MCLVehicleTrackerLogger/blob/master/backend/src
 Will import OSM files from Open Street Map into the schema as dictated by createdb.go (please adapt)
 Example location provided https://github.com/bradmccormack/MCLVehicleTrackerLogger/blob/master/backend/src/main/nowrasmall.osm
 
-Contributors
-************
 
-Just plain old me - Brad McCormack
 
 Screenshots to come!
 
