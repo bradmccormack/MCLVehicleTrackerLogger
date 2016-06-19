@@ -21,6 +21,7 @@ import (
 //set the domain based upon the path the executable was run from
 var domain string = "dev.myclublink.com.au"
 var service = flag.String("service", ":6969", "tcp port to bind to")
+
 var lat = flag.String("lat", "", "latitude to test")
 var lon = flag.String("long", "", "longitude to test")
 
@@ -47,7 +48,10 @@ func main() {
 
 	//TODO remove this shit.. its just testing street name stuff
 	if *lat != "" && *lon != "" {
-		street := dao.GetStreetName(*lat, *lon)
+		//func ParseFloat(s string, bitSize int) (f float64, err error)
+		latf, _ := strconv.ParseFloat(*lat, 64)
+		longf, _ := strconv.ParseFloat(*lon, 64)
+		street := dao.GetStreetName(latf, longf)
 		fmt.Printf("\nStreet is %s\n", street)
 		os.Exit(0)
 	}

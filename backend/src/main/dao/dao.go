@@ -271,7 +271,7 @@ func GetKMReport() [7]float64 {
 	return kmPerDay
 }
 
-func GetStreetName(Latitude, Longitude string) string {
+func GetStreetName(Latitude, Longitude float64) string {
 
 	//TODO move this later
 
@@ -279,12 +279,44 @@ func GetStreetName(Latitude, Longitude string) string {
 	var Name, Lat, Long string
 	var Distance string
 
+	//TODO move these calcs out of this function
+	var MetreInLatDegree float64 = 111000
+	var MeterInLongDegree float64 = 111321
+
+	var DiscardM float64 = 50                                  //throw out records greater than 50 M
+	var LatDegreeRatio float64 = DiscardM / MetreInLatDegree   //will give me a fraction of a degree
+	var LongDegreeRatio float64 = DiscardM / MeterInLongDegree // will give me a fraction of a degree
+
+	var MinLat, MaxLat, MinLong, MaxLong float64
+
+	if Latitude < 0 {
+		MinLat = Latitude - LatDegreeRatio
+		MaxLat = Latitude + LatDegreeRatio
+	} else {
+		MinLat = Latitude + LatDegreeRatio
+		MaxLat = Latitude - LatDegreeRatio
+	}
+
+	if Longitude < 0 {
+		MinLong = Longitude - LongDegreeRatio
+		MaxLong = Longitude + LongDegreeRatio
+	} else {
+		MinLong = Longitude + LongDegreeRatio
+		MaxLong = Longitude - LongDegreeRatio
+	}
+
+	fmt.Printf("MinLat is %f\n MaxLat is %f\n MinLong is %f\n MaxLong is %f\n", MinLat, MaxLat, MinLong, MaxLong)
+
+	//need to use an inner query.
+	//outer will select those within the specific distance, inner will calculated distance on the reduced set
+
 	//indexes are not being used
 	_ = db.QueryRow(`SELECT P.Name, L.Lat,L.Long, distance(L.Lat, L.Long, ?, ?) AS Distance
 						 FROM Geo.LatLong AS L
 						 JOIN Geo.POI AS P ON P.Id = L.POIID
+						 WHERE Lat >= ? AND Lat <= ? AND Long >= ? AND Long <= ?
 						 ORDER BY Distance
-						 LIMIT 1`, Latitude, Longitude).Scan(&Name, &Lat, &Long, &Distance)
+						 LIMIT 1`, Latitude, Longitude, MinLat, MaxLat, MinLong, MaxLong).Scan(&Name, &Lat, &Long, &Distance)
 
 	/*
 		if err != nil {
